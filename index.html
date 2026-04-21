@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <title>OS Motores</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <header class="topo" id="header-home">
+        <div class="topo-superior">
+          <div class="titulo-box">
+            <h1>OS Motores</h1>
+            <p id="operador-info">Carregando operador...</p>
+          </div>
+
+          <div class="acoes-topo">
+            <div class="status-linha">
+              <div class="online-box">
+                <span class="online-dot"></span>
+                <span>Online</span>
+              </div>
+
+              <div id="matricula-info" class="matricula-box">----</div>
+            </div>
+
+            <button id="btn-logout" class="logout-btn" title="Sair">
+              Sair
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main id="app-main">
+        <section class="bloco conteudo">
+          <h2>Ordens do meu setor</h2>
+          <p id="setor-aviso" class="setor-aviso"></p>
+          <div id="lista-os"></div>
+        </section>
+      </main>
+
+      <footer class="rodape">
+        <button id="btn-nova-os" class="btn-principal">+ Nova OS</button>
+      </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <div id="select-modal" class="select-modal oculto">
+      <div class="select-backdrop" onclick="fecharSelectModal()"></div>
+
+      <div class="select-sheet">
+        <div class="select-sheet-topo">
+          <h3 id="select-modal-titulo">Selecionar</h3>
+          <button class="select-close-btn" onclick="fecharSelectModal()">Fechar</button>
+        </div>
+
+        <div id="select-modal-opcoes" class="select-opcoes"></div>
+      </div>
+    </div>
+  </body>
+</html>
