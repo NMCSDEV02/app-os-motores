@@ -316,7 +316,6 @@ function voltarHome() {
 
   getMain().innerHTML = `
     <section class="bloco conteudo">
-      <h2>Ordens do meu setor</h2>
       <p id="setor-aviso" class="setor-aviso"></p>
       <div id="lista-os"></div>
     </section>
@@ -495,21 +494,59 @@ async function fazerLoginMatricula() {
 // *********************************/
 function renderizarOperador() {
   const operador = obterOperador();
-  const info = getById("operador-info");
-  const matriculaInfo = getById("matricula-info");
+  const info = document.getElementById("operador-info");
+  const setorAviso = document.getElementById("setor-aviso");
+  const btnStatus = document.getElementById("btn-status-app");
 
-  if (!info || !matriculaInfo) return;
+  if (!info) return;
 
-  if (!operador) {
-    info.textContent = "Nenhum operador encontrado";
-    matriculaInfo.textContent = "----";
-    return;
+  const primeiroNome = operador?.nome?.split(" ")[0] || "Operador";
+  info.textContent = `Olá, ${primeiroNome}`;
+
+  if (setorAviso && operador?.setor) {
+    setorAviso.textContent = `Exibindo todas as ordens do setor ${operador.setor}.`;
   }
 
-  info.textContent = `Operador: ${operador.nome} • Setor: ${operador.setor}`;
-  matriculaInfo.textContent = operador.matricula || "----";
+  if (btnStatus) {
+    const online = navigator.onLine;
+    btnStatus.classList.remove("online", "offline");
+    btnStatus.classList.add(online ? "online" : "offline");
+    btnStatus.title = online ? "Sistema online" : "Sistema offline";
+    btnStatus.innerHTML = `
+      <span class="material-symbols-outlined">
+        ${online ? "wifi" : "wifi_off"}
+      </span>
+    `;
+  }
 }
+function copiarMatricula(valor) {
+  if (!valor) return;
 
+  navigator.clipboard.writeText(valor)
+    .then(() => mostrarToast("Matrícula copiada"))
+    .catch(() => mostrarToast("Não foi possível copiar"));
+}
+function abrirConfiguracoesPlaceholder() {
+  mostrarToast("Configurações em breve");
+}
+function mostrarToast(texto) {
+  let toast = document.getElementById("app-toast");
+
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "app-toast";
+    toast.className = "app-toast";
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = texto;
+  toast.classList.add("show");
+
+  clearTimeout(window.__appToastTimer);
+  window.__appToastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 1800);
+}
 async function carregarOSDaAPI(setor) {
   try {
     const resposta = await fetch(`${API_URL}?acao=listarOS&setor=${encodeURIComponent(setor)}`);
@@ -568,14 +605,14 @@ async function renderizarOS(mostrarLoading = true) {
         <div class="os-card-esquerda">
           <div class="os-codigo">${os.codigo_os}</div>
           <div class="os-motor">${os.motor}</div>
-          <div class="os-responsavel">Responsável: ${os.operador_atual_nome || "Não informado"}</div>
         </div>
 
         <div class="os-card-direita">
-          <div class="os-criada">${criadoHa}</div>
+          <div class="os-meta-topo">${criadoHa}</div>
           <div class="os-badges">
             <div class="${statusClasse}">${os.status}</div>
-            ${os.tem_subtarefa_setor ? `<div class="os-tag-subtarefa">Subtarefa ativa</div>` : ""}
+            <div class="os-tag-subtarefa">${os.setor_atual}</div>
+            ${os.tem_subtarefa_setor ? `<div class="os-tag-subtarefa">Subtarefa</div>` : ""}
           </div>
         </div>
       </div>
@@ -605,7 +642,7 @@ function abrirTelaNovaOS() {
   pararAutoAtualizacao();
   telaAtual = "nova-os";
 
-  const setoresIniciais = ["Desmontagem", "Montagem"];
+  const setoresIniciais = SETORES;
 
   getMain().innerHTML = `
     <section class="bloco conteudo">
@@ -710,121 +747,241 @@ async function abrirDetalheOS(os) {
 
   if (emModoSubtarefa) {
     container.innerHTML = `
-      <section class="bloco conteudo">
-        <button onclick="voltarHome()" class="btn-voltar">⬅ Voltar</button>
+      <section class="bloco conteudo tela-foco">
+        <div class="foco-header os-topo-limpo">
+          <div class="foco-header-texto">
+            <div class="foco-codigo">${os.codigo_os}</div>
+            <div class="foco-subtitulo">${os.motor || "-"} • ${operador?.setor || "-"}</div>
+          </div>
+          <button class="btn-header-detalhes" type="button" onclick="alternarDetalhesOS()" aria-label="Ver detalhes da OS">
+            <span class="material-symbols-outlined">tune</span>
+            <span>Detalhes</span>
+          </button>
+        </div>
 
-        <div class="os-resumo">
-          <h2>${os.codigo_os}</h2>
+        <div class="progress-mini-topo progress-os-topo">
+          <div class="progress-mini-label" id="progress-os-top-label">OS total</div>
+          <div class="progress-bar progress-bar-fina">
+            <div id="progress-os-top-fill" class="progress-fill"></div>
+          </div>
+        </div>
 
+        <div id="painel-detalhes-os" class="painel-detalhes-os oculto">
           <div class="info-grid">
             <div class="info-label">Motor</div>
-            <div class="info-value">${os.motor}</div>
+            <div class="info-value">${os.motor || "-"}</div>
 
             <div class="info-label">Modo</div>
             <div class="info-value">Subtarefa ativa</div>
 
             <div class="info-label">Setor</div>
-            <div class="info-value">${operador.setor}</div>
-          </div>
-
-          <div class="progress-wrapper">
-            <div class="progress-texto" id="progress-texto">Calculando progresso...</div>
-            <div class="progress-bar">
-              <div id="progress-fill" class="progress-fill"></div>
-            </div>
+            <div class="info-value">${operador?.setor || "-"}</div>
           </div>
         </div>
 
-        <div class="secao-titulo">Subtarefas do setor ${operador.setor}</div>
+        <p class="dica-operacao">Toque em uma subtarefa para abrir o checklist dela.</p>
         <div id="lista-subtarefas" class="subtarefas-lista"></div>
       </section>
     `;
 
-    await Promise.all([carregarSubtarefas(true), atualizarBarraProgresso()]);
+    await Promise.all([carregarSubtarefas(true), atualizarBarrasDetalhadas()]);
     iniciarAutoAtualizacao();
     return;
   }
 
   container.innerHTML = `
-    <section class="bloco conteudo">
-      <button onclick="voltarHome()" class="btn-voltar">⬅ Voltar</button>
+    <section class="bloco conteudo tela-foco">
+      <div class="foco-header os-topo-limpo">
+        <div class="foco-header-texto">
+          <div class="foco-codigo">${os.codigo_os}</div>
+          <div class="foco-subtitulo">${os.motor || "-"} • ${os.etapa_atual || "-"}</div>
+        </div>
+        <button class="btn-header-detalhes" type="button" onclick="alternarDetalhesOS()" aria-label="Ver detalhes da OS">
+          <span class="material-symbols-outlined">tune</span>
+          <span>Detalhes</span>
+        </button>
+      </div>
 
-      <div class="os-resumo">
-        <h2>${os.codigo_os}</h2>
+      <div class="progress-mini-topo progress-os-topo">
+        <div class="progress-mini-label" id="progress-os-top-label">OS total</div>
+        <div class="progress-bar progress-bar-fina">
+          <div id="progress-os-top-fill" class="progress-fill"></div>
+        </div>
+      </div>
 
+      <div id="painel-detalhes-os" class="painel-detalhes-os oculto">
         <div class="info-grid">
           <div class="info-label">Motor</div>
-          <div class="info-value">${os.motor}</div>
+          <div class="info-value">${os.motor || "-"}</div>
 
           <div class="info-label">Etapa</div>
-          <div class="info-value">${os.etapa_atual}</div>
+          <div class="info-value">${os.etapa_atual || "-"}</div>
 
           <div class="info-label">Status</div>
-          <div class="info-value">${os.status}</div>
+          <div class="info-value">${os.status || "-"}</div>
         </div>
 
-        <div class="progress-wrapper">
-          <div class="progress-texto" id="progress-texto">Calculando progresso...</div>
+        <div class="progress-wrapper detalhe-progress">
+          <div class="progress-texto" id="progress-os-label">OS total</div>
           <div class="progress-bar">
-            <div id="progress-fill" class="progress-fill"></div>
+            <div id="progress-os-fill" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="progress-wrapper detalhe-progress">
+          <div class="progress-texto" id="progress-checklist-label-detalhe">Checklist atual</div>
+          <div class="progress-bar">
+            <div id="progress-checklist-fill-detalhe" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="progress-wrapper detalhe-progress" id="progress-subtarefas-wrapper">
+          <div class="progress-texto" id="progress-subtarefas-label">Subtarefas</div>
+          <div class="progress-bar">
+            <div id="progress-subtarefas-fill" class="progress-fill"></div>
           </div>
         </div>
       </div>
 
-      <div class="tabs-bar">
-        <button class="tab-btn ativo" id="tab-checklist-btn" onclick="abrirTabDetalhe('checklist')">Checklist</button>
-        <button class="tab-btn" id="tab-subtarefas-btn" onclick="abrirTabDetalhe('subtarefas')">Subtarefas</button>
+      <p class="dica-operacao">Toque no item, confirme e siga para o próximo. Use o botão + para criar subtarefa.</p>
+
+      <div id="checklist" class="checklist-lista">
+        <div class="vazio">Carregando checklist...</div>
       </div>
 
-      <div id="tab-checklist" class="tab-conteudo">
-        <div class="secao-titulo">Checklist</div>
-        <div id="checklist" class="checklist-lista">
-          <div class="vazio">Carregando checklist...</div>
-        </div>
-      </div>
+      <button id="btn-criar-subtarefa-foco" class="fab-subtarefa" type="button" onclick="abrirModalSubtarefa()" aria-label="Criar subtarefa">
+        +
+      </button>
 
-      <div id="tab-subtarefas" class="tab-conteudo" style="display:none;">
-        <div class="secao-titulo">Subtarefas</div>
-
-        <div class="form-card">
-          <div class="campo">
-            <label for="sub-descricao">Descrição</label>
-            <input id="sub-descricao" type="text" placeholder="Digite a subtarefa">
-          </div>
-
-          <div class="campo">
-            <label for="sub-setor-btn">Setor destino</label>
-            <input type="hidden" id="sub-setor" value="${SETORES[0]}">
-            <button type="button" id="sub-setor-btn" class="campo-select-falso">
-              ${SETORES[0]}
-            </button>
-          </div>
-
-          <button onclick="salvarSubtarefa()" class="btn-item">Criar subtarefa</button>
-        </div>
-
-        <div id="lista-subtarefas" class="subtarefas-lista">
-          <div class="vazio">Carregando subtarefas...</div>
-        </div>
-      </div>
+      <div id="lista-subtarefas" class="subtarefas-lista oculto"></div>
     </section>
   `;
 
+  await Promise.all([
+    carregarChecklist(true),
+    carregarSubtarefas(false),
+    atualizarBarrasDetalhadas(),
+  ]);
+
+  iniciarAutoAtualizacao();
+}
+
+function alternarDetalhesOS() {
+  const painel = getById("painel-detalhes-os");
+  const botao = document.querySelector(".btn-header-detalhes");
+  if (!painel) return;
+  painel.classList.toggle("oculto");
+  if (botao) botao.classList.toggle("ativo", !painel.classList.contains("oculto"));
+}
+
+function abrirModalSubtarefa() {
+  const operador = obterOperador();
+  if (!osSelecionada || !operador) return;
+
+  garantirModalSubtarefa();
+
+  const modal = getById("modal-subtarefa");
+  const selectBtn = getById("modal-sub-setor-btn");
+  const hiddenSetor = getById("modal-sub-setor");
+  const input = getById("modal-sub-descricao");
+
+  if (input) input.value = "";
+  if (hiddenSetor) hiddenSetor.value = SETORES[0] || "";
+  if (selectBtn) selectBtn.textContent = SETORES[0] || "Selecionar setor";
+
   ativarSelectCustomizado({
-    hiddenId: "sub-setor",
-    buttonId: "sub-setor-btn",
+    hiddenId: "modal-sub-setor",
+    buttonId: "modal-sub-setor-btn",
     titulo: "Selecionar setor destino",
     opcoes: SETORES,
     valorInicial: SETORES[0],
   });
 
-  await Promise.all([
-    carregarChecklist(true),
-    carregarSubtarefas(true),
-    atualizarBarraProgresso(),
-  ]);
+  modal.classList.remove("oculto");
+}
 
-  iniciarAutoAtualizacao();
+function fecharModalSubtarefa() {
+  const modal = getById("modal-subtarefa");
+  if (modal) modal.classList.add("oculto");
+}
+
+function abrirModalMensagem({ titulo, texto, detalhe }) {
+  garantirModalMensagem();
+
+  const modal = getById("modal-mensagem");
+  const tituloEl = getById("modal-mensagem-titulo");
+  const textoEl = getById("modal-mensagem-texto");
+  const detalheEl = getById("modal-mensagem-detalhe");
+
+  if (tituloEl) tituloEl.textContent = titulo || "Tudo certo";
+  if (textoEl) textoEl.textContent = texto || "";
+  if (detalheEl) detalheEl.textContent = detalhe || "";
+
+  modal.classList.remove("oculto");
+}
+
+function fecharModalMensagem() {
+  const modal = getById("modal-mensagem");
+  if (modal) modal.classList.add("oculto");
+}
+
+function garantirModalSubtarefa() {
+  if (getById("modal-subtarefa")) return;
+
+  const div = document.createElement("div");
+  div.id = "modal-subtarefa";
+  div.className = "app-modal oculto";
+  div.innerHTML = `
+    <div class="app-modal-backdrop" onclick="fecharModalSubtarefa()"></div>
+    <div class="app-modal-card modal-subtarefa-card">
+      <div class="app-modal-topo">
+        <div>
+          <h3>Nova subtarefa</h3>
+          <p class="modal-subtitulo">Envie uma pendência para outro setor sem sair do checklist.</p>
+        </div>
+        <button type="button" class="modal-close" onclick="fecharModalSubtarefa()">Fechar</button>
+      </div>
+
+      <div class="campo">
+        <label>Descrição da pendência</label>
+        <input id="modal-sub-descricao" type="text" placeholder="Ex: Conferir eixo, rebobinar, medir folga">
+      </div>
+
+      <div class="campo">
+        <label>Setor destino</label>
+        <input type="hidden" id="modal-sub-setor" value="${SETORES[0] || ""}">
+        <button type="button" id="modal-sub-setor-btn" class="campo-select-falso campo-select-modal">${SETORES[0] || "Selecionar setor"}</button>
+      </div>
+
+      <div class="modal-info-box">
+        A subtarefa ficará visível somente para o setor destino. Continue concluindo o checklist atual normalmente.
+      </div>
+
+      <button type="button" class="btn-principal btn-modal-criar" onclick="salvarSubtarefa()">Criar e enviar subtarefa</button>
+    </div>
+  `;
+
+  document.body.appendChild(div);
+}
+
+function garantirModalMensagem() {
+  if (getById("modal-mensagem")) return;
+
+  const div = document.createElement("div");
+  div.id = "modal-mensagem";
+  div.className = "app-modal oculto";
+  div.innerHTML = `
+    <div class="app-modal-backdrop" onclick="fecharModalMensagem()"></div>
+    <div class="app-modal-card modal-sucesso-card">
+      <div class="modal-sucesso-icon">✓</div>
+      <h3 id="modal-mensagem-titulo">Tudo certo</h3>
+      <p id="modal-mensagem-texto"></p>
+      <small id="modal-mensagem-detalhe"></small>
+      <button type="button" class="btn-principal" onclick="fecharModalMensagem()">Continuar</button>
+    </div>
+  `;
+
+  document.body.appendChild(div);
 }
 
 //*********************************
@@ -846,39 +1003,30 @@ async function carregarChecklist(mostrarLoading = true) {
     const dados = await resposta.json();
 
     if (!dados || dados.length === 0) {
-      if (String(osSelecionada.etapa_atual).trim() === "Montagem") {
-        container.innerHTML = `
-          <div class="vazio">Montagem bloqueada até concluir todas as subtarefas pendentes da OS.</div>
-        `;
-        container.dataset.carregado = "true";
-        return;
-      }
-
-      container.innerHTML = `
-        <div class="vazio">Checklist concluído ✔</div>
-        <button onclick="concluirEtapa()" class="btn-sucesso">Concluir etapa</button>
-      `;
-      container.dataset.carregado = "true";
+      await tratarChecklistPrincipalZerado(container);
       return;
     }
 
     container.innerHTML = "";
     container.dataset.carregado = "true";
 
-    dados.forEach((item) => {
-      const div = document.createElement("div");
-      div.className = "item-card";
-      div.innerHTML = `
-        <div class="item-titulo">Item ${item.ordem}</div>
-        <div class="item-descricao">${item.descricao}</div>
-      `;
+    dados
+      .sort((a, b) => Number(a.ordem || 0) - Number(b.ordem || 0))
+      .forEach((item) => {
+        const div = document.createElement("div");
+        div.className = "item-card item-card-foco";
+        div.innerHTML = `
+          <div class="item-titulo">Item ${item.ordem}</div>
+          <div class="item-descricao">${item.descricao}</div>
+          <div class="item-meta">Toque para confirmar conclusão</div>
+        `;
 
-      div.addEventListener("click", () => {
-        concluirItem(item.id_item);
+        div.addEventListener("click", () => {
+          confirmarConclusaoItemPrincipal(item);
+        });
+
+        container.appendChild(div);
       });
-
-      container.appendChild(div);
-    });
   } catch (erro) {
     console.error("Erro ao carregar checklist:", erro);
 
@@ -886,6 +1034,58 @@ async function carregarChecklist(mostrarLoading = true) {
       container.innerHTML = `<div class="vazio">Erro ao carregar checklist.</div>`;
     }
   }
+}
+
+async function tratarChecklistPrincipalZerado(container) {
+  let progresso = null;
+
+  try {
+    progresso = await buscarProgressoDetalhadoOS();
+  } catch (erro) {
+    console.warn("Não foi possível confirmar progresso detalhado:", erro);
+  }
+
+  const subtarefasPendentes = Number(progresso?.subtarefas?.pendentes || 0);
+  const checklistTotal = Number(progresso?.checklist_atual?.total || 0);
+
+  if (subtarefasPendentes > 0) {
+    container.innerHTML = `
+      <div class="vazio">
+        ✔ Checklist da etapa concluído.<br>
+        Aguardando ${subtarefasPendentes} subtarefa(s) para liberar a próxima etapa.
+      </div>
+    `;
+    container.dataset.carregado = "true";
+    await atualizarBarrasDetalhadas();
+    return;
+  }
+
+  if (checklistTotal === 0 && String(osSelecionada.etapa_atual || "").trim() === "Montagem") {
+    container.innerHTML = `
+      <div class="vazio">Montagem bloqueada ou sem checklist disponível.</div>
+    `;
+    container.dataset.carregado = "true";
+    await atualizarBarrasDetalhadas();
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="vazio">✔ Etapa concluída. Sincronizando dados...</div>
+  `;
+  container.dataset.carregado = "true";
+
+  setTimeout(async () => {
+    await concluirEtapa(true);
+  }, 900);
+}
+
+function confirmarConclusaoItemPrincipal(item) {
+  const texto = `Confirmar conclusão do item ${item.ordem}?`;
+
+  const confirmar = confirm(texto);
+  if (!confirmar) return;
+
+  concluirItem(item.id_item);
 }
 
 async function concluirItem(id) {
@@ -913,14 +1113,15 @@ async function concluirItem(id) {
       return;
     }
 
-    await Promise.all([carregarChecklist(), atualizarBarraProgresso()]);
+    mostrarToast("Item concluído");
+    await Promise.all([carregarChecklist(false), atualizarBarrasDetalhadas()]);
   } catch (erro) {
     console.error("Erro ao concluir item:", erro);
     alert("Erro ao concluir item.");
   }
 }
 
-async function concluirEtapa() {
+async function concluirEtapa(silencioso = false) {
   try {
     const resposta = await fetch(API_URL, {
       method: "POST",
@@ -933,12 +1134,22 @@ async function concluirEtapa() {
     const resultado = await resposta.json();
 
     if (!resultado.sucesso) {
-      alert("Erro ao concluir etapa");
+      const erro = resultado.erro || "A etapa ainda não pode avançar.";
+      if (!silencioso) alert(erro);
+      else mostrarToast(erro);
+
+      await atualizarBarrasDetalhadas();
+
+      setTimeout(() => {
+        voltarHome();
+      }, 1200);
       return;
     }
 
-    alert("Etapa concluída!");
-    voltarHome();
+    mostrarToast("Etapa finalizada");
+    setTimeout(() => {
+      voltarHome();
+    }, 900);
   } catch (erro) {
     console.error("Erro ao concluir etapa:", erro);
     alert("Erro ao concluir etapa");
@@ -949,8 +1160,14 @@ async function concluirEtapa() {
 // * 12. SUBTAREFAS
 // *********************************/
 async function salvarSubtarefa() {
-  const descricao = getById("sub-descricao")?.value.trim();
-  const setorDestino = getById("sub-setor")?.value;
+  const descricao =
+    getById("modal-sub-descricao")?.value.trim() ||
+    getById("sub-descricao")?.value.trim();
+
+  const setorDestino =
+    getById("modal-sub-setor")?.value ||
+    getById("sub-setor")?.value;
+
   const operador = obterOperador();
 
   if (!descricao) {
@@ -966,6 +1183,7 @@ async function salvarSubtarefa() {
         id_os: osSelecionada.id_os,
         descricao,
         setor_destino: setorDestino,
+        operador_nome: operador?.nome || "",
       }),
     });
 
@@ -976,21 +1194,31 @@ async function salvarSubtarefa() {
       return;
     }
 
-    const input = getById("sub-descricao");
-    if (input) input.value = "";
+    const inputModal = getById("modal-sub-descricao");
+    const inputAntigo = getById("sub-descricao");
+    if (inputModal) inputModal.value = "";
+    if (inputAntigo) inputAntigo.value = "";
+
+    fecharModalSubtarefa();
 
     if (resultado.tipo === "checklist") {
-      abrirTabDetalhe("checklist");
-      await Promise.all([carregarChecklist(), atualizarBarraProgresso()]);
+      abrirModalMensagem({
+        titulo: "Item adicionado",
+        texto: "A atividade foi adicionada ao checklist desta etapa.",
+        detalhe: "Continue concluindo os itens normalmente.",
+      });
+      await Promise.all([carregarChecklist(false), atualizarBarrasDetalhadas()]);
       return;
     }
 
     if (resultado.tipo === "subtarefa") {
-      await Promise.all([carregarSubtarefas(), atualizarBarraProgresso()]);
+      abrirModalMensagem({
+        titulo: "Subtarefa enviada",
+        texto: `A subtarefa foi enviada para o setor ${setorDestino}.`,
+        detalhe: "Continue seu checklist normalmente. A próxima etapa só será liberada quando todas as pendências forem concluídas.",
+      });
 
-      if (setorDestino !== operador.setor) {
-        alert(`Subtarefa enviada para o setor ${setorDestino}.`);
-      }
+      await Promise.all([carregarSubtarefas(false), atualizarBarrasDetalhadas()]);
     }
   } catch (erro) {
     console.error("Erro ao criar subtarefa:", erro);
@@ -1036,7 +1264,7 @@ async function carregarSubtarefas(mostrarLoading = true) {
       const classeStatus = statusConcluido ? "badge-concluido" : "os-status";
 
       const div = document.createElement("div");
-      div.className = "os-card";
+      div.className = "os-card subtarefa-card";
       div.innerHTML = `
         <div class="os-card-topo">
           <div class="os-card-esquerda">
@@ -1055,7 +1283,7 @@ async function carregarSubtarefas(mostrarLoading = true) {
 
       if (osSelecionada.modo_subtarefa && !statusConcluido) {
         div.addEventListener("click", () => {
-          concluirSubtarefa(sub.id_subtarefa);
+          abrirDetalheSubtarefa(sub);
         });
       }
 
@@ -1067,6 +1295,120 @@ async function carregarSubtarefas(mostrarLoading = true) {
     if (mostrarLoading) {
       container.innerHTML = `<div class="vazio">Erro ao carregar subtarefas.</div>`;
     }
+  }
+}
+
+async function abrirDetalheSubtarefa(subtarefa) {
+  telaAtual = "detalhe-subtarefa";
+
+  const container = getMain();
+
+  container.innerHTML = `
+    <section class="bloco conteudo tela-foco">
+      <div class="foco-header">
+        <div class="foco-header-texto">
+          <div class="foco-codigo">Subtarefa</div>
+          <div class="foco-subtitulo">${subtarefa.descricao || "-"} • ${subtarefa.setor_destino || "-"}</div>
+        </div>
+        <button class="btn-header-detalhes" type="button" onclick="voltarHome()">Home</button>
+      </div>
+
+      <div class="progress-mini-topo">
+        <div class="progress-mini-label" id="progress-subtarefa-label">Checklist da subtarefa</div>
+        <div class="progress-bar progress-bar-fina">
+          <div id="progress-subtarefa-fill" class="progress-fill"></div>
+        </div>
+      </div>
+
+      <p class="dica-operacao">Toque no item da subtarefa e confirme a conclusão.</p>
+
+      <div id="checklist-subtarefa" class="checklist-lista">
+        <div class="vazio">Carregando checklist da subtarefa...</div>
+      </div>
+    </section>
+  `;
+
+  osSelecionada.subtarefa_atual = subtarefa;
+  await Promise.all([
+    carregarChecklistSubtarefa(subtarefa),
+    atualizarBarraSubtarefa(subtarefa.id_subtarefa),
+  ]);
+}
+
+async function carregarChecklistSubtarefa(subtarefa) {
+  const container = getById("checklist-subtarefa");
+  if (!container) return;
+
+  try {
+    const resposta = await fetch(`${API_URL}?acao=listarChecklistSubtarefa&id_subtarefa=${subtarefa.id_subtarefa}`);
+    const dados = await resposta.json();
+
+    if (!dados || dados.length === 0) {
+      container.innerHTML = `
+        <div class="vazio">✔ Subtarefa concluída. Voltando para a Home...</div>
+      `;
+
+      setTimeout(() => {
+        voltarHome();
+      }, 1000);
+      return;
+    }
+
+    container.innerHTML = "";
+
+    dados.forEach((item) => {
+      const div = document.createElement("div");
+      div.className = "item-card item-card-foco";
+      div.innerHTML = `
+        <div class="item-titulo">Item ${item.ordem}</div>
+        <div class="item-descricao">${item.descricao}</div>
+        <div class="item-meta">Toque para confirmar conclusão</div>
+      `;
+
+      div.addEventListener("click", () => {
+        const confirmar = confirm(`Confirmar conclusão do item ${item.ordem}?`);
+        if (!confirmar) return;
+        concluirItemChecklistSubtarefa(item, subtarefa);
+      });
+
+      container.appendChild(div);
+    });
+  } catch (erro) {
+    console.error("Erro ao carregar checklist da subtarefa:", erro);
+    container.innerHTML = `<div class="vazio">Erro ao carregar checklist da subtarefa.</div>`;
+  }
+}
+
+async function concluirItemChecklistSubtarefa(item, subtarefa) {
+  const operador = obterOperador();
+
+  try {
+    const resposta = await fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        acao: "concluirItemChecklistSubtarefa",
+        id_item: item.id_item,
+        id_subtarefa: subtarefa.id_subtarefa,
+        operador_nome: operador?.nome || "",
+      }),
+    });
+
+    const resultado = await resposta.json();
+
+    if (!resultado.sucesso) {
+      alert("Erro ao concluir item da subtarefa.");
+      return;
+    }
+
+    mostrarToast("Item da subtarefa concluído");
+
+    await Promise.all([
+      carregarChecklistSubtarefa(subtarefa),
+      atualizarBarraSubtarefa(subtarefa.id_subtarefa),
+    ]);
+  } catch (erro) {
+    console.error("Erro ao concluir item da subtarefa:", erro);
+    alert("Erro ao concluir item da subtarefa.");
   }
 }
 
@@ -1095,7 +1437,7 @@ async function concluirSubtarefa(idSubtarefa) {
       return;
     }
 
-    await Promise.all([carregarSubtarefas(), atualizarBarraProgresso(), carregarChecklist()]);
+    await Promise.all([carregarSubtarefas(false), atualizarBarrasDetalhadas(), carregarChecklist(false)]);
   } catch (erro) {
     console.error("Erro ao concluir subtarefa:", erro);
     alert("Erro ao concluir subtarefa.");
@@ -1105,24 +1447,122 @@ async function concluirSubtarefa(idSubtarefa) {
 //*********************************
 // * 13. PROGRESSO
 //*********************************/
-async function atualizarBarraProgresso() {
-  if (!osSelecionada) return;
+async function buscarProgressoDetalhadoOS() {
+  if (!osSelecionada) return null;
 
   try {
     const resposta = await fetch(
-      `${API_URL}?acao=obterProgressoOS&id_os=${osSelecionada.id_os}&etapa=${encodeURIComponent(osSelecionada.etapa_atual)}`
+      `${API_URL}?acao=obterProgressoDetalhadoOS&id_os=${osSelecionada.id_os}&etapa=${encodeURIComponent(osSelecionada.etapa_atual)}`
     );
 
     const dados = await resposta.json();
-    const percentual = dados.percentual || 0;
 
-    const progressFill = getById("progress-fill");
-    const progressTexto = getById("progress-texto");
-
-    if (progressFill) progressFill.style.width = `${percentual}%`;
-    if (progressTexto) progressTexto.textContent = `Progresso da OS: ${percentual}%`;
+    if (dados && !dados.erro) return dados;
   } catch (erro) {
-    console.error("Erro ao atualizar progresso:", erro);
+    console.warn("Endpoint detalhado indisponível, usando progresso simples:", erro);
+  }
+
+  const respostaFallback = await fetch(
+    `${API_URL}?acao=obterProgressoOS&id_os=${osSelecionada.id_os}&etapa=${encodeURIComponent(osSelecionada.etapa_atual)}`
+  );
+
+  const simples = await respostaFallback.json();
+
+  return {
+    os_total: {
+      total: Number(simples.total || 0),
+      concluidos: Number(simples.concluidos || 0),
+      percentual: Number(simples.percentual || 0),
+    },
+    checklist_atual: {
+      total: Number(simples.total || 0),
+      concluidos: Number(simples.concluidos || 0),
+      percentual: Number(simples.percentual || 0),
+    },
+    subtarefas: {
+      total: 0,
+      concluidas: 0,
+      pendentes: 0,
+      percentual: 0,
+    },
+  };
+}
+
+async function atualizarBarrasDetalhadas() {
+  if (!osSelecionada) return;
+
+  try {
+    const dados = await buscarProgressoDetalhadoOS();
+    if (!dados) return;
+
+    const osTotal = dados.os_total || {};
+    const checklist = dados.checklist_atual || {};
+    const subtarefas = dados.subtarefas || {};
+
+    const checklistPercentual = Number(checklist.percentual || 0);
+    const osPercentual = Number(osTotal.percentual || 0);
+    const subtarefasPercentual = Number(subtarefas.percentual || 0);
+
+    const osTopFill = getById("progress-os-top-fill") || getById("progress-fill");
+    const osTopLabel = getById("progress-os-top-label") || getById("progress-checklist-label");
+
+    if (osTopFill) osTopFill.style.width = `${osPercentual}%`;
+    if (osTopLabel) {
+      osTopLabel.textContent = `OS total: ${osTotal.concluidos || 0}/${osTotal.total || 0} • ${osPercentual}%`;
+    }
+
+    const checklistFillDetalhe = getById("progress-checklist-fill-detalhe");
+    const checklistLabelDetalhe = getById("progress-checklist-label-detalhe");
+
+    if (checklistFillDetalhe) checklistFillDetalhe.style.width = `${checklistPercentual}%`;
+    if (checklistLabelDetalhe) {
+      checklistLabelDetalhe.textContent = `Checklist atual: ${checklist.concluidos || 0}/${checklist.total || 0} • ${checklistPercentual}%`;
+    }
+
+    const osFill = getById("progress-os-fill");
+    const osLabel = getById("progress-os-label");
+
+    if (osFill) osFill.style.width = `${osPercentual}%`;
+    if (osLabel) {
+      osLabel.textContent = `OS total: ${osTotal.concluidos || 0}/${osTotal.total || 0} • ${osPercentual}%`;
+    }
+
+    const subWrapper = getById("progress-subtarefas-wrapper");
+    const subFill = getById("progress-subtarefas-fill");
+    const subLabel = getById("progress-subtarefas-label");
+
+    const totalSubtarefas = Number(subtarefas.total || 0);
+
+    if (subWrapper) {
+      subWrapper.style.display = totalSubtarefas > 0 ? "block" : "none";
+    }
+
+    if (subFill) subFill.style.width = `${subtarefasPercentual}%`;
+    if (subLabel) {
+      subLabel.textContent = `Subtarefas: ${subtarefas.concluidas || 0}/${totalSubtarefas} • ${subtarefasPercentual}%`;
+    }
+  } catch (erro) {
+    console.error("Erro ao atualizar barras detalhadas:", erro);
+  }
+}
+
+async function atualizarBarraProgresso() {
+  await atualizarBarrasDetalhadas();
+}
+
+async function atualizarBarraSubtarefa(idSubtarefa) {
+  try {
+    const resposta = await fetch(`${API_URL}?acao=obterProgressoSubtarefa&id_subtarefa=${idSubtarefa}`);
+    const dados = await resposta.json();
+
+    const percentual = Number(dados.percentual || 0);
+    const fill = getById("progress-subtarefa-fill");
+    const label = getById("progress-subtarefa-label");
+
+    if (fill) fill.style.width = `${percentual}%`;
+    if (label) label.textContent = `Checklist da subtarefa: ${dados.concluidos || 0}/${dados.total || 0} • ${percentual}%`;
+  } catch (erro) {
+    console.error("Erro ao atualizar progresso da subtarefa:", erro);
   }
 }
 
@@ -1655,6 +2095,7 @@ async function carregarProgressoGestao(mostrarLoading = true) {
 // * 15. INICIALIZAÇÃO
 // *********************************/
 function iniciarApp() {
+  
   const btnNovaOS = getById("btn-nova-os");
   const btnLogout = getById("btn-logout");
 
@@ -1669,8 +2110,70 @@ function iniciarApp() {
       fazerLogout();
     });
   }
-
+  iniciarBottomNav();
+  iniciarFAB();
   abrirBoot();
 }
 
+
+
+function iniciarFAB() {
+  const fab = getById("btn-fab-qr");
+  if (!fab) return;
+
+  fab.addEventListener("click", () => {
+    alert("📷 Aqui vamos abrir o leitor de QR Code (próximo passo)");
+  });
+}
+
+
 document.addEventListener("DOMContentLoaded", iniciarApp);
+
+function iniciarBottomNav() {
+  const home = getById("btn-nav-home");
+  const ordens = getById("btn-nav-ordens");
+  const perfil = getById("btn-nav-perfil");
+  const mais = getById("btn-nav-mais");
+
+  if (home) {
+    home.onclick = () => voltarHome();
+  }
+
+  if (ordens) {
+    ordens.onclick = () => renderizarHome();
+  }
+
+  if (perfil) {
+    perfil.onclick = () => abrirPerfilOperador();
+  }
+
+  if (mais) {
+    mais.onclick = () => mostrarToast("Histórico do operador será a próxima etapa");
+  }
+}
+
+function abrirPerfilOperador() {
+  const operador = obterOperador();
+  esconderBotaoNovaOS();
+  esconderHeaderHome();
+  pararAutoAtualizacao();
+  telaAtual = "perfil";
+
+  getMain().innerHTML = `
+    <section class="bloco conteudo">
+      <div class="os-resumo">
+        <h2>Perfil</h2>
+        <div class="info-grid">
+          <div class="info-label">Nome</div>
+          <div class="info-value">${operador?.nome || "-"}</div>
+          <div class="info-label">Matrícula</div>
+          <div class="info-value">${operador?.matricula || "-"}</div>
+          <div class="info-label">Setor</div>
+          <div class="info-value">${operador?.setor || "-"}</div>
+          <div class="info-label">Perfil</div>
+          <div class="info-value">${operador?.perfil || "Operador"}</div>
+        </div>
+      </div>
+    </section>
+  `;
+}

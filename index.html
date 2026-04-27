@@ -11,60 +11,107 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
     <title>OS Motores</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
     <div class="app">
       <header class="topo" id="header-home">
-        <div class="topo-superior">
-          <div class="titulo-box">
-            <h1>OS Motores</h1>
-            <p id="operador-info">Carregando operador...</p>
-          </div>
+        <div id="operador-info">Carregando operador...</div>
 
-          <div class="acoes-topo">
-            <div class="status-linha">
-              <div class="online-box">
-                <span class="online-dot"></span>
-                <span>Online</span>
-              </div>
+        <div class="acoes-topo">
+          <button
+            id="btn-status-app"
+            class="status-app-btn online"
+            type="button"
+            title="Sistema online"
+          >
+            <span class="material-symbols-outlined">wifi</span>
+          </button>
 
-              <div id="matricula-info" class="matricula-box">----</div>
-            </div>
-
-            <button id="btn-logout" class="logout-btn" title="Sair">
-              Sair
-            </button>
-          </div>
+          <button id="btn-logout" class="logout-btn" title="Sair" type="button">
+            <span class="material-symbols-outlined">logout</span>
+          </button>
         </div>
       </header>
 
       <main id="app-main">
         <section class="bloco conteudo">
-          <h2>Ordens do meu setor</h2>
           <p id="setor-aviso" class="setor-aviso"></p>
           <div id="lista-os"></div>
         </section>
       </main>
 
-      <footer class="rodape">
-        <button id="btn-nova-os" class="btn-principal">+ Nova OS</button>
+      <footer class="rodape app-bottom-bar">
+        <button class="bottom-nav-btn ativo" id="btn-nav-home" type="button">
+          <span class="material-symbols-outlined">home</span>
+          <span>Home</span>
+        </button>
+
+        <button class="bottom-nav-btn" id="btn-nav-ordens" type="button">
+          <span class="material-symbols-outlined">list_alt</span>
+          <span>Ordens</span>
+        </button>
+
+        <div class="fab-slot"></div>
+
+        <button class="bottom-nav-btn" id="btn-nav-perfil" type="button">
+          <span class="material-symbols-outlined">badge</span>
+          <span>Perfil</span>
+        </button>
+
+        <button class="bottom-nav-btn" id="btn-nav-mais" type="button">
+          <span class="material-symbols-outlined">apps</span>
+          <span>Mais</span>
+        </button>
+
+        <button
+          id="btn-fab-qr"
+          class="fab-qr"
+          type="button"
+          aria-label="Ler QR Code"
+        >
+          <span class="material-symbols-outlined">qr_code_scanner</span>
+        </button>
+
+        <button
+          id="btn-nova-os"
+          class="btn-principal btn-nova-os-flutuante"
+          type="button"
+        >
+          + Nova OS
+        </button>
       </footer>
     </div>
 
-    <script src="app.js"></script>
     <div id="select-modal" class="select-modal oculto">
       <div class="select-backdrop" onclick="fecharSelectModal()"></div>
 
       <div class="select-sheet">
         <div class="select-sheet-topo">
           <h3 id="select-modal-titulo">Selecionar</h3>
-          <button class="select-close-btn" onclick="fecharSelectModal()">Fechar</button>
+          <button
+            class="select-close-btn"
+            type="button"
+            onclick="fecharSelectModal()"
+          >
+            Fechar
+          </button>
         </div>
 
         <div id="select-modal-opcoes" class="select-opcoes"></div>
       </div>
     </div>
+
+    <script src="app.js"></script>
   </body>
 </html>
