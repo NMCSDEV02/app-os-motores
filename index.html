@@ -1,117 +1,41 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#0f172a" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
-    <title>OS Motores</title>
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
-  </head>
-
-  <body>
-    <div class="app">
-      <header class="topo" id="header-home">
-        <div id="operador-info">Carregando operador...</div>
-
-        <div class="acoes-topo">
-          <button
-            id="btn-status-app"
-            class="status-app-btn online"
-            type="button"
-            title="Sistema online"
-          >
-            <span class="material-symbols-outlined">wifi</span>
-          </button>
-
-          <button id="btn-logout" class="logout-btn" title="Sair" type="button">
-            <span class="material-symbols-outlined">logout</span>
-          </button>
-        </div>
-      </header>
-
-      <main id="app-main">
-        <section class="bloco conteudo">
-          <p id="setor-aviso" class="setor-aviso"></p>
-          <div id="lista-os"></div>
-        </section>
-      </main>
-
-      <footer class="rodape app-bottom-bar">
-        <button class="bottom-nav-btn ativo" id="btn-nav-home" type="button">
-          <span class="material-symbols-outlined">home</span>
-          <span>Home</span>
-        </button>
-
-        <button class="bottom-nav-btn" id="btn-nav-ordens" type="button">
-          <span class="material-symbols-outlined">list_alt</span>
-          <span>Ordens</span>
-        </button>
-
-        <div class="fab-slot"></div>
-
-        <button class="bottom-nav-btn" id="btn-nav-perfil" type="button">
-          <span class="material-symbols-outlined">badge</span>
-          <span>Perfil</span>
-        </button>
-
-        <button class="bottom-nav-btn" id="btn-nav-mais" type="button">
-          <span class="material-symbols-outlined">apps</span>
-          <span>Mais</span>
-        </button>
-
-        <button
-          id="btn-fab-qr"
-          class="fab-qr"
-          type="button"
-          aria-label="Ler QR Code"
-        >
-          <span class="material-symbols-outlined">qr_code_scanner</span>
-        </button>
-
-        <button
-          id="btn-nova-os"
-          class="btn-principal btn-nova-os-flutuante"
-          type="button"
-        >
-          + Nova OS
-        </button>
-      </footer>
-    </div>
-
-    <div id="select-modal" class="select-modal oculto">
-      <div class="select-backdrop" onclick="fecharSelectModal()"></div>
-
-      <div class="select-sheet">
-        <div class="select-sheet-topo">
-          <h3 id="select-modal-titulo">Selecionar</h3>
-          <button
-            class="select-close-btn"
-            type="button"
-            onclick="fecharSelectModal()"
-          >
-            Fechar
-          </button>
-        </div>
-
-        <div id="select-modal-opcoes" class="select-opcoes"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f8fafc" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>OS Motores V5</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/global.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header id="appHeader" class="app-header hidden">
+      <div>
+        <div class="hello" id="headerGreeting">Olá</div>
+        <div class="subline" id="headerContext">Carregando...</div>
       </div>
-    </div>
+      <div class="header-actions">
+        <button id="btnSearch" class="icon-btn" title="Buscar OS" type="button">⌕</button>
+        <button id="btnQrTop" class="icon-btn primary qr-text-btn" title="Ler QR Code" type="button">QR</button>
+      </div>
+    </header>
 
-    <script src="app.js"></script>
-  </body>
+    <main id="screen" class="screen"></main>
+
+    <nav id="bottomNav" class="bottom-nav hidden">
+      <button data-nav="history" class="nav-btn"><span>◷</span><small>Histórico</small></button>
+      <button data-nav="home" class="nav-btn active"><span>⌂</span><small>Início</small></button>
+      <button data-nav="settings" class="nav-btn"><span>⚙</span><small>Config.</small></button>
+    </nav>
+  </div>
+
+  <div id="modalRoot"></div>
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
 </html>
