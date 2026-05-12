@@ -1,5 +1,5 @@
-const CACHE_NAME = "os-motores-v5-cache-1";
-const ASSETS = ["./","./index.html","./css/global.css","./css/components.css","./js/app.js","./js/api.js","./js/storage.js","./js/ui.js","./js/auth.js","./js/operator.js","./js/manager.js","./js/admin.js","./js/qr.js","./manifest.json"];
+const CACHE_NAME = "projeto-natan-v3-1-cache-1";
+const ASSETS = ["./","./index.html","./css/global.css","./css/components.css","./css/v3-pro.css","./js/app.js","./js/api.js","./js/storage.js","./js/ui.js","./js/auth.js","./js/operator.js","./js/manager.js","./js/admin.js","./js/qr.js","./manifest.json"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)))));self.clients.claim()});
 self.addEventListener("fetch",e=>{
