@@ -1,0 +1,182 @@
+/* Projeto Natan V3.8 — Progress Engine + Caixas Inteligentes */
+
+.smart-box,
+.os-card,
+.prod-card,
+.manager-kpi-card,
+.admin-desktop-card{
+  position:relative;
+  overflow:hidden;
+}
+
+.smart-box::before,
+.os-card::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:4px;
+  background:transparent;
+  border-radius:999px;
+}
+
+.os-card[data-state="em-processo"]::before,
+.smart-box[data-state="em-processo"]::before{
+  background:#2563eb;
+}
+
+.os-card[data-state="atencao"]::before,
+.smart-box[data-state="atencao"]::before{
+  background:#f59e0b;
+}
+
+.os-card[data-state="concluido"]::before,
+.smart-box[data-state="concluido"]::before{
+  background:#16a34a;
+}
+
+.os-card[data-state="bloqueado"]::before,
+.smart-box[data-state="bloqueado"]::before{
+  background:#dc2626;
+}
+
+.progress,
+.smart-progress{
+  height:8px!important;
+  background:#e2e8f0!important;
+  border-radius:999px!important;
+  overflow:hidden!important;
+  position:relative!important;
+}
+
+.progress>span,
+.smart-progress>span{
+  display:block!important;
+  height:100%!important;
+  width:0%;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,#2563eb,#60a5fa)!important;
+  transition:width 280ms ease!important;
+}
+
+.progress.green>span,
+.smart-progress.green>span{
+  background:linear-gradient(90deg,#16a34a,#86efac)!important;
+}
+
+.progress.yellow>span,
+.smart-progress.yellow>span{
+  background:linear-gradient(90deg,#f59e0b,#facc15)!important;
+}
+
+.progress.red>span,
+.smart-progress.red>span{
+  background:linear-gradient(90deg,#dc2626,#fca5a5)!important;
+}
+
+.progress.is-updating::after,
+.smart-progress.is-updating::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  animation:progressSweep 900ms linear infinite;
+}
+
+@keyframes progressSweep{
+  from{transform:translateX(-100%)}
+  to{transform:translateX(100%)}
+}
+
+.progress-pulse{
+  animation:progressPulse 520ms ease;
+}
+
+@keyframes progressPulse{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.015)}
+  100%{transform:scale(1)}
+}
+
+.smart-meta-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:12px;
+}
+
+.smart-meta{
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  background:#f8fafc;
+  padding:10px;
+}
+
+.smart-meta small{
+  display:block;
+  color:#64748b;
+  font-size:11px;
+  font-weight:850;
+  margin-bottom:4px;
+}
+
+.smart-meta b{
+  display:block;
+  color:#0f172a;
+  font-size:14px;
+  font-weight:950;
+}
+
+.smart-status-line{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:10px;
+  color:#64748b;
+  font-size:12px;
+  font-weight:850;
+}
+
+.smart-status-dot{
+  width:9px;
+  height:9px;
+  border-radius:999px;
+  background:#2563eb;
+  display:inline-block;
+  margin-right:6px;
+}
+
+.smart-status-dot.green{background:#16a34a}
+.smart-status-dot.yellow{background:#f59e0b}
+.smart-status-dot.red{background:#dc2626}
+
+.item-completing{
+  opacity:.65;
+  pointer-events:none;
+  transform:scale(.99);
+}
+
+body.theme-dark .progress,
+body.theme-dark .smart-progress{
+  background:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .smart-meta{
+  background:#020617!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .smart-meta small,
+body.theme-dark .smart-status-line{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .smart-meta b{
+  color:#f8fafc!important;
+}
+
+@media(max-width:420px){
+  .smart-meta-grid{
+    grid-template-columns:1fr;
+  }
+}

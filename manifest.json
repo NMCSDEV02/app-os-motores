@@ -1,9 +1,22 @@
 {
-  "name": "Projeto Natan V3 PRO",
+  "name": "Projeto Natan V3",
   "short_name": "Natan V3",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f6f7f9",
-  "theme_color": "#f8fafc",
-  "icons": []
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "icons/icon-light.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-light.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
 }

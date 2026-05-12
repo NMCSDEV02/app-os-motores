@@ -26,7 +26,9 @@ export function openQrScreen(from = "auto"){
     <button id="btnCloseQR" class="qr-close-bottom" aria-label="Fechar leitor">×</button>
   </div>`;
 
-  document.querySelector("#btnCloseQR").onclick = () => closeQR(true);
+  
+  window.dispatchEvent(new Event("natan-qr-screen-rendered"));
+document.querySelector("#btnCloseQR").onclick = () => closeQR(true);
   document.querySelector("#btnStartQR").onclick = startQR;
   timer = setTimeout(() => closeQR(true), 30000);
 }
@@ -71,10 +73,19 @@ function scanLoop(video){
 async function handleQR(data){
   try{
     const u = currentUser();
-    const res = await apiGet("resolverQR", {valor:data, setor:u?.setor || ""});
+    const res = await apiGet("resolverQR", {valor:data, setor:u?.setor || "", perfil:u?.perfil || "", modo:localStorage.getItem("natan_qr_mode") || "auto", contexto:localStorage.getItem("natan_qr_context") || ""});
     closeQR(false);
-    if(res.tipo === "OS" || res.tipo === "Subtarefa") openOS(res.os);
-    else toast(res.mensagem || "QR lido");
+
+    if(res.tipo === "OS" || res.tipo === "Subtarefa") return openOS(res.os);
+
+    if(res.tipo === "KIT"){
+      toast(res.mensagem || `Kit ${res.kit?.codigo_qr || ""} localizado`);
+      if(res.os) return openOS(res.os);
+      return voltarParaOrigem();
+    }
+
+    toast(res.mensagem || "QR lido");
+    voltarParaOrigem();
   }catch(e){
     toast("QR não reconhecido");
   }
@@ -97,3 +108,106 @@ function voltarParaOrigem(){
   if(perfil === "gestao" || perfil === "gestor") return renderManager();
   return renderHome();
 }
+
+
+function autoStartQrCameraV30(){
+  const tryStart = () => {
+    const startBtn = document.querySelector("#btnStartQr, #btnQrStart, [data-qr-start], .qr-start-btn, .btn-start-camera");
+    if(startBtn){
+      startBtn.style.display = "none";
+      startBtn.setAttribute("aria-hidden", "true");
+      setTimeout(()=>startBtn.click(), 250);
+      return true;
+    }
+
+    if(typeof startQrCamera === "function"){
+      setTimeout(()=>startQrCamera(), 250);
+      return true;
+    }
+
+    if(typeof ativarCameraQR === "function"){
+      setTimeout(()=>ativarCameraQR(), 250);
+      return true;
+    }
+
+    if(typeof startCamera === "function"){
+      setTimeout(()=>startCamera(), 250);
+      return true;
+    }
+
+    return false;
+  };
+
+  if(!tryStart()){
+    setTimeout(tryStart, 600);
+  }
+}
+
+window.addEventListener("natan-qr-screen-rendered", autoStartQrCameraV30);
+
+
+
+function findQrStartButtonV31(){
+  const candidates = Array.from(document.querySelectorAll("button, .btn, [role='button']"));
+  return candidates.find(el=>{
+    const txt = (el.textContent || "").trim().toLowerCase();
+    const id = (el.id || "").toLowerCase();
+    const cls = (el.className || "").toString().toLowerCase();
+    return txt.includes("ativar câmera") ||
+      txt.includes("ativar camera") ||
+      txt.includes("iniciar câmera") ||
+      txt.includes("iniciar camera") ||
+      id.includes("qr") && (id.includes("start") || id.includes("camera")) ||
+      cls.includes("qr") && (cls.includes("start") || cls.includes("camera"));
+  });
+}
+
+function autoStartQrCameraV31(){
+  const btn = findQrStartButtonV31();
+
+  if(btn){
+    btn.classList.add("qr-auto-hidden-v31");
+    btn.style.display = "none";
+    btn.style.visibility = "hidden";
+    btn.style.pointerEvents = "none";
+
+    if(!window.__natanQrAutoClicked){
+      window.__natanQrAutoClicked = true;
+      setTimeout(()=>btn.click(), 220);
+    }
+    return true;
+  }
+
+  const fnNames = ["startQrCamera","ativarCameraQR","startCamera","startQr","startScanner","initQrCamera"];
+  for(const name of fnNames){
+    if(typeof window[name] === "function"){
+      if(!window.__natanQrAutoClicked){
+        window.__natanQrAutoClicked = true;
+        setTimeout(()=>window[name](), 220);
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function initQrAutoStartV31(){
+  window.__natanQrAutoClicked = false;
+  autoStartQrCameraV31();
+  setTimeout(autoStartQrCameraV31, 350);
+  setTimeout(autoStartQrCameraV31, 900);
+}
+
+window.addEventListener("natan-qr-screen-rendered", initQrAutoStartV31);
+
+const qrAutoObserverV31 = new MutationObserver(()=>{
+  if((document.body.textContent || "").includes("Lendo QR Code")){
+    autoStartQrCameraV31();
+  }
+});
+
+try{
+  qrAutoObserverV31.observe(document.body,{childList:true,subtree:true});
+}catch(e){}
+

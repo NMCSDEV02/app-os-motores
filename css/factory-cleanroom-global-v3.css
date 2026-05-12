@@ -1,0 +1,490 @@
+/* ==========================================================================
+   V3.25 — TEMA CHÃO DE FÁBRICA CLEAN ROOM
+   Refeito do zero para Operador, Gestão e Administrador.
+   Esta camada deve ser SEMPRE a última folha CSS carregada.
+   ========================================================================== */
+
+/* =========================
+   TOKENS
+   ========================= */
+
+html.theme-factory,
+body.theme-factory{
+  --floor-bg:#030806;
+  --floor-bg-2:#06100b;
+  --floor-bg-3:#08140e;
+
+  --floor-surface:#0a1710;
+  --floor-surface-2:#0f2419;
+  --floor-surface-3:#143021;
+  --floor-elevated:#10261b;
+
+  --floor-line:rgba(134,239,172,.20);
+  --floor-line-strong:rgba(134,239,172,.38);
+
+  --floor-text:#f4fff8;
+  --floor-text-2:#dfffea;
+  --floor-muted:#aacdb6;
+  --floor-muted-2:#82a990;
+
+  --floor-danger:#fca5a5;
+  --floor-warning:#fbbf24;
+
+  --floor-shadow:0 18px 52px rgba(0,0,0,.38);
+  --floor-shadow-soft:0 10px 30px rgba(0,0,0,.24);
+
+  --floor-accent:#22c55e;
+  --floor-accent-2:#86efac;
+  --floor-accent-dark:#14532d;
+  --floor-accent-soft:rgba(34,197,94,.16);
+  --floor-accent-line:rgba(134,239,172,.38);
+
+  background:
+    radial-gradient(circle at 12% 0%, var(--floor-accent-soft), transparent 35%),
+    radial-gradient(circle at 92% 96%, rgba(255,255,255,.045), transparent 28%),
+    linear-gradient(180deg,var(--floor-bg-2),var(--floor-bg))!important;
+  background-color:var(--floor-bg)!important;
+  color:var(--floor-text)!important;
+}
+
+html.theme-factory.factory-variant-green,
+body.theme-factory.factory-variant-green{
+  --floor-accent:#22c55e;
+  --floor-accent-2:#86efac;
+  --floor-accent-dark:#14532d;
+  --floor-accent-soft:rgba(34,197,94,.16);
+  --floor-accent-line:rgba(134,239,172,.38);
+}
+
+html.theme-factory.factory-variant-amber,
+body.theme-factory.factory-variant-amber{
+  --floor-accent:#f59e0b;
+  --floor-accent-2:#fbbf24;
+  --floor-accent-dark:#78350f;
+  --floor-accent-soft:rgba(245,158,11,.16);
+  --floor-accent-line:rgba(251,191,36,.38);
+}
+
+html.theme-factory.factory-variant-steel,
+body.theme-factory.factory-variant-steel{
+  --floor-accent:#38bdf8;
+  --floor-accent-2:#7dd3fc;
+  --floor-accent-dark:#0c4a6e;
+  --floor-accent-soft:rgba(56,189,248,.16);
+  --floor-accent-line:rgba(125,211,252,.38);
+}
+
+/* =========================
+   RESET GLOBAL
+   ========================= */
+
+body.theme-factory,
+body.theme-factory *{
+  box-sizing:border-box;
+}
+
+body.theme-factory .app,
+body.theme-factory #app,
+body.theme-factory main,
+body.theme-factory #screen,
+body.theme-factory .screen,
+body.theme-factory .page,
+body.theme-factory .page-shell,
+body.theme-factory .page-container,
+body.theme-factory .screen-shell,
+body.theme-factory .screen-container,
+body.theme-factory .mobile-shell,
+body.theme-factory .manager-screen,
+body.theme-factory .manager-subpage,
+body.theme-factory .admin-main,
+body.theme-factory .admin-content,
+body.theme-factory .admin-dashboard,
+body.theme-factory .admin-desktop-shell,
+body.theme-factory .operator-page,
+body.theme-factory .operator-screen{
+  background:transparent!important;
+  background-color:transparent!important;
+  color:var(--floor-text)!important;
+}
+
+/* Wrappers não devem criar coluna branca */
+body.theme-factory [class*="container"],
+body.theme-factory [class*="wrapper"],
+body.theme-factory [class*="shell"]{
+  background-color:transparent!important;
+}
+
+/* =========================
+   CLASSES FORÇADAS PELO JS GUARD
+   ========================= */
+
+body.theme-factory .floor-forced-surface,
+body.theme-factory .floor-forced-card,
+body.theme-factory .factory-forced-surface{
+  background:linear-gradient(180deg,var(--floor-surface-2),var(--floor-surface))!important;
+  background-color:var(--floor-surface)!important;
+  border-color:var(--floor-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:var(--floor-shadow-soft)!important;
+}
+
+body.theme-factory .floor-forced-text{
+  color:var(--floor-text)!important;
+}
+
+body.theme-factory .floor-forced-muted{
+  color:var(--floor-muted)!important;
+}
+
+/* =========================
+   SUPERFÍCIES PADRÃO
+   ========================= */
+
+body.theme-factory :is(
+  .card,.row-card,.os-card,.operator-os-card,.check-item,.checklist-card,
+  .subtask-card,.history-card,.historico-card,.operator-history-card,
+  .timeline-card,.activity-card,.log-card,.event-card,.list-card,.mobile-card,
+  .record-card,.registry-card,.audit-card,.detail-card,.detail-box,.empty,
+  .manager-list-card,.manager-setting-block,.manager-config-card,.manager-os-detail-box,
+  .manager-checklist-item,.manager-param-input,.manager-layout-card,.manager-kpi-option-row,
+  .manager-toggle-row,.manager-setting-option,.manager-danger-zone,.manager-config-summary,
+  .operator-setting-block,.operator-setting-option,.operator-config-summary,.operator-danger-zone,
+  .data-accel-card,.data-accel-status,.data-accel-option,
+  .admin-kpi-card,.admin-stat-card,.dashboard-card,.kpi-card,.metric-card,.admin-card,
+  .admin-desktop-card,.admin-desktop-section,.kpi-insight-panel,.kpi-insight-row,
+  .ranking-card,.ranking-item,.admin-row,.admin-list-item,.admin-table-card,
+  .admin-empty-state,.v35-empty-state,.v35-card,.v35-panel,.v36-card,.v36-panel,
+  .notification-card,.notification-item,.notif-card,.notif-item,.notify-card,.notify-mini-item,
+  .op-notify-card,.operator-notify-panel,.modal,.modal-card,.notification-modal,
+  .notifications-modal,.dialog-card,.sheet-modal,.kit-card,.kpi-click,.admin-drawer
+){
+  background:linear-gradient(180deg,var(--floor-surface-2),var(--floor-surface))!important;
+  background-color:var(--floor-surface)!important;
+  border:1px solid var(--floor-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:var(--floor-shadow-soft)!important;
+}
+
+/* Cards internos sem classe específica */
+body.theme-factory :is(.history-list,.operator-history-list,.timeline-list,.activity-list) > *,
+body.theme-factory :is(.gestao-op-section,.ranking-card,.kpi-insight-panel,.admin-desktop-section) > div,
+body.theme-factory #hist > *{
+  background:linear-gradient(180deg,var(--floor-surface-2),var(--floor-surface))!important;
+  background-color:var(--floor-surface)!important;
+  border-color:var(--floor-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:var(--floor-shadow-soft)!important;
+}
+
+/* =========================
+   TIPOGRAFIA
+   ========================= */
+
+body.theme-factory :is(
+  h1,h2,h3,h4,h5,h6,b,strong,
+  .title,.page-title h1,.manager-page-title,.section-title,.operator-title,.home-title,
+  .hist-title,.check-title,.metric-value,.kpi-value,.big-number,
+  .admin-number,.admin-main h1,.admin-main h2,.admin-main h3,.admin-main b,.admin-main strong,
+  .manager-list-card h3,.manager-setting-block h2,.operator-setting-block h2,
+  .data-accel-card h2,.data-accel-status b,.data-accel-option b
+){
+  color:var(--floor-text)!important;
+  text-shadow:none!important;
+}
+
+body.theme-factory :is(
+  p,small,label,.muted,.subtitle,.page-subtitle,.manager-page-subtitle,
+  .page-title p,.hist-desc,.hist-meta,.check-hint,.metric-label,
+  .admin-main p,.admin-main small,.admin-main label,
+  .card p,.card small,.manager-list-card p,.manager-list-card small,
+  .gestao-op-kpi small,.gestao-op-kpi span,.operator-setting-option small,
+  .manager-setting-option small,.data-accel-card p,.data-accel-option small,
+  .manager-op-title span
+){
+  color:var(--floor-muted)!important;
+  text-shadow:none!important;
+}
+
+/* =========================
+   HEADERS
+   ========================= */
+
+body.theme-factory :is(
+  .mobile-header,.app-header,.operator-header,.home-header,
+  .manager-op-header,.admin-topbar,.admin-header,.desktop-topbar
+){
+  background:linear-gradient(135deg,rgba(15,36,25,.98),rgba(5,13,9,.98))!important;
+  border:1px solid var(--floor-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:var(--floor-shadow-soft)!important;
+}
+
+body.theme-factory .manager-op-header{
+  border-radius:24px!important;
+  padding:12px!important;
+}
+
+body.theme-factory :is(.manager-op-avatar,.operator-avatar,.user-avatar,.avatar){
+  background:linear-gradient(135deg,var(--floor-accent-dark),var(--floor-accent))!important;
+  color:#031208!important;
+}
+
+body.theme-factory :is(.manager-status-dot,.online-dot){
+  background:var(--floor-accent)!important;
+  box-shadow:0 0 0 4px var(--floor-accent-soft)!important;
+}
+
+/* =========================
+   ADMIN SIDEBAR
+   ========================= */
+
+body.theme-factory :is(.admin-sidebar,.admin-desktop-sidebar,aside.admin-sidebar,[class*="sidebar"]){
+  background:linear-gradient(180deg,#06100b,#030806)!important;
+  border-right:1px solid var(--floor-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:18px 0 50px rgba(0,0,0,.30)!important;
+}
+
+body.theme-factory :is(.admin-sidebar button,.admin-nav button,[data-admin-desktop],.admin-menu-item){
+  background:transparent!important;
+  color:var(--floor-muted)!important;
+  border:1px solid transparent!important;
+}
+
+body.theme-factory :is(.admin-sidebar button.active,.admin-nav button.active,[data-admin-desktop].active,.admin-menu-item.active){
+  background:var(--floor-accent-soft)!important;
+  color:var(--floor-accent-2)!important;
+  border-color:var(--floor-accent-line)!important;
+}
+
+/* =========================
+   BOTÕES
+   ========================= */
+
+body.theme-factory :is(
+  button,.btn,.theme-toggle,.icon-btn,.header-icon-btn,.notification-btn,
+  .manager-header-btn,.admin-notification-btn,.manager-os-actions button,
+  .detail-toggle,.admin-tab
+){
+  background:rgba(6,16,11,.86)!important;
+  border:1px solid var(--floor-line)!important;
+  color:var(--floor-accent-2)!important;
+  box-shadow:none!important;
+}
+
+body.theme-factory :is(
+  .btn.blue,button.btn.blue,.btn-primary,button.primary,
+  .manager-header-btn.primary,#btnOptimizeDataReceiving,#btnLogin,#btnCadastrar,
+  #btnFirstAccess,button[type="submit"],.fab,.qr-btn,.add-btn
+){
+  background:linear-gradient(135deg,var(--floor-accent-dark),var(--floor-accent))!important;
+  border-color:var(--floor-accent)!important;
+  color:#031208!important;
+  font-weight:950!important;
+}
+
+body.theme-factory :is(
+  .btn.red,button.red,.danger,button.danger,.logout-btn,.logout-icon-btn,
+  .manager-logout-btn,.operator-logout-btn,.manager-os-actions button.danger,.icon-btn.danger
+){
+  background:rgba(239,68,68,.14)!important;
+  border-color:rgba(248,113,113,.34)!important;
+  color:#fecaca!important;
+}
+
+/* =========================
+   INPUTS
+   ========================= */
+
+body.theme-factory :is(input,select,textarea,.search-input,.input,.select){
+  background:#050d09!important;
+  background-color:#050d09!important;
+  color:var(--floor-text)!important;
+  border:1px solid var(--floor-accent-line)!important;
+  caret-color:var(--floor-accent-2)!important;
+  box-shadow:none!important;
+}
+
+body.theme-factory :is(input,textarea)::placeholder{
+  color:rgba(170,205,182,.62)!important;
+}
+
+body.theme-factory option{
+  background:#050d09!important;
+  color:var(--floor-text)!important;
+}
+
+/* =========================
+   STATUS / CHIPS
+   ========================= */
+
+body.theme-factory :is(
+  .badge,.chip,.pill,.status,.status-pill,.os-status,.manager-chip,
+  .notification-chip,.v35-status-pill,.cache-status,.data-accel-badge,
+  .sync-badge,#syncBadge,.kit-status
+){
+  background:var(--floor-accent-soft)!important;
+  border:1px solid var(--floor-accent-line)!important;
+  color:var(--floor-accent-2)!important;
+}
+
+body.theme-factory :is(.badge.yellow,.chip.yellow,.manager-chip.yellow,.cache-status.stale){
+  background:rgba(245,158,11,.16)!important;
+  border-color:rgba(251,191,36,.30)!important;
+  color:var(--floor-warning)!important;
+}
+
+body.theme-factory :is(.badge.red,.chip.red,.manager-chip.red,.cache-status.offline){
+  background:rgba(239,68,68,.15)!important;
+  border-color:rgba(248,113,113,.30)!important;
+  color:var(--floor-danger)!important;
+}
+
+/* =========================
+   PROGRESSOS
+   ========================= */
+
+body.theme-factory :is(.progress,.bar,.kpi-health-bar,.manager-flow-line){
+  background:rgba(255,255,255,.10)!important;
+  border-radius:999px!important;
+  overflow:hidden!important;
+}
+
+body.theme-factory :is(.progress span,.bar span,.kpi-health-bar span,.manager-flow-line span){
+  background:linear-gradient(90deg,var(--floor-accent),var(--floor-accent-2))!important;
+}
+
+/* =========================
+   NAVS MOBILE
+   ========================= */
+
+body.theme-factory :is(#bottomNav,.bottom-nav,.mobile-bottom-nav,.manager-bottom-nav){
+  background:rgba(3,8,6,.97)!important;
+  border-top:1px solid var(--floor-line)!important;
+  box-shadow:0 -18px 48px rgba(0,0,0,.46)!important;
+}
+
+body.theme-factory :is(#bottomNav button,.bottom-nav button,.mobile-bottom-nav button,.manager-bottom-nav button){
+  background:transparent!important;
+  border-color:transparent!important;
+  color:var(--floor-muted-2)!important;
+}
+
+body.theme-factory :is(#bottomNav button.active,.bottom-nav button.active,.mobile-bottom-nav button.active,.manager-bottom-nav button.active){
+  background:var(--floor-accent-soft)!important;
+  color:var(--floor-accent-2)!important;
+  border-color:var(--floor-accent-line)!important;
+}
+
+/* =========================
+   MODAIS
+   ========================= */
+
+body.theme-factory :is(.modal-backdrop,.overlay,.dialog-backdrop){
+  background:rgba(0,0,0,.68)!important;
+  backdrop-filter:blur(8px)!important;
+}
+
+body.theme-factory :is(.notification-tabs button,.modal-tabs button,.notification-tab){
+  background:rgba(6,16,11,.86)!important;
+  border:1px solid var(--floor-line)!important;
+  color:var(--floor-muted)!important;
+}
+
+body.theme-factory :is(.notification-tabs button.active,.modal-tabs button.active,.notification-tab.active){
+  background:var(--floor-accent-soft)!important;
+  color:var(--floor-accent-2)!important;
+  border-color:var(--floor-accent-line)!important;
+}
+
+/* =========================
+   LOGIN
+   ========================= */
+
+body.theme-factory :is(.login-box,.auth-screen,.login-screen){
+  background:
+    radial-gradient(circle at 50% 20%, var(--floor-accent-soft), transparent 34%),
+    linear-gradient(180deg,var(--floor-bg-2),var(--floor-bg))!important;
+}
+
+body.theme-factory :is(.login-card,.auth-card,.first-access-card){
+  background:linear-gradient(180deg,var(--floor-surface-2),var(--floor-surface))!important;
+  border:1px solid var(--floor-accent-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:0 26px 80px rgba(0,0,0,.46)!important;
+}
+
+/* =========================
+   TABELAS
+   ========================= */
+
+body.theme-factory :is(table,.admin-table,.data-table){
+  background:transparent!important;
+  color:var(--floor-text)!important;
+}
+
+body.theme-factory :is(th,td){
+  border-color:rgba(134,239,172,.12)!important;
+}
+
+body.theme-factory th{
+  color:var(--floor-accent-2)!important;
+}
+
+body.theme-factory td{
+  color:var(--floor-muted)!important;
+}
+
+/* =========================
+   INLINE BACKGROUND BRANCO
+   ========================= */
+
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background:white"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background: white"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background:#fff"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background: #fff"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background-color:white"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background-color: white"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background-color:#fff"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background-color: #fff"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background:#f8fafc"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background: #f8fafc"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background:#f1f5f9"],
+body.theme-factory :is(#screen,.screen,.admin-main,.manager-screen) [style*="background: #f1f5f9"]{
+  background:linear-gradient(180deg,var(--floor-surface-2),var(--floor-surface))!important;
+  background-color:var(--floor-surface)!important;
+  color:var(--floor-text)!important;
+  border-color:var(--floor-line)!important;
+}
+
+/* =========================
+   SCROLLBAR
+   ========================= */
+
+body.theme-factory ::-webkit-scrollbar{
+  width:10px;
+  height:10px;
+}
+
+body.theme-factory ::-webkit-scrollbar-track{
+  background:transparent!important;
+}
+
+body.theme-factory ::-webkit-scrollbar-thumb{
+  background:rgba(134,239,172,.34)!important;
+  border-radius:999px!important;
+}
+
+body.theme-factory ::-webkit-scrollbar-thumb:hover{
+  background:rgba(134,239,172,.46)!important;
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media(max-width:430px){
+  body.theme-factory :is(.manager-op-header,.mobile-header,.app-header,.operator-header,.home-header){
+    border-radius:20px!important;
+  }
+}

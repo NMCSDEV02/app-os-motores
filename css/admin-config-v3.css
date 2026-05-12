@@ -1,0 +1,212 @@
+/* Projeto Natan V3.3 — correção de tema desktop */
+
+body.theme-dark.desktop-mode{
+  background:#020617!important;
+}
+
+body.theme-dark .admin-desktop-shell{
+  background:#020617!important;
+}
+
+body.theme-dark .admin-main{
+  background:#020617!important;
+  color:#f8fafc!important;
+}
+
+body.theme-dark .admin-sidebar{
+  background:#0b1220!important;
+  border-right-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .admin-brand,
+body.theme-dark .admin-topbar h1,
+body.theme-dark .admin-desktop-section h2{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .admin-brand-sub,
+body.theme-dark .admin-topbar p,
+body.theme-dark .page-subtitle{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .admin-menu button{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .admin-menu button.active,
+body.theme-dark .admin-menu button:hover{
+  background:rgba(37,99,235,.18)!important;
+  color:#93c5fd!important;
+  border-color:rgba(147,197,253,.18)!important;
+}
+
+body.theme-dark .admin-desktop-card,
+body.theme-dark .admin-desktop-section,
+body.theme-dark .admin-prod-chart{
+  background:#0b1220!important;
+  border-color:rgba(255,255,255,.08)!important;
+  color:#f8fafc!important;
+}
+
+body.theme-dark .admin-desktop-card small,
+body.theme-dark .admin-desktop-table th,
+body.theme-dark .admin-desktop-table td,
+body.theme-dark .prod-rank-name small{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .admin-desktop-card strong,
+body.theme-dark .admin-desktop-table td,
+body.theme-dark .prod-rank-name b,
+body.theme-dark .prod-rank-value{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .admin-desktop-table th,
+body.theme-dark .admin-desktop-table td{
+  border-bottom-color:rgba(255,255,255,.07)!important;
+}
+
+body.theme-dark .prod-rank-item{
+  background:#111827!important;
+  border-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .admin-config-form input,
+body.theme-dark .admin-config-form select,
+body.theme-dark .admin-config-form textarea{
+  background:#020617!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+body.theme-dark .admin-config-list-item{
+  background:#111827!important;
+  border-color:rgba(255,255,255,.08)!important;
+}
+
+.admin-config-layout{
+  display:grid;
+  grid-template-columns:360px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+
+.admin-config-form{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.admin-config-form input,
+.admin-config-form select,
+.admin-config-form textarea{
+  width:100%;
+  min-height:46px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:0 14px;
+  background:#fff;
+  color:#0f172a;
+  outline:none;
+  font:inherit;
+}
+
+.admin-config-form textarea{
+  padding:12px 14px;
+  min-height:110px;
+  resize:vertical;
+}
+
+.admin-config-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.admin-config-list-item{
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+  background:#fff;
+  padding:14px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.admin-config-list-item b{
+  display:block;
+  font-size:15px;
+  font-weight:950;
+}
+
+.admin-config-list-item small{
+  display:block;
+  color:#64748b;
+  margin-top:4px;
+  line-height:1.3;
+  font-weight:750;
+}
+
+.admin-config-badge{
+  min-height:28px;
+  border-radius:999px;
+  padding:0 10px;
+  display:inline-flex;
+  align-items:center;
+  background:#eff6ff;
+  color:#2563eb;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.admin-permission-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+
+.admin-permission-card{
+  border:1px solid #e2e8f0;
+  border-radius:22px;
+  background:#fff;
+  padding:16px;
+}
+
+body.theme-dark .admin-permission-card{
+  background:#111827!important;
+  border-color:rgba(255,255,255,.08)!important;
+}
+
+.admin-permission-card h3{
+  margin:0 0 10px;
+  font-size:17px;
+  font-weight:950;
+}
+
+.admin-permission-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border-top:1px solid #eef2f7;
+  padding:9px 0;
+  font-size:13px;
+  font-weight:800;
+}
+
+body.theme-dark .admin-permission-row{
+  border-top-color:rgba(255,255,255,.07)!important;
+}
+
+@media(max-width:1000px){
+  .admin-config-layout{
+    grid-template-columns:1fr;
+  }
+  .admin-permission-grid{
+    grid-template-columns:1fr;
+  }
+}

@@ -1,0 +1,15 @@
+.theme-toggle {
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+  color: var(--text, #0f172a);
+  padding: 0 14px;
+  font-weight: 850;
+}
+
+body.theme-dark .theme-toggle {
+  background: #0f172a;
+  color: #f8fafc;
+  border-color: rgba(255,255,255,.1);
+}

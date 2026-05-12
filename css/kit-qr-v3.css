@@ -1,0 +1,19 @@
+.kit-layout{display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;align-items:start}
+.kit-form{display:flex;flex-direction:column;gap:10px}
+.kit-form input,.kit-form select,.kit-form textarea{width:100%;min-height:46px;border:1px solid #e2e8f0;border-radius:16px;padding:0 14px;background:#fff;color:#0f172a;font:inherit;font-weight:750}
+.kit-form textarea{padding:12px 14px;min-height:100px;resize:vertical}
+.kit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.kit-card{border:1px solid #e2e8f0;background:#fff;border-radius:22px;padding:16px;box-shadow:0 10px 30px rgba(15,23,42,.05)}
+.kit-card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.kit-code{font-size:18px;font-weight:950;letter-spacing:-.03em}
+.kit-card small{display:block;color:#64748b;line-height:1.35;font-weight:750;margin-top:4px}
+.kit-qr-box{margin-top:12px;border:1px dashed #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:18px;padding:12px;font-size:12px;font-weight:850;word-break:break-all}
+.kit-action-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.kit-status{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:950;background:#ecfdf5;color:#15803d}
+.kit-status.usado{background:#fff7ed;color:#c2410c}
+.kit-status.bloqueado{background:#fef2f2;color:#dc2626}
+.kit-linked-panel{border:1px solid #dbeafe;background:#eff6ff;color:#1e3a8a;border-radius:20px;padding:14px;margin-top:12px;font-weight:850;font-size:13px;line-height:1.35}
+body.theme-dark .kit-card,body.theme-dark .kit-form input,body.theme-dark .kit-form select,body.theme-dark .kit-form textarea{background:#0f172a!important;color:#f8fafc!important;border-color:rgba(255,255,255,.10)!important}
+body.theme-dark .kit-card small{color:#94a3b8!important}
+body.theme-dark .kit-qr-box,body.theme-dark .kit-linked-panel{background:rgba(37,99,235,.14)!important;border-color:rgba(147,197,253,.22)!important;color:#bfdbfe!important}
+@media(max-width:1000px){.kit-layout,.kit-grid{grid-template-columns:1fr}}

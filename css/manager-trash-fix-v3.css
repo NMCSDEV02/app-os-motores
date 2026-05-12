@@ -1,0 +1,22 @@
+/* V3.29 — Correção Operação + Lixeira Gestão */
+.manager-chip.red{
+  background:#fef2f2;
+  border-color:#fecaca;
+  color:#dc2626;
+}
+
+body.theme-dark .manager-chip.red{
+  background:rgba(239,68,68,.15)!important;
+  border-color:rgba(248,113,113,.30)!important;
+  color:#fca5a5!important;
+}
+
+body.theme-factory .manager-chip.red{
+  background:rgba(239,68,68,.15)!important;
+  border-color:rgba(248,113,113,.30)!important;
+  color:#fecaca!important;
+}
+
+.manager-os-compact-actions button:only-child{
+  grid-column:1 / -1;
+}

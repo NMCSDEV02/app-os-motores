@@ -1,7 +1,25 @@
-import { apiGet, apiPost } from "./api.js";
+import { apiGet, apiPost, apiGetFast } from "./api.js";
 import { currentUser, logout } from "./auth.js";
 import { screen, setHeader, setBottomNav, toast, modal, closeModal, escapeHtml, fmtDate, progress } from "./ui.js";
 import { openQrScreen } from "./qr.js";
+import { isDesktop } from "./core/device.js";
+import { toggleTheme } from "./core/theme.js";
+import { openSyncPanel, updateGlobalSyncBadge } from "./core/syncPanel.js";
+import { normalizeProgress, progressState, progressHtml } from "./core/progressEngine.js";
+import { renderDataAccelerationPanel, bindDataAccelerationPanel } from "./core/dataAcceleration.js";
+
+import { MANAGER_PERMISSION_DEFAULTS, getManagerPermissions, setManagerPermissions, saveManagerPermissions, syncManagerPermissionsFromApi, managerPermissionLabel, managerPermissionGroup } from "./core/managerPermissions.js";
+function kpiHealthLabelLocal(score){
+  const s = Number(score || 0);
+  if(s >= 85) return "Excelente";
+  if(s >= 70) return "Estável";
+  if(s >= 50) return "Atenção";
+  return "Crítico";
+}
+function fmtKpiPctLocal(v){
+  return `${Math.max(0, Math.min(100, Math.round(Number(v || 0))))}%`;
+}
+
 
 let adminArea = "inicio";
 let adminViewingOS = null;
@@ -22,7 +40,246 @@ function podeAcessarAreaAdmin(area){
 function tituloPainel(){ return ehAdmin() ? "Painel ADM" : "Painel Gestão"; }
 function subtituloPainel(){ return ehAdmin() ? "Controle, auditoria e permissões" : "Gestão operacional, qualidade e metas"; }
 
+
+
+function applySidebarState(){
+  const collapsed = localStorage.getItem("natan_admin_sidebar") === "collapsed";
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+}
+
+function toggleAdminSidebar(){
+  const collapsed = localStorage.getItem("natan_admin_sidebar") === "collapsed";
+  localStorage.setItem("natan_admin_sidebar", collapsed ? "expanded" : "collapsed");
+  applySidebarState();
+}
+
+
+function natanApplySidebarState(){
+  if(!document.body.classList.contains("desktop-mode")) return;
+  const collapsed = localStorage.getItem("natan_admin_sidebar") === "collapsed";
+  document.body.classList.toggle("sidebar-collapsed", collapsed);
+}
+
+function natanToggleAdminSidebar(){
+  const collapsed = localStorage.getItem("natan_admin_sidebar") === "collapsed";
+  localStorage.setItem("natan_admin_sidebar", collapsed ? "expanded" : "collapsed");
+  natanApplySidebarState();
+}
+
+function natanSetupAdminSidebar(){
+  const sidebar = document.querySelector(".admin-sidebar");
+  if(!sidebar) return;
+
+  let head = sidebar.querySelector(".admin-sidebar-head");
+
+  if(!head){
+    const brand = sidebar.querySelector(".admin-brand");
+    const sub = sidebar.querySelector(".admin-brand-sub");
+
+    head = document.createElement("div");
+    head.className = "admin-sidebar-head";
+
+    const brandWrap = document.createElement("div");
+    brandWrap.className = "admin-sidebar-brand-wrap";
+
+    if(brand) brandWrap.appendChild(brand);
+    if(sub) brandWrap.appendChild(sub);
+
+    head.appendChild(brandWrap);
+    sidebar.insertBefore(head, sidebar.firstChild);
+  }
+
+  let btn = sidebar.querySelector("#btnSidebarToggle");
+  if(!btn){
+    btn = document.createElement("button");
+    btn.id = "btnSidebarToggle";
+    btn.className = "admin-sidebar-toggle";
+    btn.type = "button";
+    btn.title = "Minimizar menu";
+    btn.textContent = "☰";
+    head.appendChild(btn);
+  }
+
+  const icons = {
+    inicio:"dashboard",
+    dashboard:"dashboard",
+    usuarios:"group",
+    setores:"lan",
+    fluxos:"account_tree",
+    modelos:"checklist",
+    models:"checklist",
+    kits:"qr_code_2",
+    aprovacoes:"approval",
+    historico:"history",
+    lixeira:"delete",
+    sistema:"settings",
+    settings:"settings"
+  };
+
+  sidebar.querySelectorAll(".admin-menu button").forEach(btnMenu=>{
+    const key = btnMenu.dataset.adminDesktop || btnMenu.dataset.adminPage || "";
+    if(!btnMenu.dataset.icon) btnMenu.dataset.icon = icons[key] || btnMenu.textContent.trim().charAt(0).toUpperCase() || "•";
+    if(!btnMenu.title) btnMenu.title = btnMenu.textContent.trim();
+  });
+
+  btn.onclick = natanToggleAdminSidebar;
+  natanApplySidebarState();
+}
+
+function renderAdminDesktop(area = "inicio"){
+  document.body.classList.remove("manager-mode");
+  document.body.classList.add("desktop-mode");
+  const u = currentUser();
+  setHeader(u,false);
+  setBottomNav(u,false);
+
+  screen().innerHTML = `
+    <section class="admin-desktop-shell">
+      <aside class="admin-sidebar">
+        <div class="admin-brand">Projeto Natan</div>
+        <div class="admin-brand-sub">Console industrial V3</div>
+        <nav class="admin-menu">
+          <button class="active" data-admin-desktop="inicio" data-icon="dashboard" title="Dashboard">Dashboard</button>
+          <button data-admin-desktop="usuarios" data-icon="group" title="Usuários e permissões">Usuários e permissões</button>
+          <button data-admin-desktop="setores" data-icon="lan" title="Setores e áreas">Setores e áreas</button>
+          <button data-admin-desktop="fluxos" data-icon="account_tree" title="Fluxos">Fluxos</button>
+          <button data-admin-desktop="modelos" data-icon="checklist" title="Modelos checklist">Modelos checklist</button>
+          <button data-admin-desktop="kits" data-icon="qr_code_2" title="Carrinhos Kit / QR">Carrinhos Kit / QR</button>
+          <button data-admin-desktop="notificacoes" data-icon="notifications" title="Notificações">Notificações</button>
+          <button data-admin-desktop="aprovacoes" data-icon="approval" title="Aprovações">Aprovações</button>
+          <button data-admin-desktop="historico" data-icon="history" title="Auditoria completa">Auditoria completa</button>
+          <button data-admin-desktop="lixeira" data-icon="delete" title="Lixeira">Lixeira</button>
+          <button data-admin-desktop="sistema" data-icon="settings" title="Sistema">Sistema</button>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <div>
+            <h1>Painel Administrador</h1>
+            <p>Console desktop para configuração, auditoria e controle total.</p>
+          </div>
+          <div class="admin-top-actions">
+            <button id="syncBadge" class="sync-badge" data-status="${navigator.onLine ? "online" : "offline"}" type="button">${navigator.onLine ? "Sincronizado" : "Offline"}</button>
+            <button id="btnThemeToggle" class="theme-toggle" type="button">Tema</button>
+            <button id="btnAdminDesktopLogout" class="btn red compact" type="button">Sair</button>
+          </div>
+        </header>
+        <div id="adminDesktopArea"><div class="empty">Carregando console...</div></div>
+      </main>
+    </section>
+  `;
+
+  applySidebarState();
+  natanSetupAdminSidebar();
+  document.querySelector("#btnThemeToggle").onclick = () => toggleTheme();
+  document.querySelector("#btnSidebarToggle")?.addEventListener("click", toggleAdminSidebar);
+  document.querySelector("#syncBadge")?.addEventListener("click", openSyncPanel);
+  updateGlobalSyncBadge();
+  loadAdminNotificationCount();
+  document.querySelector("#btnAdminNotifications")?.addEventListener("click", ()=>renderAdminDesktop("notificacoes"));
+  document.querySelector("#btnAdminDesktopLogout").onclick = logout;
+
+  document.querySelectorAll("[data-admin-desktop]").forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll("[data-admin-desktop]").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const box=document.querySelector("#adminDesktopArea"); if(box) box.innerHTML=`<div class="v36-loading">Carregando...</div>`; setTimeout(()=>renderAdminDesktopArea(btn.dataset.adminDesktop),0);
+    };
+  });
+
+  renderAdminDesktopArea(area);
+}
+
+async function renderAdminDesktopArea(area){
+  const box = document.querySelector("#adminDesktopArea");
+  if(!box) return;
+
+  if(area === "usuarios") return renderAdminPermissoesDesktop();
+  if(area === "manager_permissions") return renderAdminManagerPermissions();
+  if(area === "modelos") return renderAdminModelosDesktop();
+  if(area === "historico") return renderAdminAuditoriaDesktop();
+  if(area === "lixeira") return renderAdminLixeiraDesktop();
+
+  if(area === "setores") return renderAdminSetoresDesktop();
+  if(area === "fluxos") return renderAdminFluxosDesktop();
+  if(area === "kits") return renderAdminKitsDesktop();
+  if(area === "notificacoes") return renderAdminNotificacoesDesktop();
+  if(area === "aprovacoes") return renderAdminAprovacoesDesktop();
+  if(area === "sistema") return renderAdminSistemaDesktop();
+
+  try{
+    const [dash, logs] = await Promise.all([
+      apiGet("kpiDashboardAvancado", {matricula: currentUser().matricula}).catch(()=>({kpis:{},setores:[],operadores:[],alertas:[]})),
+      apiGetFast("adminLogs", {}).catch(()=>[])
+    ]);
+
+    const k = dash.kpis || {};
+    const score = Number(k.score_operacional || 0);
+
+    box.innerHTML = `
+      <div class="kpi-advanced-grid">
+        <div class="kpi-advanced-card green"><small>Saúde operacional</small><strong>${score}/100</strong><span>${kpiHealthLabelLocal(score)}</span></div>
+        <div class="kpi-advanced-card"><small>OS abertas</small><strong>${k.os_abertas || 0}</strong><span>${k.os_atrasadas || 0} atrasada(s)</span></div>
+        <div class="kpi-advanced-card yellow"><small>Subtarefas pendentes</small><strong>${k.subtarefas_pendentes || 0}</strong><span>Gargalo: ${escapeHtml(k.gargalo_principal || "-")}</span></div>
+        <div class="kpi-advanced-card dark"><small>Taxa de conclusão</small><strong>${fmtKpiPctLocal(k.taxa_conclusao || 0)}</strong><span>${k.itens_concluidos || 0}/${k.itens_total || 0} itens</span></div>
+      </div>
+
+      <div class="kpi-panel-wide">
+        <section class="kpi-insight-panel">
+          <h2>Indicador de desempenho</h2>
+          <p>Score calculado por progresso, atrasos, subtarefas pendentes, fila aberta e eventos do dia.</p>
+          <div class="kpi-health-bar"><span style="width:${score}%"></span></div>
+
+          <div class="kpi-mini-list">
+            <div class="kpi-mini-row"><div><b>Operador destaque</b><small>Mais ações registradas</small></div><div class="kpi-mini-value">${escapeHtml(k.operador_destaque || "-")}</div></div>
+            <div class="kpi-mini-row"><div><b>Setor com mais pendências</b><small>Subtarefas abertas</small></div><div class="kpi-mini-value">${escapeHtml(k.setor_critico || "-")}</div></div>
+            <div class="kpi-mini-row"><div><b>Eventos hoje</b><small>Movimentações registradas</small></div><div class="kpi-mini-value">${k.eventos_hoje || 0}</div></div>
+          </div>
+        </section>
+
+        <section class="kpi-insight-panel">
+          <h2>Ranking de setores</h2>
+          <p>Pendências abertas por destino.</p>
+          <div class="kpi-mini-list">
+            ${(dash.setores || []).slice(0,6).map((s,i)=>`
+              <div class="kpi-mini-row">
+                <div><b>${escapeHtml(s.setor)}</b><small>${i+1}º no ranking de pendências</small></div>
+                <div class="kpi-mini-value">${s.total}</div>
+              </div>
+            `).join("") || `<div class="v35-empty-state">Sem pendências por setor.</div>`}
+          </div>
+        </section>
+      </div>
+
+      <section class="admin-desktop-section" style="margin-top:18px">
+        <h2>Últimos eventos do sistema</h2>
+        <table class="admin-desktop-table">
+          <thead><tr><th>Ação</th><th>Operador</th><th>OS</th><th>Data</th></tr></thead>
+          <tbody>
+            ${(logs || []).slice(0,10).map(l=>`
+              <tr>
+                <td>${escapeHtml(l.acao || "-")}</td>
+                <td>${escapeHtml(l.operador_nome || "Sistema")}</td>
+                <td>${escapeHtml(l.codigo_os || "-")}</td>
+                <td>${fmtDate(l.data_hora)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </section>
+    `;
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar dashboard desktop.</div>`;
+  }
+}
+
+
 export async function renderAdmin(area = "inicio"){
+  if(isDesktop()) return renderAdminDesktop(area);
+  document.body.classList.remove("manager-mode");
+  document.body.classList.remove("desktop-mode");
+  document.body.classList.remove("sidebar-collapsed");
   if(adminViewerTimer){ clearInterval(adminViewerTimer); adminViewerTimer = null; }
   adminArea = area;
   if(!podeAcessarAreaAdmin(area)) area = adminArea = "inicio";
@@ -87,12 +344,13 @@ export async function renderAdmin(area = "inicio"){
   startAdminRealtimeNotifications();
 
   if(area === "inicio") return renderAdminInicio();
-  if(area === "usuarios") return renderUsers();
+  if(area === "usuarios") return renderAdminPermissoesDesktop();
+  if(area === "manager_permissions") return renderAdminManagerPermissions();
   if(area === "os") return renderAdminOS();
   if(area === "subtarefas") return renderSubtarefasPendentes();
-  if(area === "modelos") return renderAdminModelos();
-  if(area === "lixeira") return renderTrash();
-  if(area === "historico") return renderHistoricoAdmin();
+  if(area === "modelos") return renderAdminModelosDesktop();
+  if(area === "lixeira") return renderAdminLixeiraDesktop();
+  if(area === "historico") return renderAdminAuditoriaDesktop();
 }
 
 
@@ -103,7 +361,7 @@ function renderAdminDrawerMenu(){
     <button data-admin-menu="inicio"><span>01</span><b>Início</b><small>Visão geral e indicadores do dia</small></button>
     <button data-admin-menu="os"><span>02</span><b>Gerenciar OS</b><small>Criar, buscar, visualizar e republicar</small></button>
     <button data-admin-menu="subtarefas"><span>03</span><b>Subtarefas</b><small>Pendências, setores e checklist</small></button>
-    ${admin ? `<button data-admin-menu="usuarios"><span>04</span><b>Usuários e permissões</b><small>Acessos, perfis e bloqueios</small></button>` : ""}
+    ${admin ? `<button data-admin-menu="usuarios"><span>04</span><b>Usuários e permissões</b><small>Acessos, perfis e bloqueios</small></button><button data-admin-menu="manager_permissions"><span>05</span><b>Permissões da Gestão</b><small>Controlar ações que aparecem para Gestão</small></button>` : ""}
     <button data-admin-menu="modelos"><span>${admin ? "05" : "04"}</span><b>Modelos de checklist</b><small>Padrões por setor e etapa</small></button>
     <div class="drawer-divider"></div>
     <div class="drawer-title drawer-title-small">Avançado</div>
@@ -675,12 +933,13 @@ function bindAdminOSActions(area, rows){
 }
 
 function renderOSAdminCard(os){
-  const pct = Number(os.percentual_total || 0);
+  const prog = normalizeProgress(os);
+  const state = progressState(prog, os.status);
   const aberto = minutesSince(os.data_abertura || os.criado_em);
   const restante = estimarRestanteMinProf(os);
   const atrasada = osEstaAtrasada(os);
   const operadorAtual = inferirOperadorAtual(os, cachedLogs);
-  return `<div class="os-card admin-os-card ${atrasada ? "late" : ""}">
+  return `<div class="os-card admin-os-card smart-box ${atrasada ? "late" : ""}" data-state="${atrasada ? "atencao" : state}">
     <div class="os-card-top">
       <div>
         <div class="os-code">${escapeHtml(os.codigo_os)}</div>
@@ -696,8 +955,8 @@ function renderOSAdminCard(os){
         <button class="icon-trash-pro" title="Enviar para lixeira" data-delete-os="${escapeHtml(os.id_os)}" data-codigo="${escapeHtml(os.codigo_os)}">${trashSvg()}</button>
       </div>
     </div>
-    <div class="progress"><span style="width:${pct}%"></span></div>
-    <div class="progress-meta"><span>${os.total_concluidos || 0}/${os.total_itens || 0} itens • restam ~${fmtDuracao(restante)}</span><span>${pct}%</span></div>
+    ${progressHtml("Itens", prog)}
+    <div class="progress-meta"><span>restam ~${fmtDuracao(restante)}</span><span>${prog.percentual_total}%</span></div>
   </div>`;
 }
 
@@ -705,7 +964,7 @@ async function renderAdminOSViewer(os){
   adminViewingOS = os;
   if(adminViewerTimer) clearInterval(adminViewerTimer);
   const area = document.querySelector("#adminArea");
-  const logs = await apiGet("adminLogs", {}).catch(()=>[]);
+  const logs = await apiGetFast("adminLogs", {}).catch(()=>[]);
   const operadorAtual = inferirOperadorAtual(os, logs);
   const abertoMin = minutesSince(os.data_abertura || os.criado_em);
   const restanteMin = estimarRestanteMinProf(os);
@@ -1111,3 +1370,956 @@ function openNovoModeloAdmin(){
     ]
   });
 }
+
+
+async function renderAdminSetoresDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  try{
+    const setores = await apiGet("listarSetores", {}).catch(()=>[]);
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <h2>Setores e áreas</h2>
+        <p class="page-subtitle">Crie setores operacionais que serão usados em OS, subtarefas, permissões e fluxos.</p>
+
+        <div class="admin-config-layout" style="margin-top:18px">
+          <form id="formNovoSetor" class="admin-config-form">
+            <input id="setorNome" placeholder="Nome do setor. Ex: Qualidade" />
+            <input id="setorCodigo" placeholder="Código. Ex: QUA" />
+            <select id="setorTipo">
+              <option>Operacional</option>
+              <option>Gestão</option>
+              <option>Administrativo</option>
+              <option>Suporte</option>
+            </select>
+            <textarea id="setorDescricao" placeholder="Descrição do setor"></textarea>
+            <button class="btn blue full" type="submit">Criar setor</button>
+          </form>
+
+          <div class="admin-config-list">
+            ${(setores || []).length ? setores.map(s=>`
+              <div class="admin-config-list-item">
+                <div>
+                  <b>${escapeHtml(s.nome_setor || s.nome || "-")}</b>
+                  <small>${escapeHtml(s.codigo_setor || s.codigo || "-")} • ${escapeHtml(s.descricao || "Sem descrição")}</small>
+                </div>
+                <span class="admin-config-badge">${escapeHtml(s.tipo || "Operacional")}</span>
+              </div>
+            `).join("") : `<div class="empty">Nenhum setor configurável criado ainda.</div>`}
+          </div>
+        </div>
+      </section>
+    `;
+
+    document.querySelector("#formNovoSetor").onsubmit = async (e)=>{
+      e.preventDefault();
+      const nome = document.querySelector("#setorNome").value.trim();
+      if(!nome) return toast("Informe o nome do setor");
+      await apiPost({
+        acao:"criarSetor",
+        nome_setor:nome,
+        codigo_setor:document.querySelector("#setorCodigo").value.trim(),
+        tipo:document.querySelector("#setorTipo").value,
+        descricao:document.querySelector("#setorDescricao").value.trim(),
+        criado_por:currentUser().nome,
+        matricula:currentUser().matricula
+      });
+      toast("Setor criado");
+      renderAdminSetoresDesktop();
+    };
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar setores.</div>`;
+  }
+}
+
+async function renderAdminFluxosDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  try{
+    const [fluxos, setores] = await Promise.all([
+      apiGet("listarFluxos", {}).catch(()=>[]),
+      apiGet("listarSetores", {}).catch(()=>[])
+    ]);
+    const setorOptions = (setores || []).map(s=>`<option>${escapeHtml(s.nome_setor || s.nome || "")}</option>`).join("") || `<option>Desmontagem</option><option>Montagem</option><option>Elétrica</option><option>Usinagem</option><option>Qualidade</option>`;
+
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <h2>Fluxos operacionais</h2>
+        <p class="page-subtitle">Configure a sequência de etapas. Isso prepara o sistema para deixar de ser fixo em Desmontagem → Montagem.</p>
+
+        <div class="admin-config-layout" style="margin-top:18px">
+          <form id="formNovoFluxo" class="admin-config-form">
+            <input id="fluxoNome" placeholder="Nome do fluxo. Ex: Manutenção de motor" />
+            <select id="fluxoEtapa">${setorOptions}</select>
+            <input id="fluxoOrdem" placeholder="Ordem. Ex: 1" type="number" />
+            <textarea id="fluxoRegra" placeholder="Regra de liberação. Ex: liberar somente após checklist e subtarefas"></textarea>
+            <button class="btn blue full" type="submit">Adicionar etapa</button>
+          </form>
+
+          <div class="admin-config-list">
+            ${(fluxos || []).length ? fluxos.map(f=>`
+              <div class="admin-config-list-item">
+                <div>
+                  <b>${escapeHtml(f.nome_fluxo || "Fluxo")}</b>
+                  <small>Etapa: ${escapeHtml(f.etapa || "-")} • Ordem ${escapeHtml(f.ordem || "-")}<br>${escapeHtml(f.regra || "Sem regra")}</small>
+                </div>
+                <span class="admin-config-badge">${escapeHtml(f.ativo || "Ativo")}</span>
+              </div>
+            `).join("") : `<div class="empty">Nenhum fluxo configurável criado ainda.</div>`}
+          </div>
+        </div>
+      </section>
+    `;
+
+    document.querySelector("#formNovoFluxo").onsubmit = async (e)=>{
+      e.preventDefault();
+      const nome = document.querySelector("#fluxoNome").value.trim();
+      if(!nome) return toast("Informe o nome do fluxo");
+      await apiPost({
+        acao:"criarFluxo",
+        nome_fluxo:nome,
+        etapa:document.querySelector("#fluxoEtapa").value,
+        ordem:document.querySelector("#fluxoOrdem").value || "1",
+        regra:document.querySelector("#fluxoRegra").value.trim(),
+        criado_por:currentUser().nome,
+        matricula:currentUser().matricula
+      });
+      toast("Etapa adicionada ao fluxo");
+      renderAdminFluxosDesktop();
+    };
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar fluxos.</div>`;
+  }
+}
+
+async function renderAdminAprovacoesDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  if(!box) return;
+  box.innerHTML = `<div class="v36-loading">Carregando aprovações...</div>`;
+
+  try{
+    const [trocas, genericas] = await Promise.all([
+      apiGet("adminSolicitacoesSetor", {}).catch(()=>[]),
+      apiGet("listarSolicitacoesAdmin", {}).catch(()=>[])
+    ]);
+
+    const trocaCards = (trocas || []).map(s=>({
+      tipo:"troca_setor",
+      id:s.id_solicitacao,
+      titulo:`Troca de setor — ${s.nome || s.matricula}`,
+      desc:`${s.setor_atual || "-"} → ${s.setor_novo || "-"} • ${fmtDate(s.data_solicitacao)}`,
+      status:s.status || "Pendente"
+    }));
+
+    const genericCards = (genericas || []).map(s=>({
+      tipo:"generica",
+      id:s.id_solicitacao,
+      titulo:`${s.tipo || "Solicitação"} — ${s.criado_por || "Gestão"}`,
+      desc:`${s.titulo || "-"} • ${fmtDate(s.criado_em)} • ${s.descricao || ""}`,
+      status:s.status || "Pendente"
+    }));
+
+    const all = [...genericCards, ...trocaCards];
+
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <div class="v35-toolbar">
+          <div>
+            <h2>Aprovações</h2>
+            <p class="page-subtitle">Central para aprovar solicitações vindas da operação e da gestão.</p>
+          </div>
+          <span class="v35-status-pill orange">${all.filter(x=>String(x.status).toLowerCase()==="pendente").length} pendente(s)</span>
+        </div>
+
+        <div class="approval-list">
+          ${all.length ? all.map(s=>`
+            <article class="approval-card">
+              <div>
+                <h3>${escapeHtml(s.titulo)}</h3>
+                <p>${escapeHtml(s.desc)}</p>
+              </div>
+              <div class="approval-actions">
+                <span class="approval-status ${String(s.status).toLowerCase()==="pendente"?"pending":String(s.status).toLowerCase()==="aprovado"?"approved":"rejected"}">${escapeHtml(s.status)}</span>
+                ${String(s.status).toLowerCase()==="pendente" ? `
+                  <button class="btn green compact" data-approve-type="${s.tipo}" data-approve-id="${s.id}">Aprovar</button>
+                  <button class="btn red compact" data-reject-type="${s.tipo}" data-reject-id="${s.id}">Rejeitar</button>
+                ` : ""}
+              </div>
+            </article>
+          `).join("") : `<div class="v35-empty-state">Nenhuma aprovação no momento.</div>`}
+        </div>
+      </section>
+    `;
+
+    document.querySelectorAll("[data-approve-id]").forEach(btn=>{
+      btn.onclick = async()=>{
+        await responderAprovacao(btn.dataset.approveType, btn.dataset.approveId, "Aprovado");
+      };
+    });
+
+    document.querySelectorAll("[data-reject-id]").forEach(btn=>{
+      btn.onclick = async()=>{
+        await responderAprovacao(btn.dataset.rejectType, btn.dataset.rejectId, "Rejeitado");
+      };
+    });
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar aprovações.</div>`;
+  }
+}
+
+async function responderAprovacao(tipo, id, status){
+  try{
+    if(tipo === "troca_setor"){
+      await apiPost({
+        acao:"adminResponderTrocaSetor",
+        id_solicitacao:id,
+        status,
+        admin:currentUser().nome
+      });
+    }else{
+      await apiPost({
+        acao:"responderSolicitacaoAdmin",
+        id_solicitacao:id,
+        status,
+        respondido_por:currentUser().nome,
+        matricula:currentUser().matricula
+      });
+    }
+    toast(`Solicitação ${status.toLowerCase()}`);
+    renderAdminAprovacoesDesktop();
+  }catch(e){
+    toast(e.message || "Erro ao responder solicitação");
+  }
+}
+
+async function renderAdminSistemaDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  try{
+    const cfg = await apiGet("listarConfigSistema", {}).catch(()=>({}));
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <h2>Configurações do sistema</h2>
+        <p class="page-subtitle">Transforme o app em uma plataforma maleável: nome, modo de uso e regras visuais.</p>
+
+        ${renderDataAccelerationPanel()}
+
+        <div class="admin-config-layout" style="margin-top:18px">
+          <form id="formSistema" class="admin-config-form">
+            <input id="cfgNomeSistema" placeholder="Nome do sistema" value="${escapeHtml(cfg.nome_sistema || "Projeto Natan V3")}" />
+            <select id="cfgModoSistema">
+              <option ${cfg.modo_sistema==="OS Motores"?"selected":""}>OS Motores</option>
+              <option ${cfg.modo_sistema==="Fluxo Personalizado"?"selected":""}>Fluxo Personalizado</option>
+              <option ${cfg.modo_sistema==="Checklist Industrial"?"selected":""}>Checklist Industrial</option>
+            </select>
+            <select id="cfgTemaPadrao">
+              <option ${cfg.tema_padrao==="light"?"selected":""} value="light">Claro</option>
+              <option ${cfg.tema_padrao==="dark"?"selected":""} value="dark">Escuro</option>
+            </select>
+            <textarea id="cfgDescricao" placeholder="Descrição do sistema">${escapeHtml(cfg.descricao || "")}</textarea>
+            <button class="btn blue full" type="submit">Salvar configurações</button>
+          </form>
+
+          <div class="admin-permission-grid">
+            <div class="admin-permission-card">
+              <h3>Admin</h3>
+              <div class="admin-permission-row"><span>Usuários</span><b>Sim</b></div>
+              <div class="admin-permission-row"><span>Permissões</span><b>Sim</b></div>
+              <div class="admin-permission-row"><span>Setores</span><b>Sim</b></div>
+              <div class="admin-permission-row"><span>Auditoria completa</span><b>Sim</b></div>
+            </div>
+            <div class="admin-permission-card">
+              <h3>Gestão</h3>
+              <div class="admin-permission-row"><span>Ver métricas</span><b>Sim</b></div>
+              <div class="admin-permission-row"><span>Criar subtarefa</span><b>Sim</b></div>
+              <div class="admin-permission-row"><span>Editar usuários</span><b>Não</b></div>
+              <div class="admin-permission-row"><span>Solicitar mudança</span><b>Sim</b></div>
+            </div>
+            <div class="admin-permission-card">
+              <h3>Operador</h3>
+              <div class="admin-permission-row"><span>Executar checklist</span><b>Sim</b></div>
+              <div class="admin-permission-row"><span>Ler QR</span><b>Sim</b></div>
+              <div class="admin-permission-row"><span>Configurar sistema</span><b>Não</b></div>
+              <div class="admin-permission-row"><span>Auditoria</span><b>Não</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
+
+    bindDataAccelerationPanel(renderAdminSistemaDesktop);
+
+    document.querySelector("#formSistema").onsubmit = async (e)=>{
+      e.preventDefault();
+      await apiPost({
+        acao:"salvarConfigSistema",
+        nome_sistema:document.querySelector("#cfgNomeSistema").value.trim(),
+        modo_sistema:document.querySelector("#cfgModoSistema").value,
+        tema_padrao:document.querySelector("#cfgTemaPadrao").value,
+        descricao:document.querySelector("#cfgDescricao").value.trim(),
+        operador_nome:currentUser().nome,
+        matricula:currentUser().matricula
+      });
+      toast("Configurações salvas");
+      renderAdminSistemaDesktop();
+    };
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar configurações.</div>`;
+  }
+}
+
+
+const PERMISSION_CATALOG = [
+  ["ver_dashboard", "Ver dashboard", "Acessar indicadores e visão geral."],
+  ["gerenciar_os", "Gerenciar OS", "Criar, visualizar, reiniciar ou republicar ordens."],
+  ["criar_subtarefa", "Criar subtarefa", "Abrir pendências para outros setores."],
+  ["editar_modelos", "Editar modelos", "Criar e alterar modelos de checklist."],
+  ["solicitar_alteracao", "Solicitar alteração", "Enviar alterações para aprovação do Admin."],
+  ["aprovar_alteracao", "Aprovar alterações", "Aprovar mudanças solicitadas pela gestão."],
+  ["gerenciar_usuarios", "Gerenciar usuários", "Ativar, bloquear e alterar perfis."],
+  ["gerenciar_setores", "Gerenciar setores", "Criar e editar setores/áreas."],
+  ["gerenciar_fluxos", "Gerenciar fluxos", "Criar fluxos operacionais."],
+  ["ver_auditoria_completa", "Auditoria completa", "Ver logs e rastreabilidade total."],
+  ["usar_lixeira", "Usar lixeira", "Recuperar OS e subtarefas excluídas."],
+  ["configurar_sistema", "Configurar sistema", "Alterar nome, modo, tema e regras gerais."]
+];
+
+function defaultPermissao(perfil, chave){
+  const p = String(perfil || "").toLowerCase();
+  if(p === "admin") return true;
+  if(p === "gestao" || p === "gestor"){
+    return ["ver_dashboard","gerenciar_os","criar_subtarefa","editar_modelos","solicitar_alteracao"].includes(chave);
+  }
+  return ["ver_dashboard","criar_subtarefa"].includes(chave);
+}
+
+async function renderAdminPermissoesDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  try{
+    const [usuarios, permissoes] = await Promise.all([
+      apiGet("adminListarOperadores", {}),
+      apiGet("listarPermissoes", {}).catch(()=>[])
+    ]);
+
+    const perfis = ["Admin","Gestao","Operador"];
+    const perfilInicial = "Gestao";
+
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <h2>Usuários e permissões</h2>
+        <p class="page-subtitle">Defina o que cada perfil pode acessar. O Admin controla o sistema; Gestão opera e solicita; Operador executa.</p>
+
+        <div class="permission-layout" style="margin-top:18px">
+          <div class="permission-profile-card">
+            <h2>Matriz de permissões</h2>
+            <p>Selecione um perfil e libere apenas os módulos necessários.</p>
+            <select id="permissionPerfil" class="permission-select">
+              ${perfis.map(p=>`<option ${p===perfilInicial?"selected":""}>${p}</option>`).join("")}
+            </select>
+            <button id="btnSalvarPermissoes" class="btn blue full" style="margin-top:12px">Salvar permissões</button>
+          </div>
+
+          <div>
+            <div id="permissionGrid" class="permission-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="admin-desktop-section" style="margin-top:18px">
+        <h2>Usuários cadastrados</h2>
+        <p class="page-subtitle">Controle perfil e bloqueio de acesso.</p>
+        <div class="permission-user-list" style="margin-top:14px">
+          ${(usuarios || []).map(u=>`
+            <div class="permission-user-row">
+              <div>
+                <b>${escapeHtml(u.nome || "-")}</b>
+                <small>${escapeHtml(u.matricula || "-")} • ${escapeHtml(u.setor || "-")} • ${String(u.ativo).toLowerCase()==="false" ? "Bloqueado" : "Ativo"}</small>
+              </div>
+              <select class="permission-select" data-profile="${escapeHtml(u.matricula)}" ${String(u.perfil).toLowerCase()==="admin" ? "disabled" : ""}>
+                <option ${u.perfil==="Operador"?"selected":""}>Operador</option>
+                <option ${u.perfil==="Gestao"?"selected":""}>Gestao</option>
+                <option ${u.perfil==="Admin"?"selected":""}>Admin</option>
+              </select>
+              <button class="btn ${String(u.ativo).toLowerCase()==="false" ? "green" : "red"} compact" data-toggle="${escapeHtml(u.matricula)}" ${String(u.perfil).toLowerCase()==="admin" ? "disabled" : ""}>
+                ${String(u.ativo).toLowerCase()==="false" ? "Ativar" : "Bloquear"}
+              </button>
+            </div>
+          `).join("") || `<div class="empty">Nenhum usuário cadastrado.</div>`}
+        </div>
+      </section>
+    `;
+
+    const getPermsByPerfil = (perfil)=>{
+      const rows = (permissoes || []).filter(p=>String(p.perfil) === String(perfil));
+      const map = {};
+      rows.forEach(r=>map[r.chave] = String(r.valor).toLowerCase() !== "false");
+      return map;
+    };
+
+    function drawPermissionGrid(){
+      const perfil = document.querySelector("#permissionPerfil").value;
+      const saved = getPermsByPerfil(perfil);
+      const grid = document.querySelector("#permissionGrid");
+      grid.innerHTML = PERMISSION_CATALOG.map(([chave,titulo,desc])=>{
+        const active = Object.prototype.hasOwnProperty.call(saved,chave) ? saved[chave] : defaultPermissao(perfil,chave);
+        return `
+          <button type="button" class="permission-toggle ${active ? "active" : ""}" data-permission="${chave}">
+            <div>
+              <b>${titulo}</b>
+              <small>${desc}</small>
+            </div>
+            <span class="permission-switch"></span>
+          </button>
+        `;
+      }).join("");
+
+      grid.querySelectorAll("[data-permission]").forEach(btn=>{
+        btn.onclick = ()=>btn.classList.toggle("active");
+      });
+    }
+
+    document.querySelector("#permissionPerfil").onchange = drawPermissionGrid;
+    drawPermissionGrid();
+
+    document.querySelector("#btnSalvarPermissoes").onclick = async ()=>{
+      const perfil = document.querySelector("#permissionPerfil").value;
+      const payload = {};
+      document.querySelectorAll("[data-permission]").forEach(btn=>{
+        payload[btn.dataset.permission] = btn.classList.contains("active");
+      });
+      await apiPost({
+        acao:"salvarPermissoes",
+        perfil,
+        permissoes:payload,
+        operador_nome:currentUser().nome,
+        matricula:currentUser().matricula
+      });
+      toast("Permissões salvas");
+      renderAdminPermissoesDesktop();
+    };
+
+    document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick = async()=>{
+      await apiPost({acao:"adminToggleOperador", matricula:b.dataset.toggle, admin:currentUser().nome});
+      toast("Usuário atualizado");
+      renderAdminPermissoesDesktop();
+    });
+
+    document.querySelectorAll("[data-profile]").forEach(sel=>sel.onchange = async()=>{
+      await apiPost({acao:"adminDefinirPerfil", matricula:sel.dataset.profile, perfil:sel.value, admin:currentUser().nome});
+      toast("Perfil atualizado");
+      renderAdminPermissoesDesktop();
+    });
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar permissões.</div>`;
+  }
+}
+
+
+async function renderAdminAuditoriaDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  try{
+    const rows = await apiGet("auditoriaFiltrada", {}).catch(()=>[]);
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <div class="v35-toolbar">
+          <div>
+            <h2>Auditoria completa</h2>
+            <p class="page-subtitle">Filtre logs, histórico, operador, OS, ação e período.</p>
+          </div>
+          <button id="btnAuditRefresh" class="btn light compact">Atualizar</button>
+        </div>
+
+        <div class="v35-filter-grid">
+          <input id="auditAcao" class="v35-input" placeholder="Ação" />
+          <input id="auditOperador" class="v35-input" placeholder="Operador" />
+          <input id="auditOS" class="v35-input" placeholder="OS" />
+          <input id="auditSetor" class="v35-input" placeholder="Setor" />
+        </div>
+
+        <div id="auditResults" class="v35-table-wrap"></div>
+      </section>
+    `;
+
+    const renderRows = (data)=>{
+      const result = document.querySelector("#auditResults");
+      result.innerHTML = `
+        <table class="admin-desktop-table">
+          <thead>
+            <tr><th>Origem</th><th>Ação</th><th>Operador</th><th>OS</th><th>Setor</th><th>Data</th><th>Detalhes</th></tr>
+          </thead>
+          <tbody>
+            ${data.slice(0,160).map(r=>`
+              <tr>
+                <td>${escapeHtml(r.origem || "-")}</td>
+                <td>${escapeHtml(r.acao || "-")}</td>
+                <td>${escapeHtml(r.operador_nome || "Sistema")}</td>
+                <td>${escapeHtml(r.codigo_os || "-")}</td>
+                <td>${escapeHtml(r.setor || "-")}</td>
+                <td>${fmtDate(r.data_hora)}</td>
+                <td>${escapeHtml(r.detalhes || "-")}</td>
+              </tr>
+            `).join("") || `<tr><td colspan="7">Nenhum registro encontrado.</td></tr>`}
+          </tbody>
+        </table>
+      `;
+    };
+
+    const applyFilter = ()=>{
+      const acao = document.querySelector("#auditAcao").value.toLowerCase();
+      const operador = document.querySelector("#auditOperador").value.toLowerCase();
+      const os = document.querySelector("#auditOS").value.toLowerCase();
+      const setor = document.querySelector("#auditSetor").value.toLowerCase();
+
+      const filtered = rows.filter(r=>{
+        return (!acao || String(r.acao||"").toLowerCase().includes(acao))
+          && (!operador || String(r.operador_nome||"").toLowerCase().includes(operador))
+          && (!os || String(r.codigo_os||"").toLowerCase().includes(os))
+          && (!setor || String(r.setor||"").toLowerCase().includes(setor));
+      });
+
+      renderRows(filtered);
+    };
+
+    ["#auditAcao","#auditOperador","#auditOS","#auditSetor"].forEach(sel=>{
+      document.querySelector(sel).addEventListener("input", applyFilter);
+    });
+    document.querySelector("#btnAuditRefresh").onclick = () => renderAdminAuditoriaDesktop();
+
+    renderRows(rows);
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar auditoria.</div>`;
+  }
+}
+
+async function renderAdminLixeiraDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  try{
+    const [osRows, subRows] = await Promise.all([
+      apiGet("adminLixeiraOS", {}),
+      apiGet("adminLixeiraSubtarefas", {}).catch(()=>[])
+    ]);
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <h2>Lixeira e recuperação</h2>
+        <p class="page-subtitle">Recupere OS e subtarefas excluídas logicamente.</p>
+        <div class="v35-module-grid" style="margin-top:18px">
+          <div class="v35-module-card">
+            <b>OS excluídas</b>
+            <small>${osRows.length} registro(s) recuperável(is).</small>
+            <button class="btn green compact" type="button">Abrir lista</button>
+          </div>
+          <div class="v35-module-card">
+            <b>Subtarefas excluídas</b>
+            <small>${subRows.length} registro(s) recuperável(is).</small>
+            <button class="btn green compact" type="button">Abrir lista</button>
+          </div>
+          <div class="v35-module-card">
+            <b>Rastreabilidade</b>
+            <small>Exclusões permanecem registradas nos logs e histórico.</small>
+            <button class="btn light compact" type="button">Ver auditoria</button>
+          </div>
+        </div>
+      </section>
+    `;
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar lixeira.</div>`;
+  }
+}
+
+
+async function renderAdminModelosDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  if(!box) return;
+  box.innerHTML = `<div class="v36-loading">Carregando modelos de checklist...</div>`;
+
+  try{
+    const [modelos, setores] = await Promise.all([
+      apiGet("listarModelosAtivos", {}),
+      apiGet("listarSetores", {}).catch(()=>[])
+    ]);
+
+    const setoresList = (setores || []).map(s => s.nome_setor || s.nome || s.setor).filter(Boolean);
+    const setoresOptions = setoresList.length
+      ? setoresList.map(s=>`<option>${escapeHtml(s)}</option>`).join("")
+      : `<option>Desmontagem</option><option>Montagem</option><option>Elétrica</option><option>Usinagem</option><option>Produção</option><option>Almoxarifado</option><option>Qualidade</option>`;
+
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <div class="v35-toolbar">
+          <div>
+            <h2>Modelos de checklist</h2>
+            <p class="page-subtitle">Crie padrões de checklist para OS principal e subtarefas. Estes modelos alimentam a operação.</p>
+          </div>
+          <span class="v35-status-pill green">${(modelos || []).length} ativo(s)</span>
+        </div>
+
+        <div class="v36-model-grid">
+          <form id="formNovoModeloDesktop" class="v36-model-form">
+            <input id="modNomeDesktop" placeholder="Nome do modelo. Ex: Desmontagem padrão" />
+            <select id="modTipoDesktop">
+              <option>Principal</option>
+              <option>Subtarefa</option>
+            </select>
+            <select id="modSetorDesktop">${setoresOptions}</select>
+            <textarea id="modDescDesktop" placeholder="Descrição do item de checklist"></textarea>
+            <button class="btn blue full" type="submit">Criar item de modelo</button>
+          </form>
+
+          <div class="v36-model-list">
+            ${(modelos || []).length ? modelos.map(m=>`
+              <article class="v36-model-card">
+                <b>${escapeHtml(m.nome_modelo || "Modelo")}</b>
+                <small>${escapeHtml(m.descricao || "-")}</small>
+                <div class="v36-model-meta">
+                  <span class="v36-chip">${escapeHtml(m.tipo || "-")}</span>
+                  <span class="v36-chip yellow">${escapeHtml(m.setor || "-")}</span>
+                  <span class="v36-chip green">Ordem ${escapeHtml(m.ordem || "-")}</span>
+                </div>
+              </article>
+            `).join("") : `<div class="empty">Nenhum modelo ativo cadastrado.</div>`}
+          </div>
+        </div>
+      </section>
+    `;
+
+    document.querySelector("#formNovoModeloDesktop").onsubmit = async (e)=>{
+      e.preventDefault();
+      const descricao = document.querySelector("#modDescDesktop").value.trim();
+      if(!descricao) return toast("Informe a descrição do item");
+
+      await apiPost({
+        acao:"criarModeloChecklist",
+        nome_modelo:document.querySelector("#modNomeDesktop").value.trim() || `${document.querySelector("#modSetorDesktop").value} padrão`,
+        tipo:document.querySelector("#modTipoDesktop").value,
+        setor:document.querySelector("#modSetorDesktop").value,
+        descricao,
+        criado_por:currentUser().nome
+      });
+
+      toast("Modelo criado");
+      renderAdminModelosDesktop();
+    };
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar modelos de checklist.</div>`;
+  }
+}
+
+
+async function renderAdminKitsDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  if(!box) return;
+  box.innerHTML = `<div class="v36-loading">Carregando carrinhos kit...</div>`;
+
+  try{
+    const [kits, resumo] = await Promise.all([
+      apiGet("listarKitsQR", {}).catch(()=>[]),
+      apiGet("gestorResumo", {matricula:currentUser().matricula}).catch(()=>({os:[]}))
+    ]);
+
+    const osOptions = (resumo.os || [])
+      .filter(o => String(o.status || "").toLowerCase() !== "concluído")
+      .map(o=>`<option value="${escapeHtml(o.id_os)}">${escapeHtml(o.codigo_os)} • ${escapeHtml(o.motor || "-")}</option>`)
+      .join("");
+
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <div class="v35-toolbar">
+          <div>
+            <h2>Carrinhos Kit / QR</h2>
+            <p class="page-subtitle">Vincule um carrinho/kit a uma OS para rastrear peças e evitar mistura de componentes.</p>
+          </div>
+          <span class="v35-status-pill green">${kits.length} kit(s)</span>
+        </div>
+
+        <div class="kit-layout">
+          <form id="formKitQR" class="kit-form">
+            <input id="kitCodigo" placeholder="Código do kit. Ex: KIT-001" />
+            <input id="kitDescricao" placeholder="Descrição. Ex: Carrinho azul 01" />
+            <select id="kitStatus">
+              <option>Livre</option>
+              <option>Em uso</option>
+              <option>Bloqueado</option>
+            </select>
+            <select id="kitOS">
+              <option value="">Sem OS vinculada</option>
+              ${osOptions}
+            </select>
+            <textarea id="kitObs" placeholder="Observações do kit/carrinho"></textarea>
+            <button class="btn blue full" type="submit">Salvar kit</button>
+          </form>
+
+          <div class="kit-grid">
+            ${kits.length ? kits.map(k=>`
+              <article class="kit-card">
+                <div class="kit-card-top">
+                  <div>
+                    <div class="kit-code">${escapeHtml(k.codigo_qr || k.codigo_kit || "-")}</div>
+                    <small>${escapeHtml(k.descricao || "-")}</small>
+                  </div>
+                  <span class="kit-status ${String(k.status).toLowerCase().includes("uso") ? "usado" : String(k.status).toLowerCase().includes("bloq") ? "bloqueado" : ""}">${escapeHtml(k.status || "Livre")}</span>
+                </div>
+                <div class="kit-qr-box">QR: KIT:${escapeHtml(k.codigo_qr || k.codigo_kit || "")}</div>
+                ${k.codigo_os ? `<div class="kit-linked-panel">Vinculado à ${escapeHtml(k.codigo_os)}<br>${escapeHtml(k.motor || "")}</div>` : ""}
+                <div class="kit-action-row">
+                  <button class="btn light compact" data-kit-copy="KIT:${escapeHtml(k.codigo_qr || k.codigo_kit || "")}">Copiar QR</button>
+                  ${k.id_os_atual ? `<button class="btn red compact" data-kit-unlink="${escapeHtml(k.id_kit)}">Desvincular</button>` : ""}
+                </div>
+              </article>
+            `).join("") : `<div class="v35-empty-state">Nenhum carrinho kit cadastrado.</div>`}
+          </div>
+        </div>
+      </section>
+    `;
+
+    document.querySelector("#formKitQR").onsubmit = async(e)=>{
+      e.preventDefault();
+      const codigo = document.querySelector("#kitCodigo").value.trim();
+      if(!codigo) return toast("Informe o código do kit");
+      await apiPost({
+        acao:"salvarKitQR",
+        codigo_qr:codigo,
+        descricao:document.querySelector("#kitDescricao").value.trim(),
+        status:document.querySelector("#kitStatus").value,
+        id_os_atual:document.querySelector("#kitOS").value,
+        observacao:document.querySelector("#kitObs").value.trim(),
+        operador_nome:currentUser().nome,
+        matricula:currentUser().matricula
+      });
+      toast("Kit salvo");
+      renderAdminKitsDesktop();
+    };
+
+    document.querySelectorAll("[data-kit-copy]").forEach(btn=>{
+      btn.onclick = async()=>{
+        await navigator.clipboard?.writeText(btn.dataset.kitCopy);
+        toast("Código QR copiado");
+      };
+    });
+
+    document.querySelectorAll("[data-kit-unlink]").forEach(btn=>{
+      btn.onclick = async()=>{
+        await apiPost({acao:"desvincularKitQR", id_kit:btn.dataset.kitUnlink, operador_nome:currentUser().nome, matricula:currentUser().matricula});
+        toast("Kit desvinculado");
+        renderAdminKitsDesktop();
+      };
+    });
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar carrinhos kit.</div>`;
+  }
+}
+
+
+
+function showFastLoading(label="Carregando dados salvos..."){
+  return `
+    <div class="fast-loading">
+      <div class="cache-status">Carregamento ágil</div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-line"></div>
+      <div class="skeleton-line" style="width:70%"></div>
+    </div>
+  `;
+}
+
+function notificationIcon(origem){
+  const o = String(origem || "").toLowerCase();
+  if(o.includes("gest")) return "supervisor_account";
+  if(o.includes("oper")) return "engineering";
+  if(o.includes("sist")) return "settings";
+  return "notifications";
+}
+
+async function loadAdminNotificationCount(){
+  try{
+    const rows = await apiGet("listarNotificacoes", {destino:"Admin", somente_nao_lidas:"true"}).catch(()=>[]);
+    const count = Array.isArray(rows) ? rows.length : 0;
+    const btn = document.querySelector("#btnAdminNotifications");
+    const el = document.querySelector("#adminNotificationCount");
+    if(el) el.textContent = count > 99 ? "99+" : String(count);
+    if(btn) btn.classList.toggle("has-unread", count > 0);
+  }catch(e){}
+}
+
+async function renderAdminNotificacoesDesktop(){
+  const box = document.querySelector("#adminDesktopArea");
+  if(!box) return;
+  box.innerHTML = `<div class="v36-loading">Carregando notificações...</div>`;
+
+  try{
+    const rows = await apiGet("listarNotificacoes", {destino:"Admin"}).catch(()=>[]);
+
+    box.innerHTML = `
+      <section class="admin-desktop-section">
+        <div class="v35-toolbar">
+          <div>
+            <h2>Central de Notificações</h2>
+            <p class="page-subtitle">Receba avisos da Gestão, Operadores e Sistema.</p>
+          </div>
+          <span class="v35-status-pill orange">${rows.filter(n=>String(n.lida).toLowerCase() !== "true").length} não lida(s)</span>
+        </div>
+
+        <div class="notifications-layout">
+          <aside class="notifications-filter-card">
+            <h3>Filtros</h3>
+            <p>Use para localizar notificações por origem ou status.</p>
+            <select id="notificationOriginFilter">
+              <option value="">Todas as origens</option>
+              <option>Gestão</option>
+              <option>Operador</option>
+              <option>Sistema</option>
+            </select>
+            <select id="notificationStatusFilter">
+              <option value="">Todos os status</option>
+              <option value="nao_lidas">Não lidas</option>
+              <option value="lidas">Lidas</option>
+            </select>
+            <input id="notificationSearch" placeholder="Buscar por título, mensagem ou OS" />
+            <button id="btnRefreshNotifications" class="btn light full" type="button">Atualizar</button>
+          </aside>
+
+          <div id="notificationsList" class="notifications-list"></div>
+        </div>
+      </section>
+    `;
+
+    const renderList = ()=>{
+      const origem = document.querySelector("#notificationOriginFilter").value.toLowerCase();
+      const status = document.querySelector("#notificationStatusFilter").value;
+      const q = document.querySelector("#notificationSearch").value.toLowerCase();
+
+      const filtered = rows.filter(n=>{
+        const lida = String(n.lida).toLowerCase() === "true";
+        return (!origem || String(n.origem || "").toLowerCase().includes(origem))
+          && (!status || (status === "nao_lidas" ? !lida : lida))
+          && (!q || `${n.titulo || ""} ${n.mensagem || ""} ${n.codigo_os || ""} ${n.criado_por || ""}`.toLowerCase().includes(q));
+      });
+
+      const list = document.querySelector("#notificationsList");
+      list.innerHTML = filtered.length ? filtered.map(n=>{
+        const lida = String(n.lida).toLowerCase() === "true";
+        const origemClass = String(n.origem || "").toLowerCase().includes("gest") ? "gestao" : String(n.origem || "").toLowerCase().includes("oper") ? "operador" : "sistema";
+
+        return `
+          <article class="notification-card ${lida ? "" : "unread"}">
+            <div class="notification-icon"><span class="material-symbols-outlined">${notificationIcon(n.origem)}</span></div>
+            <div class="notification-body">
+              <h3>${escapeHtml(n.titulo || "Notificação")}</h3>
+              <p>${escapeHtml(n.mensagem || "-")}</p>
+              <div class="notification-meta">
+                <span class="notification-chip ${origemClass}">${escapeHtml(n.origem || "Sistema")}</span>
+                <span class="notification-chip">${escapeHtml(n.criado_por || "Sistema")}</span>
+                ${n.codigo_os ? `<span class="notification-chip">${escapeHtml(n.codigo_os)}</span>` : ""}
+                <span class="notification-chip">${fmtDate(n.criado_em)}</span>
+              </div>
+            </div>
+            <div class="notification-actions">
+              ${!lida ? `<button class="btn blue compact" data-read-notification="${escapeHtml(n.id_notificacao)}">Marcar lida</button>` : `<span class="v35-status-pill green">Lida</span>`}
+            </div>
+          </article>
+        `;
+      }).join("") : `<div class="v35-empty-state">Nenhuma notificação encontrada.</div>`;
+
+      document.querySelectorAll("[data-read-notification]").forEach(btn=>{
+        btn.onclick = async()=>{
+          await apiPost({
+            acao:"marcarNotificacaoLida",
+            id_notificacao:btn.dataset.readNotification,
+            operador_nome:currentUser().nome,
+            matricula:currentUser().matricula
+          });
+          toast("Notificação marcada como lida");
+          loadAdminNotificationCount();
+          renderAdminNotificacoesDesktop();
+        };
+      });
+    };
+
+    ["#notificationOriginFilter","#notificationStatusFilter","#notificationSearch"].forEach(sel=>{
+      document.querySelector(sel).addEventListener("input", renderList);
+      document.querySelector(sel).addEventListener("change", renderList);
+    });
+
+    document.querySelector("#btnRefreshNotifications").onclick = renderAdminNotificacoesDesktop;
+
+    renderList();
+    loadAdminNotificationCount();
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar notificações.</div>`;
+  }
+}
+
+async function renderAdminManagerPermissions(){
+  await syncManagerPermissionsFromApi(true);
+  const perms = getManagerPermissions();
+  const keys = Object.keys(MANAGER_PERMISSION_DEFAULTS);
+  const groups = keys.reduce((acc,key)=>{
+    const group = managerPermissionGroup(key);
+    if(!acc[group]) acc[group] = [];
+    acc[group].push(key);
+    return acc;
+  },{});
+
+  adminMain().innerHTML = `
+    <div class="admin-page-head">
+      <div>
+        <h1>Permissões da Gestão</h1>
+        <p>Controle quais ações aparecem para o perfil Gestão. Se desativar, a ação some da interface da Gestão.</p>
+      </div>
+    </div>
+
+    <section class="admin-permissions-panel">
+      <div class="admin-permissions-summary">
+        <b>${keys.filter(k=>perms[k] !== false).length}/${keys.length}</b>
+        <span>ações liberadas para Gestão</span>
+      </div>
+
+      ${Object.entries(groups).map(([group,items])=>`
+        <div class="admin-permission-group">
+          <h2>${group}</h2>
+          <div class="admin-permission-list">
+            ${items.map(key=>`
+              <label class="admin-permission-row">
+                <span>
+                  <b>${managerPermissionLabel(key)}</b>
+                  <small>${key}</small>
+                </span>
+                <input type="checkbox" data-manager-permission="${key}" ${perms[key] !== false ? "checked" : ""}>
+              </label>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+
+      <div class="admin-permission-actions">
+        <button class="btn blue" id="btnSaveManagerPermissions">Salvar permissões</button>
+        <button class="btn" id="btnResetManagerPermissions">Restaurar padrão</button>
+      </div>
+    </section>
+  `;
+
+  document.querySelector("#btnSaveManagerPermissions")?.addEventListener("click", async ()=>{
+    const next = {};
+    document.querySelectorAll("[data-manager-permission]").forEach(input=>{
+      next[input.dataset.managerPermission] = input.checked;
+    });
+    await saveManagerPermissions(next, currentUser());
+    toast("Permissões da Gestão atualizadas");
+    renderAdminManagerPermissions();
+  });
+
+  document.querySelector("#btnResetManagerPermissions")?.addEventListener("click", async ()=>{
+    await saveManagerPermissions({...MANAGER_PERMISSION_DEFAULTS}, currentUser());
+    toast("Permissões restauradas");
+    renderAdminManagerPermissions();
+  });
+}
+
+
+
+/* fallback manager_permissions */
+
+document.addEventListener("click", (e)=>{
+  const btn = e.target.closest('[data-admin-desktop="manager_permissions"], [data-admin-tab="manager_permissions"], [data-admin-page="manager_permissions"]');
+  if(btn){
+    e.preventDefault();
+    renderAdminManagerPermissions();
+  }
+});
+

@@ -1,0 +1,48 @@
+html,body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+
+body{
+  background:var(--v3-bg);
+}
+
+.app-shell{
+  width:100%;
+  min-height:100vh;
+}
+
+/* Mobile: Operador e Gestão */
+body:not(.desktop-mode) .app-shell{
+  max-width:var(--v3-mobile-max);
+  margin:0 auto;
+  background:var(--bg);
+}
+
+/* Desktop: Administrador */
+body.desktop-mode .app-shell{
+  max-width:none!important;
+  width:100%!important;
+  margin:0!important;
+}
+
+body.desktop-mode .app-header,
+body.desktop-mode .bottom-nav{
+  display:none!important;
+}
+
+body.desktop-mode .screen{
+  max-width:none!important;
+  width:100%!important;
+  padding:0!important;
+  margin:0!important;
+}
+
+.btn,.icon-btn,.nav-btn,.os-card,.row-card,.card{
+  transition:transform var(--v3-transition),box-shadow var(--v3-transition),border-color var(--v3-transition);
+}
+
+.btn:active,.icon-btn:active,.nav-btn:active,.os-card:active,.row-card:active{
+  transform:scale(.985);
+}

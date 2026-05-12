@@ -1,0 +1,22 @@
+.sync-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:30px;
+  padding:0 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:850;
+  background:#ecfdf5;
+  color:#15803d;
+}
+
+.sync-badge[data-status="offline"]{
+  background:#fff7ed;
+  color:#c2410c;
+}
+
+.sync-badge[data-status="syncing"]{
+  background:#eff6ff;
+  color:#2563eb;
+}

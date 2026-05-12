@@ -1,0 +1,122 @@
+/* Projeto Natan V3.6 — Performance e Modelos */
+
+.v36-loading{
+  min-height:180px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(148,163,184,.24);
+  border-radius:24px;
+  background:rgba(255,255,255,.04);
+  color:#94a3b8;
+  font-weight:850;
+}
+
+.v36-model-grid{
+  display:grid;
+  grid-template-columns:360px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+
+.v36-model-form{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.v36-model-form input,
+.v36-model-form select,
+.v36-model-form textarea{
+  width:100%;
+  min-height:46px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:0 14px;
+  background:#fff;
+  color:#0f172a;
+  font:inherit;
+  font-weight:750;
+}
+
+.v36-model-form textarea{
+  padding:12px 14px;
+  min-height:110px;
+  resize:vertical;
+}
+
+.v36-model-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.v36-model-card{
+  border:1px solid #e2e8f0;
+  border-radius:20px;
+  background:#fff;
+  padding:14px;
+}
+
+.v36-model-card b{
+  display:block;
+  font-size:15px;
+  font-weight:950;
+  margin-bottom:4px;
+}
+
+.v36-model-card small{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.v36-model-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:10px;
+}
+
+.v36-chip{
+  min-height:26px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:0 9px;
+  font-size:11px;
+  font-weight:900;
+  background:#eff6ff;
+  color:#2563eb;
+}
+
+.v36-chip.yellow{
+  background:#fff7ed;
+  color:#c2410c;
+}
+
+.v36-chip.green{
+  background:#ecfdf5;
+  color:#15803d;
+}
+
+body.theme-dark .v36-model-card,
+body.theme-dark .v36-model-form input,
+body.theme-dark .v36-model-form select,
+body.theme-dark .v36-model-form textarea{
+  background:#020617!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .v36-model-card small{
+  color:#94a3b8!important;
+}
+
+@media(max-width:1000px){
+  .v36-model-grid,
+  .v36-model-list{
+    grid-template-columns:1fr;
+  }
+}

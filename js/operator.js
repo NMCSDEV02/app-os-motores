@@ -1,9 +1,186 @@
-import { apiGet, apiPost, cacheGet } from "./api.js";
+import { apiGet, apiPost, cacheGet, clearApiSmartCache } from "./api.js";
 import { currentUser, logout } from "./auth.js";
 import { screen, setHeader, setBottomNav, toast, modal, closeModal, progress, escapeHtml, fmtDate } from "./ui.js";
 import { openQrScreen } from "./qr.js";
+import { normalizeProgress, progressState, progressHtml, markProgressUpdating, unmarkProgressUpdating, pulseProgress } from "./core/progressEngine.js";
+import { renderDataAccelerationPanel, bindDataAccelerationPanel } from "./core/dataAcceleration.js";
+import { applyTheme } from "./core/theme.js";
 
 let selectedOS = null;
+
+
+function getOperatorThemeMode(){
+  return localStorage.getItem("natan_operator_theme_mode") || localStorage.getItem("natan_theme") || "dark";
+}
+
+function applyOperatorThemeMode(mode){
+  const finalMode = mode === "auto"
+    ? (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+    : mode;
+
+  localStorage.setItem("natan_operator_theme_mode", mode);
+  localStorage.setItem("natan_theme", finalMode);
+  applyTheme(finalMode);
+}
+
+function getFactoryVariant(){
+  return localStorage.getItem("natan_factory_variant") || "green";
+}
+
+function setFactoryVariant(variant){
+  localStorage.setItem("natan_factory_variant", variant || "green");
+  applyTheme(localStorage.getItem("natan_theme") || getOperatorThemeMode());
+}
+
+function operatorThemeLabel(mode = getOperatorThemeMode()){
+  const map = {dark:"Escuro", light:"Claro", factory:"Chão de fábrica", auto:"Automático"};
+  return map[mode] || "Escuro";
+}
+
+function factoryVariantLabel(value = getFactoryVariant()){
+  const map = {
+    green:"Verde industrial",
+    amber:"Âmbar manutenção",
+    steel:"Aço azul"
+  };
+  return map[value] || "Verde industrial";
+}
+
+function renderOperatorThemeSettings(){
+  const themeMode = getOperatorThemeMode();
+  const factoryVariant = getFactoryVariant();
+
+  return `
+    <div class="operator-config-summary">
+      Tema: ${operatorThemeLabel(themeMode)} • Fábrica: ${factoryVariantLabel(factoryVariant)}
+    </div>
+
+    <div class="operator-config-stack">
+      <div class="operator-config-group">
+        <div class="operator-config-title">
+          <h2>Desempenho</h2>
+          <span>Dados</span>
+        </div>
+        ${renderDataAccelerationPanel()}
+      </div>
+
+      <div class="operator-config-group">
+        <div class="operator-config-title">
+          <h2>Aparência</h2>
+          <span>Tema</span>
+        </div>
+
+        <section class="operator-setting-block">
+          <h2>Tema do aplicativo</h2>
+          <p>Escolha a aparência usada no perfil Operador.</p>
+          <div class="operator-setting-options">
+            ${[
+              ["dark","dark_mode","Escuro","Menor brilho e bom contraste no chão de fábrica."],
+              ["light","light_mode","Claro","Melhor para ambientes muito iluminados."],
+              ["factory","precision_manufacturing","Chão de fábrica","Tema industrial com alto contraste e foco operacional."],
+              ["auto","contrast","Automático","Segue a preferência do dispositivo."]
+            ].map(([value,icon,title,desc])=>`
+              <label class="operator-setting-option">
+                <input type="radio" name="operatorThemeMode" value="${value}" ${themeMode===value ? "checked" : ""}>
+                <span><b><span class="material-symbols-outlined">${icon}</span> ${title}</b><small>${desc}</small></span>
+              </label>
+            `).join("")}
+          </div>
+        </section>
+
+        <section class="operator-setting-block">
+          <h2>Variação do tema Chão de fábrica</h2>
+          <p>Escolha a cor operacional principal do tema fábrica.</p>
+          <div class="factory-variant-options">
+            ${[
+              ["green","green","Verde industrial","Padrão operacional e status de liberação."],
+              ["amber","amber","Âmbar manutenção","Foco em atenção, manutenção e prioridade."],
+              ["steel","steel","Aço azul","Visual técnico, limpo e mais frio."]
+            ].map(([value,dot,title,desc])=>`
+              <button type="button" class="factory-variant-card ${factoryVariant===value ? "active" : ""}" data-operator-factory-variant="${value}">
+                <span class="factory-variant-dot ${dot}"></span>
+                <b>${title}</b><small>${desc}</small>
+              </button>
+            `).join("")}
+          </div>
+        </section>
+      </div>
+
+      <div class="operator-config-group">
+        <div class="operator-config-title">
+          <h2>Sessão</h2>
+          <span>Conta</span>
+        </div>
+        <section class="operator-danger-zone">
+          <h2>Sair da conta</h2>
+          <p>Encerra a sessão atual e retorna para a tela de login.</p>
+          <button id="btnLogout" class="operator-logout-btn" type="button">
+            <span class="material-symbols-outlined">logout</span>
+            Sair da conta
+          </button>
+        </section>
+      </div>
+    </div>
+  `;
+}
+
+function bindOperatorThemeSettings(){
+  bindDataAccelerationPanel(renderSettings);
+
+  document.querySelectorAll('input[name="operatorThemeMode"]').forEach(input=>{
+    input.addEventListener("change", ()=>{
+      applyOperatorThemeMode(input.value);
+      toast("Tema atualizado");
+      renderSettings();
+    });
+  });
+
+  document.querySelectorAll("[data-operator-factory-variant]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      setFactoryVariant(btn.dataset.operatorFactoryVariant);
+      toast("Variação do tema atualizada");
+      renderSettings();
+    });
+  });
+}
+
+
+
+function sameSetor(a,b){
+  return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+}
+
+function canSeeOSCard(os, user){
+  if(!os || !user) return false;
+
+  const isSub = !!os.modo_subtarefa || os.tipo_card === "Subtarefa";
+  if(isSub){
+    return sameSetor(os.setor_destino || os.setor_atual, user.setor);
+  }
+
+  return sameSetor(os.setor_atual, user.setor);
+}
+
+function sanitizeChecklistBySetor(items = [], os = selectedOS){
+  const u = currentUser();
+  const subMode = !!os?.modo_subtarefa || !!os?.id_subtarefa;
+
+  return (Array.isArray(items) ? items : []).filter(item=>{
+    const origem = String(item.origem || item.tipo || "").trim().toLowerCase();
+
+    if(subMode){
+      const itemSub = String(item.id_subtarefa || "");
+      const osSub = String(os?.id_subtarefa || "");
+      const setorOk = sameSetor(item.setor || item.etapa || os?.setor_destino || os?.setor_atual, u.setor);
+      return origem === "subtarefa" && itemSub === osSub && setorOk;
+    }
+
+    // Modo OS principal: operador só executa checklist principal do setor/etapa atual.
+    const setorOk = sameSetor(item.setor || item.etapa || os?.setor_atual, u.setor);
+    return origem === "principal" && setorOk;
+  });
+}
+
 
 function iconSvg(name){
   const icons = {
@@ -175,6 +352,7 @@ export async function renderHome(){
       <button id="btnQrInline" class="btn icon-action svg-square blue" title="Ler QR Code" aria-label="Ler QR Code">${iconSvg("qr")}</button>
       ${String(u.pode_criar_os).toLowerCase()==="true" ? `<button id="btnCreateOSInline" class="btn icon-action svg-square green" title="Criar nova OS" aria-label="Criar nova OS">${iconSvg("plus")}</button>` : ""}
     </div>
+    <div class="setor-guard-note">Visão filtrada: você só vê OS do seu setor e subtarefas destinadas ao seu setor.</div>
     <div id="osList" class="os-list"><div class="empty">Carregando ordens...</div></div>`;
   document.querySelector("#btnQrInline").onclick = openQrScreen;
   document.querySelector("#btnDoSearch").onclick = buscarOSManual;
@@ -188,8 +366,14 @@ async function loadOrders(){
   const u = currentUser();
   const list = document.querySelector("#osList");
   try{
-    const data = await cacheGet("listarOS", {setor:u.setor, matricula:u.matricula});
-    if(!Array.isArray(data) || data.length===0){ list.innerHTML = `<div class="empty">Nenhuma OS para o seu setor.</div>`; return; }
+    const raw = await apiGet("listarOS", {setor:u.setor, matricula:u.matricula, __force:true});
+    const data = (Array.isArray(raw) ? raw : []).filter(os => canSeeOSCard(os, u));
+
+    if(data.length===0){
+      list.innerHTML = `<div class="empty">Nenhuma OS para o seu setor.</div>`;
+      return;
+    }
+
     data.sort((a,b)=> new Date(b.data_abertura || b.criado_em || 0) - new Date(a.data_abertura || a.criado_em || 0));
     list.innerHTML = data.map(renderOSCard).join("");
     list.querySelectorAll("[data-open-os]").forEach(el=>el.onclick = ()=>openOS(JSON.parse(decodeURIComponent(el.dataset.os))));
@@ -199,11 +383,12 @@ async function loadOrders(){
 }
 
 function renderOSCard(os){
+  const prog = normalizeProgress(os);
+  const state = progressState(prog, os.status);
   const isSub = !!os.modo_subtarefa || os.tipo_card === "Subtarefa";
   const tag = isSub ? `<span class="badge yellow">Subtarefa</span>` : `<span class="badge blue">${escapeHtml(os.etapa_atual||os.setor_atual||"OS")}</span>`;
   const pend = os.descricao_subtarefa ? `<div class="os-motor">Pendência: ${escapeHtml(os.descricao_subtarefa)}</div>` : "";
-  const pct = Number(os.percentual_total || 0);
-  return `<div class="os-card" data-open-os data-os="${encodeURIComponent(JSON.stringify(os))}">
+  return `<div class="os-card smart-box" data-state="${state}" data-open-os data-os="${encodeURIComponent(JSON.stringify(os))}">
     <div class="os-card-top">
       <div>
         <div class="os-code">${escapeHtml(os.codigo_os)}</div>
@@ -212,8 +397,11 @@ function renderOSCard(os){
       </div>
       <div class="badges">${tag}<span class="badge green">${escapeHtml(os.status||"Em processo")}</span></div>
     </div>
-    <div class="progress"><span style="width:${pct}%"></span></div>
-    <div class="progress-meta"><span>${fmtDate(os.data_abertura || os.criado_em)}</span><span>${pct}%</span></div>
+    ${progressHtml("Progresso da OS", prog)}
+    <div class="smart-status-line">
+      <span><i class="smart-status-dot ${state==="concluido"?"green":state==="bloqueado"?"red":state==="atencao"?"yellow":""}"></i>${state==="bloqueado"?"Subtarefa pendente":state==="concluido"?"Concluída":state==="atencao"?"Em atenção":"Em processo"}</span>
+      <span>${fmtDate(os.data_abertura || os.criado_em)}</span>
+    </div>
   </div>`;
 }
 
@@ -229,6 +417,10 @@ async function buscarOSManual(){
 }
 
 export async function openOS(os){
+  if(!canSeeOSCard(os, currentUser())){
+    toast("Esta demanda pertence a outro setor.");
+    return renderHome();
+  }
   selectedOS = os;
   const u = currentUser();
   // Registra presença operacional para o painel ADM/Gestão saber quem está realmente na OS.
@@ -261,49 +453,95 @@ export async function openOS(os){
 async function loadChecklist(){
   const box = document.querySelector("#checkItems");
   const isSub = !!selectedOS.modo_subtarefa || !!selectedOS.id_subtarefa;
+  const u = currentUser();
+
   try{
-    const data = isSub
-      ? await apiGet("listarChecklistSubtarefa", {id_subtarefa:selectedOS.id_subtarefa})
-      : await apiGet("listarChecklistUnificado", {id_os:selectedOS.id_os, etapa:selectedOS.etapa_atual});
+    const raw = isSub
+      ? await apiGet("listarChecklistSubtarefa", {
+          id_subtarefa:selectedOS.id_subtarefa,
+          setor:u.setor,
+          matricula:u.matricula,
+          __force:true
+        })
+      : await apiGet("listarChecklistUnificado", {
+          id_os:selectedOS.id_os,
+          etapa:selectedOS.etapa_atual,
+          setor:u.setor,
+          matricula:u.matricula,
+          __force:true
+        });
+
+    const data = sanitizeChecklistBySetor(raw, selectedOS);
+
     await refreshSelectedOSProgress();
     updateDetails(data);
+
     if(!Array.isArray(data) || data.length===0){
-      box.innerHTML = `<div class="empty">Checklist concluído. Sincronizando...</div>`;
+      box.innerHTML = `<div class="empty">Checklist concluído ou sem itens para o seu setor.</div>`;
       if(isSub) await finalizarSubtarefasSeVazio();
       else await avancarEtapaSeVazio();
       setTimeout(renderHome, 900);
       return;
     }
+
     box.innerHTML = data.map(item=>`
       <div class="check-item ${item.tipo==="Subtarefa" ? "sub":""}" data-item='${encodeURIComponent(JSON.stringify(item))}'>
         <div class="badges"><span class="badge ${item.tipo==="Subtarefa"?"yellow":"blue"}">${item.tipo==="Subtarefa"?"Subtarefa":"Principal"}</span></div>
         <div class="check-title">${escapeHtml(item.descricao)}</div>
         <div class="check-hint">Toque para confirmar conclusão</div>
       </div>`).join("");
+
     box.querySelectorAll(".check-item").forEach(el=> el.onclick = ()=>confirmItem(JSON.parse(decodeURIComponent(el.dataset.item))));
-  }catch(e){ box.innerHTML = `<div class="empty">Erro ao carregar checklist.</div>`; }
+  }catch(e){
+    box.innerHTML = `<div class="empty">Erro ao carregar checklist deste setor.</div>`;
+  }
 }
 
 async function refreshSelectedOSProgress(){
   if(!selectedOS?.id_os) return;
+  const root = document.querySelector("#screen") || document;
   try{
-    const prog = await apiGet("obterProgressoOS", {id_os:selectedOS.id_os});
+    markProgressUpdating(root);
+    const prog = await apiGet("obterProgressoOS", {id_os:selectedOS.id_os, _t:Date.now()});
     if(prog && !prog.erro){
-      selectedOS = {...selectedOS, ...prog, progresso:prog};
+      const normalized = normalizeProgress(prog);
+      selectedOS = {...selectedOS, ...normalized, progresso:normalized};
+
       const top = document.querySelector("#topProgress");
-      if(top) top.innerHTML = progress("OS completa", prog.total_concluidos || 0, prog.total_itens || 0);
+      if(top){
+        top.innerHTML = progressHtml("OS completa", normalized, "green");
+        pulseProgress(top);
+      }
     }
-  }catch{}
+  }catch(e){
+    // Não bloqueia checklist se progresso falhar.
+  }finally{
+    unmarkProgressUpdating(root);
+  }
 }
 
 function updateDetails(items=[]){
-  const d = selectedOS.progresso || {};
-  document.querySelector("#detailBox").innerHTML = `
+  const d = normalizeProgress(selectedOS.progresso || selectedOS || {});
+  const box = document.querySelector("#detailBox");
+  if(!box) return;
+  box.innerHTML = `
     <strong>Detalhes da OS</strong>
-    ${progress("OS completa", d.total_concluidos ?? selectedOS.concluidos_total ?? 0, d.total_itens ?? selectedOS.total_total ?? 0)}
-    ${progress("Checklist atual", d.checklist_concluidos ?? 0, d.checklist_total ?? 0, "green")}
-    ${(d.subtarefas_total ?? 0) > 0 ? progress("Subtarefas", d.subtarefas_concluidas ?? 0, d.subtarefas_total ?? 0, "yellow") : ""}
-    <p class="page-subtitle" style="margin-top:10px">Motor: ${escapeHtml(selectedOS.motor)}<br>Setor atual: ${escapeHtml(selectedOS.setor_atual)}<br>Status: ${escapeHtml(selectedOS.status)}</p>`;
+    ${progressHtml("OS completa", d)}
+    ${progressHtml("Checklist atual", {
+      total_itens:d.checklist_total,
+      total_concluidos:d.checklist_concluidos
+    }, "green")}
+    ${d.subtarefas_total > 0 ? progressHtml("Subtarefas", {
+      total_itens:d.subtarefas_total,
+      total_concluidos:d.subtarefas_concluidas
+    }, "yellow") : ""}
+    <div class="smart-meta-grid">
+      <div class="smart-meta"><small>Motor</small><b>${escapeHtml(selectedOS.motor || "-")}</b></div>
+      <div class="smart-meta"><small>Setor atual</small><b>${escapeHtml(selectedOS.setor_atual || "-")}</b></div>
+      <div class="smart-meta"><small>Status</small><b>${escapeHtml(selectedOS.status || "-")}</b></div>
+      <div class="smart-meta"><small>Pendências</small><b>${d.subtarefas_pendentes || 0}</b></div>
+      <div class="smart-meta"><small>Carrinho/Kit</small><b>${escapeHtml(selectedOS.kit_qr || selectedOS.codigo_kit || "Não vinculado")}</b></div>
+    </div>`;
 }
 
 function confirmItem(item){
@@ -320,17 +558,29 @@ function confirmItem(item){
 async function concluirItem(item){
   try{
     const u = currentUser();
-    await apiPost({acao:"concluirItem", id_item:item.id_item, tipo:item.tipo, operador_nome:u.nome, matricula:u.matricula, perfil:u.perfil});
+    const el = [...document.querySelectorAll("[data-item]")].find(x=>{
+      try{return JSON.parse(decodeURIComponent(x.dataset.item)).id_item == item.id_item}catch{return false}
+    });
+    if(el) el.classList.add("item-completing");
+
+    markProgressUpdating(document);
+    await apiPost({acao:"concluirItem", id_item:item.id_item, tipo:item.tipo, operador_nome:u.nome, matricula:u.matricula, perfil:u.perfil, setor:u.setor, id_subtarefa:selectedOS?.id_subtarefa || ""});
+    if(typeof clearApiSmartCache === "function") clearApiSmartCache();
     toast("Item concluído");
+    await refreshSelectedOSProgress();
     await loadChecklist();
-  }catch(e){ toast(e.message || "Erro ao concluir"); }
+  }catch(e){
+    toast(e.message || "Erro ao concluir");
+  }finally{
+    unmarkProgressUpdating(document);
+  }
 }
 
 async function avancarEtapaSeVazio(){
-  try{ await apiPost({acao:"avancarEtapaSePossivel", id_os:selectedOS.id_os, operador_nome:currentUser().nome}); }catch(e){ toast(e.message); }
+  try{ await apiPost({acao:"avancarEtapaSePossivel", id_os:selectedOS.id_os, operador_nome:currentUser().nome, matricula:currentUser().matricula, setor:currentUser().setor}); }catch(e){ toast(e.message); }
 }
 async function finalizarSubtarefasSeVazio(){
-  try{ await apiPost({acao:"finalizarSubtarefaSePossivel", id_subtarefa:selectedOS.id_subtarefa, operador_nome:currentUser().nome}); }catch(e){ toast(e.message); }
+  try{ await apiPost({acao:"finalizarSubtarefaSePossivel", id_subtarefa:selectedOS.id_subtarefa, operador_nome:currentUser().nome, matricula:currentUser().matricula, setor:currentUser().setor}); }catch(e){ toast(e.message); }
 }
 
 function openSubtaskModal(){
@@ -411,20 +661,16 @@ function renderOperatorHistoryCard(r){
 }
 
 export function renderSettings(){
-  const u=currentUser();
-  setHeader(u,true); setBottomNav(u,true,"settings");
-  const isAdmin = String(u.perfil).toLowerCase()==="admin";
-  screen().innerHTML = `<h1 class="page-title">Configurações</h1>
-    <p class="page-subtitle">Perfil e preferências do usuário.</p>
-    <div class="card">
-      <strong>${escapeHtml(u.nome)}</strong>
-      <p class="page-subtitle" style="margin-top:6px">Matrícula: ${escapeHtml(u.matricula)}<br>Perfil: ${escapeHtml(u.perfil)}<br>Setor: ${escapeHtml(u.setor)}</p>
-      ${isAdmin ? `` : `<select id="novoSetor" class="select"><option>Desmontagem</option><option>Montagem</option><option>Elétrica</option><option>Usinagem</option><option>Produção</option><option>Almoxarifado</option></select><button id="btnSetor" class="btn blue full" style="margin-top:8px">Solicitar troca de setor</button>`}
-      <button id="btnLogout" class="btn red full" style="margin-top:12px">Sair</button>
-    </div>`;
-  if(!isAdmin) document.querySelector("#btnSetor").onclick = async ()=>{
-    await apiPost({acao:"solicitarTrocaSetor", matricula:u.matricula, setor_novo:document.querySelector("#novoSetor").value});
-    toast("Solicitação registrada");
-  };
+  const u = currentUser();
+  setBottomNav(u, true, "settings");
+  screen().innerHTML = `
+    <div class="page-title">
+      <h1>Configurações</h1>
+      <p>${u.nome} • ${u.setor} • ${u.matricula}</p>
+    </div>
+    ${renderOperatorThemeSettings()}
+  `;
+
+  bindOperatorThemeSettings();
   document.querySelector("#btnLogout").onclick = logout;
 }

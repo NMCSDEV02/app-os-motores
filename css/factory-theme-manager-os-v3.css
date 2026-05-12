@@ -1,0 +1,297 @@
+/* V3.24 — Tema Chão de Fábrica + Gestão OS operacional */
+
+body.theme-factory{
+  --factory-bg:#07110d;
+  --factory-panel:#0d1b15;
+  --factory-panel-2:#10231b;
+  --factory-border:rgba(102,255,164,.16);
+  --factory-text:#ecfff4;
+  --factory-muted:#94b9a3;
+  --factory-green:#22c55e;
+  --factory-amber:#f59e0b;
+  --factory-blue:#38bdf8;
+  background:
+    radial-gradient(circle at top left, rgba(34,197,94,.14), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(56,189,248,.09), transparent 34%),
+    #07110d!important;
+  color:var(--factory-text)!important;
+}
+
+body.theme-factory .app,
+body.theme-factory #screen,
+body.theme-factory .screen,
+body.theme-factory .admin-main,
+body.theme-factory .admin-desktop-shell{
+  background:transparent!important;
+  color:var(--factory-text)!important;
+}
+
+body.theme-factory .card,
+body.theme-factory .row-card,
+body.theme-factory .os-card,
+body.theme-factory .check-item,
+body.theme-factory .manager-list-card,
+body.theme-factory .manager-setting-block,
+body.theme-factory .manager-config-card,
+body.theme-factory .manager-op-header,
+body.theme-factory .gestao-op-kpi,
+body.theme-factory .gestao-op-action,
+body.theme-factory .gestao-op-section,
+body.theme-factory .admin-desktop-card,
+body.theme-factory .admin-desktop-section,
+body.theme-factory .kpi-insight-panel,
+body.theme-factory .notification-card,
+body.theme-factory .data-accel-card{
+  background:linear-gradient(180deg,rgba(16,35,27,.96),rgba(7,17,13,.96))!important;
+  border-color:var(--factory-border)!important;
+  color:var(--factory-text)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.28)!important;
+}
+
+body.theme-factory .gestao-op-hero,
+body.theme-factory .prod-hero{
+  background:linear-gradient(135deg,#0b2418,#14532d 55%,#22c55e)!important;
+  border:1px solid rgba(134,239,172,.20)!important;
+  box-shadow:0 18px 52px rgba(34,197,94,.18)!important;
+}
+
+body.theme-factory h1,
+body.theme-factory h2,
+body.theme-factory h3,
+body.theme-factory b,
+body.theme-factory strong,
+body.theme-factory .manager-page-title,
+body.theme-factory .admin-topbar h1{
+  color:var(--factory-text)!important;
+}
+
+body.theme-factory p,
+body.theme-factory small,
+body.theme-factory span,
+body.theme-factory .page-subtitle,
+body.theme-factory .manager-page-subtitle,
+body.theme-factory .manager-op-title span,
+body.theme-factory .gestao-op-kpi small,
+body.theme-factory .gestao-op-kpi span,
+body.theme-factory .manager-list-card p{
+  color:var(--factory-muted)!important;
+}
+
+body.theme-factory .btn.blue,
+body.theme-factory button.btn.blue,
+body.theme-factory .manager-header-btn.primary{
+  background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  border-color:#22c55e!important;
+  color:#04130b!important;
+  font-weight:950!important;
+}
+
+body.theme-factory .btn.light,
+body.theme-factory .theme-toggle,
+body.theme-factory .manager-header-btn,
+body.theme-factory .mobile-theme-floating,
+body.theme-factory .admin-notification-btn{
+  background:#0d1b15!important;
+  border-color:var(--factory-border)!important;
+  color:#86efac!important;
+}
+
+body.theme-factory input,
+body.theme-factory select,
+body.theme-factory textarea{
+  background:#07110d!important;
+  color:var(--factory-text)!important;
+  border-color:var(--factory-border)!important;
+}
+
+body.theme-factory .manager-bottom-nav,
+body.theme-factory #bottomNav{
+  background:rgba(7,17,13,.96)!important;
+  border-top-color:var(--factory-border)!important;
+  box-shadow:0 -18px 48px rgba(0,0,0,.34)!important;
+}
+
+body.theme-factory .manager-bottom-nav button.active,
+body.theme-factory #bottomNav .nav-btn.active{
+  background:rgba(34,197,94,.18)!important;
+  color:#86efac!important;
+}
+
+body.theme-factory .manager-chip,
+body.theme-factory .badge,
+body.theme-factory .notification-chip{
+  background:rgba(34,197,94,.14)!important;
+  color:#86efac!important;
+}
+
+body.theme-factory .manager-chip.yellow,
+body.theme-factory .badge.yellow{
+  background:rgba(245,158,11,.16)!important;
+  color:#fbbf24!important;
+}
+
+body.theme-factory .manager-chip.red{
+  background:rgba(239,68,68,.16)!important;
+  color:#fca5a5!important;
+}
+
+body.theme-factory .progress span,
+body.theme-factory .manager-flow-line span,
+body.theme-factory .kpi-health-bar span{
+  background:linear-gradient(90deg,#22c55e,#38bdf8)!important;
+}
+
+body.theme-factory::-webkit-scrollbar-thumb,
+body.theme-factory .screen::-webkit-scrollbar-thumb{
+  background:rgba(134,239,172,.32)!important;
+}
+
+/* Gestão - ações de OS */
+.manager-os-actions{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin-top:12px;
+}
+
+.manager-os-actions button{
+  min-height:38px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:14px;
+  color:#0f172a;
+  font-size:11px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  padding:0 8px;
+}
+
+.manager-os-actions button .material-symbols-outlined{
+  font-size:17px;
+}
+
+.manager-os-actions button.primary{
+  background:#2563eb;
+  border-color:#2563eb;
+  color:#fff;
+}
+
+.manager-os-actions button.danger{
+  background:#fef2f2;
+  border-color:#fecaca;
+  color:#dc2626;
+}
+
+.manager-os-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.manager-os-detail-box{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  border-radius:18px;
+  padding:12px;
+}
+
+.manager-os-detail-box small{
+  display:block;
+  color:#64748b;
+  font-size:11px;
+  font-weight:850;
+  margin-bottom:5px;
+}
+
+.manager-os-detail-box b{
+  color:#0f172a;
+  font-size:14px;
+  font-weight:950;
+}
+
+.manager-checklist-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.manager-checklist-item{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  border-radius:16px;
+  padding:11px;
+}
+
+.manager-checklist-item b{
+  display:block;
+  font-size:13px;
+  font-weight:950;
+}
+
+.manager-checklist-item small{
+  display:block;
+  font-size:11px;
+  color:#64748b;
+  margin-top:4px;
+  font-weight:750;
+}
+
+.manager-form-grid{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.manager-form-grid input,
+.manager-form-grid select,
+.manager-form-grid textarea{
+  width:100%;
+  min-height:46px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:0 12px;
+  box-sizing:border-box;
+  font:inherit;
+  font-weight:750;
+}
+
+.manager-form-grid textarea{
+  min-height:88px;
+  padding-top:12px;
+}
+
+body.theme-dark .manager-os-actions button,
+body.theme-dark .manager-os-detail-box,
+body.theme-dark .manager-checklist-item,
+body.theme-factory .manager-os-actions button,
+body.theme-factory .manager-os-detail-box,
+body.theme-factory .manager-checklist-item{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-factory .manager-os-actions button.primary{
+  background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  color:#04130b!important;
+  border-color:#22c55e!important;
+}
+
+body.theme-factory .manager-os-actions button.danger{
+  background:rgba(239,68,68,.16)!important;
+  color:#fca5a5!important;
+  border-color:rgba(239,68,68,.24)!important;
+}
+
+@media(max-width:390px){
+  .manager-os-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .manager-os-detail-grid{
+    grid-template-columns:1fr;
+  }
+}

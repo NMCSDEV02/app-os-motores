@@ -1,0 +1,395 @@
+/* Projeto Natan V3.7 — Correção Global de Tema
+   Corrige dark/light em login, mobile, gestão, operador e admin.
+*/
+
+/* ---------- Base ---------- */
+body.theme-dark{
+  background:#020617!important;
+  color:#f8fafc!important;
+
+  --bg:#020617!important;
+  --card:#0f172a!important;
+  --text:#f8fafc!important;
+  --muted:#94a3b8!important;
+  --line:rgba(255,255,255,.10)!important;
+
+  --v3-bg:#020617!important;
+  --v3-surface:#0f172a!important;
+  --v3-text:#f8fafc!important;
+  --v3-muted:#94a3b8!important;
+  --v3-border:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .app-shell,
+body.theme-dark .screen{
+  background:#020617!important;
+  color:#f8fafc!important;
+}
+
+/* ---------- Login / Cadastro ---------- */
+body.theme-dark .login-box{
+  background:#020617!important;
+}
+
+body.theme-dark .login-card{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.10)!important;
+  box-shadow:0 24px 80px rgba(0,0,0,.38)!important;
+}
+
+body.theme-dark .login-brand{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .login-card .page-subtitle,
+body.theme-dark .page-subtitle{
+  color:#94a3b8!important;
+}
+
+/* ---------- Inputs / Selects / Textareas ---------- */
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea,
+body.theme-dark .input,
+body.theme-dark .select,
+body.theme-dark .search-input,
+body.theme-dark .v35-input,
+body.theme-dark .v36-model-form input,
+body.theme-dark .v36-model-form select,
+body.theme-dark .v36-model-form textarea,
+body.theme-dark .admin-config-form input,
+body.theme-dark .admin-config-form select,
+body.theme-dark .admin-config-form textarea{
+  background:#020617!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+body.theme-dark input::placeholder,
+body.theme-dark textarea::placeholder,
+body.theme-dark .search-input::placeholder{
+  color:#64748b!important;
+}
+
+body.theme-dark select option{
+  background:#020617!important;
+  color:#f8fafc!important;
+}
+
+/* ---------- Header / Bottom nav mobile ---------- */
+body.theme-dark .app-header{
+  background:rgba(2,6,23,.92)!important;
+  border-bottom-color:rgba(255,255,255,.08)!important;
+  color:#f8fafc!important;
+}
+
+body.theme-dark .hello{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .subline{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .bottom-nav{
+  background:rgba(15,23,42,.96)!important;
+  border-top-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .nav-btn{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .nav-btn.active{
+  background:rgba(37,99,235,.18)!important;
+  color:#93c5fd!important;
+}
+
+/* ---------- Cards gerais ---------- */
+body.theme-dark .card,
+body.theme-dark .row-card,
+body.theme-dark .os-card,
+body.theme-dark .timeline-card,
+body.theme-dark .kpi,
+body.theme-dark .prod-card,
+body.theme-dark .prod-section,
+body.theme-dark .manager-kpi-card,
+body.theme-dark .manager-action-card,
+body.theme-dark .manager-flow-card,
+body.theme-dark .operator-history-card,
+body.theme-dark .op-notify-card,
+body.theme-dark .notify-card,
+body.theme-dark .admin-desktop-card,
+body.theme-dark .admin-desktop-section,
+body.theme-dark .admin-prod-chart,
+body.theme-dark .v35-module-card,
+body.theme-dark .v36-model-card,
+body.theme-dark .permission-profile-card,
+body.theme-dark .permission-toggle,
+body.theme-dark .permission-user-row,
+body.theme-dark .admin-permission-card,
+body.theme-dark .admin-config-list-item{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.10)!important;
+  box-shadow:0 10px 34px rgba(0,0,0,.22)!important;
+}
+
+body.theme-dark .os-card.late{
+  background:linear-gradient(180deg,#0f172a,#1a1012)!important;
+  border-color:rgba(220,38,38,.28)!important;
+}
+
+/* ---------- Textos internos ---------- */
+body.theme-dark .page-title,
+body.theme-dark .section-title,
+body.theme-dark .os-code,
+body.theme-dark .focus-code,
+body.theme-dark .check-title,
+body.theme-dark .hist-title,
+body.theme-dark .timeline-top strong,
+body.theme-dark .row-card strong,
+body.theme-dark .prod-section-head h2,
+body.theme-dark .prod-card strong,
+body.theme-dark .manager-kpi-card strong,
+body.theme-dark .prod-rank-name b,
+body.theme-dark .prod-rank-value,
+body.theme-dark .admin-desktop-card strong,
+body.theme-dark .admin-desktop-section h2,
+body.theme-dark .v36-model-card b,
+body.theme-dark .permission-toggle b,
+body.theme-dark .permission-user-row b{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .os-motor,
+body.theme-dark .check-hint,
+body.theme-dark .hist-desc,
+body.theme-dark .hist-meta,
+body.theme-dark .timeline-details,
+body.theme-dark .timeline-card small,
+body.theme-dark .row-card small,
+body.theme-dark .prod-card small,
+body.theme-dark .prod-card span,
+body.theme-dark .prod-section-head small,
+body.theme-dark .manager-kpi-card small,
+body.theme-dark .manager-flow-card small,
+body.theme-dark .prod-rank-name small,
+body.theme-dark .admin-desktop-card small,
+body.theme-dark .admin-desktop-table th,
+body.theme-dark .v36-model-card small,
+body.theme-dark .permission-toggle small,
+body.theme-dark .permission-user-row small{
+  color:#94a3b8!important;
+}
+
+/* ---------- Checklist / detalhe OS ---------- */
+body.theme-dark .os-focus-top{
+  background:#020617!important;
+  border-bottom-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .detail-toggle,
+body.theme-dark .detail-box,
+body.theme-dark .check-item,
+body.theme-dark .admin-view-check{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .check-item.sub,
+body.theme-dark .admin-view-check.sub{
+  background:linear-gradient(90deg,rgba(245,158,11,.12),#0f172a 38%)!important;
+  border-left-color:#f59e0b!important;
+}
+
+/* ---------- Progress ---------- */
+body.theme-dark .progress{
+  background:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .progress-meta{
+  color:#94a3b8!important;
+}
+
+/* ---------- Badges ---------- */
+body.theme-dark .badge.blue,
+body.theme-dark .v36-chip{
+  background:rgba(37,99,235,.18)!important;
+  color:#93c5fd!important;
+}
+
+body.theme-dark .badge.green,
+body.theme-dark .v36-chip.green{
+  background:rgba(22,163,74,.18)!important;
+  color:#86efac!important;
+}
+
+body.theme-dark .badge.yellow,
+body.theme-dark .v36-chip.yellow{
+  background:rgba(245,158,11,.18)!important;
+  color:#facc15!important;
+}
+
+body.theme-dark .badge.red{
+  background:rgba(220,38,38,.18)!important;
+  color:#fca5a5!important;
+}
+
+/* ---------- Empty states ---------- */
+body.theme-dark .empty,
+body.theme-dark .small-empty,
+body.theme-dark .v35-empty-state,
+body.theme-dark .v36-loading,
+body.theme-dark .mini-empty{
+  background:#0f172a!important;
+  color:#94a3b8!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+/* ---------- Modais / overlays ---------- */
+body.theme-dark .modal-backdrop{
+  background:rgba(0,0,0,.62)!important;
+}
+
+body.theme-dark .modal,
+body.theme-dark .operator-notify-panel,
+body.theme-dark .admin-notify-panel,
+body.theme-dark .sync-panel{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .modal h3,
+body.theme-dark .operator-notify-head h2,
+body.theme-dark .notify-panel-head h3,
+body.theme-dark .sync-panel h3{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .modal p,
+body.theme-dark .operator-notify-head p,
+body.theme-dark .notify-panel-head p,
+body.theme-dark .sync-panel p{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .operator-notify-tabs,
+body.theme-dark .notify-tabs{
+  background:#020617!important;
+  border-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .operator-notify-tabs button.active,
+body.theme-dark .notify-tab.active{
+  background:#0f172a!important;
+  color:#93c5fd!important;
+}
+
+/* ---------- QR ---------- */
+body.theme-dark .qr-screen,
+body.theme-dark .qr-screen-native{
+  background:#020617!important;
+  color:#f8fafc!important;
+}
+
+body.theme-dark .qr-title-block h1{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .qr-title-block p,
+body.theme-dark .qr-hint{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .qr-view{
+  background:#000!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+}
+
+/* ---------- Admin desktop ---------- */
+body.theme-dark.desktop-mode,
+body.theme-dark .admin-desktop-shell,
+body.theme-dark .admin-main{
+  background:#020617!important;
+}
+
+body.theme-dark .admin-sidebar{
+  background:#0b1220!important;
+  border-right-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .admin-brand,
+body.theme-dark .admin-topbar h1{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .admin-brand-sub,
+body.theme-dark .admin-topbar p{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .admin-menu button{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .admin-menu button.active,
+body.theme-dark .admin-menu button:hover{
+  background:rgba(37,99,235,.20)!important;
+  color:#bfdbfe!important;
+  border-color:rgba(147,197,253,.20)!important;
+}
+
+/* ---------- Tabelas ---------- */
+body.theme-dark .admin-desktop-table td{
+  color:#f8fafc!important;
+  border-bottom-color:rgba(255,255,255,.07)!important;
+}
+
+body.theme-dark .admin-desktop-table th{
+  color:#94a3b8!important;
+  border-bottom-color:rgba(255,255,255,.08)!important;
+}
+
+/* ---------- Botões ---------- */
+body.theme-dark .btn.light{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+body.theme-dark .icon-btn{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+body.theme-dark .theme-toggle{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.18)!important;
+}
+
+/* ---------- Tema claro: reforço ---------- */
+body.theme-light .login-card,
+body.theme-light .card,
+body.theme-light .row-card,
+body.theme-light .os-card,
+body.theme-light .modal{
+  background:#fff;
+  color:#0f172a;
+}
+
+/* ---------- Mobile polish ---------- */
+@media(max-width:520px){
+  body.theme-dark .login-card{
+    width:calc(100vw - 28px)!important;
+  }
+
+  body.theme-dark .page-title{
+    color:#f8fafc!important;
+  }
+}

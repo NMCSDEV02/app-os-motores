@@ -1,0 +1,215 @@
+/* V3.21 — Header fix + Configurações avançadas da Gestão */
+
+/* Remove header genérica duplicada na Gestão */
+body.manager-mode .app-header,
+body.manager-mode .mobile-header,
+body.manager-mode header.app-header,
+body.manager-mode .top-header{
+  display:none!important;
+}
+
+/* Espaço superior correto sem sobreposição */
+body.manager-mode .screen,
+body.manager-mode #screen{
+  padding-top:8px!important;
+}
+
+/* Header operacional único */
+body.manager-mode .manager-op-header{
+  margin-top:0!important;
+}
+
+/* Config avançada */
+.manager-param-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.manager-param-input{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  border-radius:18px;
+  padding:12px;
+}
+
+.manager-param-input label{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  font-weight:850;
+  margin-bottom:8px;
+}
+
+.manager-param-input input,
+.manager-param-input select{
+  width:100%;
+  min-height:42px;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  background:#fff;
+  color:#0f172a;
+  font:inherit;
+  font-weight:850;
+  padding:0 12px;
+  box-sizing:border-box;
+}
+
+.manager-layout-options{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.manager-layout-card{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  border-radius:18px;
+  padding:12px;
+  cursor:pointer;
+}
+
+.manager-layout-card.active{
+  border-color:#2563eb;
+  background:#eff6ff;
+}
+
+.manager-layout-card b{
+  display:block;
+  color:#0f172a;
+  font-size:14px;
+  font-weight:950;
+}
+
+.manager-layout-card small{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  font-weight:750;
+  margin-top:4px;
+  line-height:1.35;
+}
+
+.manager-kpi-option-row{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  border-radius:18px;
+  padding:13px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+}
+
+.manager-kpi-option-row b{
+  display:block;
+  color:#0f172a;
+  font-size:14px;
+  font-weight:950;
+}
+
+.manager-kpi-option-row small{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  font-weight:750;
+  line-height:1.35;
+  margin-top:3px;
+}
+
+.manager-config-savebar{
+  position:sticky;
+  bottom:88px;
+  z-index:80;
+  display:flex;
+  gap:10px;
+  padding:10px;
+  border-radius:22px;
+  background:rgba(255,255,255,.88);
+  border:1px solid #e2e8f0;
+  box-shadow:0 12px 34px rgba(15,23,42,.12);
+  backdrop-filter:blur(14px);
+}
+
+body.manager-layout-dense .gestao-op-hero{
+  padding:14px!important;
+  border-radius:24px!important;
+}
+
+body.manager-layout-dense .gestao-op-actions,
+body.manager-layout-dense .gestao-op-kpi-grid{
+  gap:8px!important;
+}
+
+body.manager-layout-dense .gestao-op-action,
+body.manager-layout-dense .gestao-op-kpi,
+body.manager-layout-dense .gestao-op-section{
+  padding:12px!important;
+  border-radius:18px!important;
+}
+
+body.manager-layout-executive .gestao-op-hero{
+  background:linear-gradient(135deg,#020617,#334155 55%,#2563eb)!important;
+}
+
+body.manager-layout-executive .gestao-op-actions{
+  grid-template-columns:1fr!important;
+}
+
+body.manager-layout-kpi .gestao-op-kpi-grid{
+  grid-template-columns:1fr!important;
+}
+
+body.manager-hide-kpi-events .gestao-op-kpi-grid .gestao-op-kpi:nth-child(4){
+  display:none!important;
+}
+
+body.manager-hide-kpi-rate .gestao-op-kpi-grid .gestao-op-kpi:nth-child(3){
+  display:none!important;
+}
+
+body.manager-hide-kpi-subtasks .gestao-op-kpi-grid .gestao-op-kpi:nth-child(2){
+  display:none!important;
+}
+
+body.theme-dark .manager-param-input,
+body.theme-dark .manager-layout-card,
+body.theme-dark .manager-kpi-option-row{
+  background:#020617!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .manager-param-input label,
+body.theme-dark .manager-layout-card small,
+body.theme-dark .manager-kpi-option-row small{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .manager-param-input input,
+body.theme-dark .manager-param-input select{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+body.theme-dark .manager-layout-card b,
+body.theme-dark .manager-kpi-option-row b{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .manager-layout-card.active{
+  background:rgba(37,99,235,.16)!important;
+  border-color:rgba(147,197,253,.25)!important;
+}
+
+body.theme-dark .manager-config-savebar{
+  background:rgba(15,23,42,.88)!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+@media(max-width:380px){
+  .manager-param-grid,
+  .manager-layout-options{
+    grid-template-columns:1fr;
+  }
+}

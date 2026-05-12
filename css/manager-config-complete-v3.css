@@ -1,0 +1,32 @@
+/* V3.20 — Configurações completas da Gestão */
+
+.manager-settings-grid{display:flex;flex-direction:column;gap:14px}
+.manager-setting-block{border:1px solid #e2e8f0;background:#fff;border-radius:24px;padding:16px;box-shadow:0 8px 24px rgba(15,23,42,.045)}
+.manager-setting-block h2{margin:0 0 6px;font-size:18px;font-weight:950;letter-spacing:-.03em}
+.manager-setting-block p{margin:0 0 14px;color:#64748b;font-size:13px;font-weight:750;line-height:1.35}
+.manager-setting-options{display:flex;flex-direction:column;gap:10px}
+.manager-setting-option{border:1px solid #e2e8f0;background:#f8fafc;border-radius:18px;padding:12px;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:flex-start}
+.manager-setting-option input{width:20px;height:20px;accent-color:#2563eb;margin-top:2px}
+.manager-setting-option b{display:flex;align-items:center;gap:7px;color:#0f172a;font-size:14px;font-weight:950}
+.manager-setting-option b .material-symbols-outlined{font-size:19px;color:#2563eb}
+.manager-setting-option small{display:block;margin-top:3px;color:#64748b;font-size:12px;line-height:1.35;font-weight:750}
+.manager-toggle-row{border:1px solid #e2e8f0;background:#f8fafc;border-radius:18px;padding:13px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.manager-toggle-row b{display:block;color:#0f172a;font-size:14px;font-weight:950}
+.manager-toggle-row small{display:block;margin-top:3px;color:#64748b;font-size:12px;line-height:1.35;font-weight:750}
+.manager-switch{position:relative;width:48px;height:28px}
+.manager-switch input{opacity:0;width:0;height:0}
+.manager-switch span{position:absolute;cursor:pointer;inset:0;background:#cbd5e1;border-radius:999px;transition:.2s}
+.manager-switch span::before{content:"";position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 8px rgba(15,23,42,.18)}
+.manager-switch input:checked + span{background:#2563eb}
+.manager-switch input:checked + span::before{transform:translateX(20px)}
+.manager-config-summary{border:1px solid #bfdbfe;background:#eff6ff;color:#1e40af;border-radius:20px;padding:13px 14px;font-size:13px;line-height:1.35;font-weight:850}
+body.manager-compact-mode .gestao-op-kpi-grid,body.manager-compact-mode .gestao-op-actions{gap:8px!important}
+body.manager-compact-mode .gestao-op-kpi,body.manager-compact-mode .gestao-op-action,body.manager-compact-mode .gestao-op-section{border-radius:18px!important;padding:12px!important}
+body.manager-hide-alerts .gestao-op-alert{display:none!important}
+body.manager-prioritize-bottlenecks .gestao-op-section:first-of-type{border-color:#f59e0b!important;box-shadow:0 14px 36px rgba(245,158,11,.12)!important}
+body.theme-dark .manager-setting-block,body.theme-dark .manager-setting-option,body.theme-dark .manager-toggle-row{background:#0f172a!important;border-color:rgba(255,255,255,.10)!important;color:#f8fafc!important}
+body.theme-dark .manager-setting-option,body.theme-dark .manager-toggle-row{background:#020617!important}
+body.theme-dark .manager-setting-block h2,body.theme-dark .manager-setting-option b,body.theme-dark .manager-toggle-row b{color:#f8fafc!important}
+body.theme-dark .manager-setting-block p,body.theme-dark .manager-setting-option small,body.theme-dark .manager-toggle-row small{color:#94a3b8!important}
+body.theme-dark .manager-config-summary{background:rgba(37,99,235,.15)!important;color:#bfdbfe!important;border-color:rgba(147,197,253,.22)!important}
+body.theme-dark .manager-setting-option b .material-symbols-outlined{color:#bfdbfe!important}

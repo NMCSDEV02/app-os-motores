@@ -1,0 +1,25 @@
+.manager-mobile-shell,.screen.manager-screen{padding-bottom:112px!important}
+.manager-bottom-nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(620px,100vw);min-height:78px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;background:rgba(15,23,42,.96);border-top:1px solid rgba(255,255,255,.08);box-shadow:0 -18px 48px rgba(2,6,23,.24);z-index:260;backdrop-filter:blur(14px)}
+.manager-bottom-nav button{min-width:0;min-height:58px;border:0;border-radius:18px;background:transparent;color:#94a3b8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:9px;font-weight:850;line-height:1.05;text-align:center;padding:6px 3px}
+.manager-bottom-nav button .material-symbols-outlined{font-size:21px;line-height:1}
+.manager-bottom-nav button.active{background:#172f63;color:#bfdbfe}
+.manager-bottom-nav button:active{transform:scale(.98)}
+body.theme-light .manager-bottom-nav{background:rgba(255,255,255,.96);border-top:1px solid #e2e8f0;box-shadow:0 -16px 46px rgba(15,23,42,.12)}
+body.theme-light .manager-bottom-nav button{color:#64748b}
+body.theme-light .manager-bottom-nav button.active{background:#dbeafe;color:#2563eb}
+.manager-subpage{display:flex;flex-direction:column;gap:12px;padding-bottom:112px}
+.manager-page-title{font-size:24px;font-weight:950;letter-spacing:-.04em;margin:0 0 4px}
+.manager-page-subtitle{margin:0 0 12px;color:#94a3b8;font-size:13px;font-weight:750;line-height:1.35}
+.manager-list-card{border:1px solid #e2e8f0;background:#fff;border-radius:22px;padding:15px;box-shadow:0 8px 24px rgba(15,23,42,.045)}
+.manager-list-card h3{margin:0 0 5px;font-size:16px;font-weight:950}
+.manager-list-card p{margin:0;color:#64748b;font-size:13px;font-weight:750;line-height:1.35}
+.manager-list-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.manager-chip{display:inline-flex;align-items:center;min-height:26px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:900;background:#eff6ff;color:#2563eb}
+.manager-chip.green{background:#ecfdf5;color:#15803d}.manager-chip.yellow{background:#fff7ed;color:#c2410c}.manager-chip.red{background:#fef2f2;color:#dc2626}
+body.theme-dark .manager-list-card{background:#0f172a!important;border-color:rgba(255,255,255,.10)!important;color:#f8fafc!important}
+body.theme-dark .manager-list-card p,body.theme-dark .manager-page-subtitle{color:#94a3b8!important}
+body.theme-dark .manager-chip{background:rgba(37,99,235,.18)!important;color:#bfdbfe!important}
+body.theme-dark .manager-chip.green{background:rgba(22,163,74,.18)!important;color:#86efac!important}
+body.theme-dark .manager-chip.yellow{background:rgba(245,158,11,.18)!important;color:#facc15!important}
+body.theme-dark .manager-chip.red{background:rgba(220,38,38,.18)!important;color:#fca5a5!important}
+@media(max-width:360px){.manager-bottom-nav{gap:4px;padding-left:6px;padding-right:6px}.manager-bottom-nav button{border-radius:15px;font-size:9px}.manager-bottom-nav button .material-symbols-outlined{font-size:20px}}

@@ -1,0 +1,17 @@
+:root{
+  --v3-bg:#f4f7fb;
+  --v3-surface:#ffffff;
+  --v3-text:#0f172a;
+  --v3-muted:#64748b;
+  --v3-border:#e2e8f0;
+  --v3-primary:#2563eb;
+  --v3-primary-soft:#dbeafe;
+  --v3-success:#16a34a;
+  --v3-warning:#f59e0b;
+  --v3-danger:#dc2626;
+  --v3-radius:24px;
+  --v3-shadow:0 10px 30px rgba(15,23,42,.06);
+  --v3-mobile-max:520px;
+  --v3-sidebar:280px;
+  --v3-transition:180ms ease;
+}

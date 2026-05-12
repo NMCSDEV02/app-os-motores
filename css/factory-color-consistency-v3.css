@@ -1,0 +1,297 @@
+/* V3.24.1 — Correção de coerência visual do tema Chão de Fábrica */
+
+body.theme-factory{
+  --factory-bg:#06110c;
+  --factory-bg-2:#08170f;
+  --factory-card:#0d1b15;
+  --factory-card-2:#10251a;
+  --factory-card-3:#132b1f;
+  --factory-border:rgba(134,239,172,.18);
+  --factory-border-2:rgba(134,239,172,.28);
+  --factory-text:#f0fff6;
+  --factory-muted:#a7c8b3;
+  --factory-soft:#d7ffe4;
+  --factory-green:#22c55e;
+  --factory-green-2:#86efac;
+  --factory-yellow:#fbbf24;
+  --factory-red:#fca5a5;
+  --factory-blue:#7dd3fc;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(34,197,94,.13), transparent 34%),
+    radial-gradient(circle at 90% 95%, rgba(125,211,252,.08), transparent 30%),
+    linear-gradient(180deg,#06110c,#050b08)!important;
+  color:var(--factory-text)!important;
+}
+
+/* Corrige coluna branca/áreas herdadas do tema claro */
+body.theme-factory html,
+body.theme-factory .app,
+body.theme-factory main,
+body.theme-factory #screen,
+body.theme-factory .screen,
+body.theme-factory .page,
+body.theme-factory .mobile-shell,
+body.theme-factory .manager-screen,
+body.theme-factory .manager-subpage,
+body.theme-factory .admin-main,
+body.theme-factory .admin-desktop-shell{
+  background:transparent!important;
+  color:var(--factory-text)!important;
+}
+
+/* Cards e painéis: todos no mesmo padrão */
+body.theme-factory .card,
+body.theme-factory .row-card,
+body.theme-factory .os-card,
+body.theme-factory .check-item,
+body.theme-factory .manager-list-card,
+body.theme-factory .manager-setting-block,
+body.theme-factory .manager-config-card,
+body.theme-factory .manager-op-header,
+body.theme-factory .gestao-op-kpi,
+body.theme-factory .gestao-op-action,
+body.theme-factory .gestao-op-section,
+body.theme-factory .admin-desktop-card,
+body.theme-factory .admin-desktop-section,
+body.theme-factory .kpi-insight-panel,
+body.theme-factory .notification-card,
+body.theme-factory .data-accel-card,
+body.theme-factory .manager-os-detail-box,
+body.theme-factory .manager-checklist-item,
+body.theme-factory .manager-param-input,
+body.theme-factory .manager-layout-card,
+body.theme-factory .manager-kpi-option-row,
+body.theme-factory .manager-toggle-row,
+body.theme-factory .manager-setting-option,
+body.theme-factory .notifications-filter-card,
+body.theme-factory .modal-card{
+  background:linear-gradient(180deg,var(--factory-card-2),var(--factory-card))!important;
+  border-color:var(--factory-border)!important;
+  color:var(--factory-text)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.30)!important;
+}
+
+/* Remove branco agressivo em status/resumos */
+body.theme-factory .manager-config-summary,
+body.theme-factory .data-accel-status,
+body.theme-factory .data-accel-option,
+body.theme-factory .empty,
+body.theme-factory .v35-empty-state,
+body.theme-factory .setor-guard-note{
+  background:rgba(16,37,26,.92)!important;
+  border:1px solid var(--factory-border)!important;
+  color:var(--factory-soft)!important;
+}
+
+/* Opção ativa */
+body.theme-factory .data-accel-option.active,
+body.theme-factory .manager-layout-card.active,
+body.theme-factory .manager-setting-option:has(input:checked){
+  background:rgba(34,197,94,.18)!important;
+  border-color:rgba(134,239,172,.42)!important;
+}
+
+/* Textos */
+body.theme-factory h1,
+body.theme-factory h2,
+body.theme-factory h3,
+body.theme-factory h4,
+body.theme-factory b,
+body.theme-factory strong,
+body.theme-factory .manager-page-title,
+body.theme-factory .admin-topbar h1,
+body.theme-factory .check-title,
+body.theme-factory .manager-list-card h3,
+body.theme-factory .manager-os-detail-box b,
+body.theme-factory .manager-checklist-item b,
+body.theme-factory .data-accel-card h2,
+body.theme-factory .data-accel-card h3,
+body.theme-factory .data-accel-status b,
+body.theme-factory .data-accel-option b,
+body.theme-factory .manager-config-summary{
+  color:var(--factory-text)!important;
+  text-shadow:none!important;
+}
+
+body.theme-factory p,
+body.theme-factory small,
+body.theme-factory label,
+body.theme-factory .page-subtitle,
+body.theme-factory .manager-page-subtitle,
+body.theme-factory .manager-op-title span,
+body.theme-factory .gestao-op-kpi small,
+body.theme-factory .gestao-op-kpi span,
+body.theme-factory .manager-list-card p,
+body.theme-factory .manager-os-detail-box small,
+body.theme-factory .manager-checklist-item small,
+body.theme-factory .data-accel-card p,
+body.theme-factory .data-accel-status small,
+body.theme-factory .data-accel-option small,
+body.theme-factory .manager-setting-block p,
+body.theme-factory .manager-setting-option small,
+body.theme-factory .manager-toggle-row small,
+body.theme-factory .manager-layout-card small{
+  color:var(--factory-muted)!important;
+}
+
+/* Inputs/selects/textareas */
+body.theme-factory input,
+body.theme-factory select,
+body.theme-factory textarea{
+  background:#07110d!important;
+  color:var(--factory-text)!important;
+  border-color:var(--factory-border-2)!important;
+  caret-color:var(--factory-green-2)!important;
+}
+
+body.theme-factory input::placeholder,
+body.theme-factory textarea::placeholder{
+  color:rgba(167,200,179,.65)!important;
+}
+
+body.theme-factory option{
+  background:#07110d!important;
+  color:var(--factory-text)!important;
+}
+
+/* Botões */
+body.theme-factory .btn.blue,
+body.theme-factory button.btn.blue,
+body.theme-factory .manager-header-btn.primary,
+body.theme-factory #btnOptimizeDataReceiving{
+  background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  border-color:#22c55e!important;
+  color:#031208!important;
+  font-weight:950!important;
+}
+
+body.theme-factory .btn.light,
+body.theme-factory .theme-toggle,
+body.theme-factory .manager-header-btn,
+body.theme-factory .mobile-theme-floating,
+body.theme-factory .admin-notification-btn,
+body.theme-factory #btnClearDataCache,
+body.theme-factory .manager-os-actions button{
+  background:#0b1912!important;
+  border-color:var(--factory-border)!important;
+  color:var(--factory-green-2)!important;
+}
+
+body.theme-factory .manager-os-actions button.primary{
+  background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  color:#031208!important;
+  border-color:#22c55e!important;
+}
+
+body.theme-factory .manager-os-actions button.danger,
+body.theme-factory .btn.red{
+  background:rgba(239,68,68,.14)!important;
+  color:var(--factory-red)!important;
+  border-color:rgba(239,68,68,.30)!important;
+}
+
+/* Chips/badges */
+body.theme-factory .manager-chip,
+body.theme-factory .badge,
+body.theme-factory .notification-chip,
+body.theme-factory .v35-status-pill,
+body.theme-factory .cache-status{
+  background:rgba(34,197,94,.14)!important;
+  color:var(--factory-green-2)!important;
+  border-color:rgba(134,239,172,.18)!important;
+}
+
+body.theme-factory .manager-chip.yellow,
+body.theme-factory .badge.yellow,
+body.theme-factory .cache-status.stale{
+  background:rgba(245,158,11,.15)!important;
+  color:var(--factory-yellow)!important;
+}
+
+body.theme-factory .manager-chip.red,
+body.theme-factory .badge.red,
+body.theme-factory .cache-status.offline{
+  background:rgba(239,68,68,.15)!important;
+  color:var(--factory-red)!important;
+}
+
+/* Header e hero */
+body.theme-factory .manager-op-avatar{
+  background:linear-gradient(135deg,#14532d,#22c55e)!important;
+  color:#031208!important;
+}
+
+body.theme-factory .manager-status-dot{
+  background:#22c55e!important;
+  box-shadow:0 0 0 4px rgba(34,197,94,.18)!important;
+}
+
+body.theme-factory .gestao-op-hero,
+body.theme-factory .prod-hero{
+  background:linear-gradient(135deg,#082015,#14532d 58%,#22c55e)!important;
+  border:1px solid rgba(134,239,172,.24)!important;
+  box-shadow:0 18px 52px rgba(34,197,94,.18)!important;
+}
+
+body.theme-factory .gestao-op-hero h1,
+body.theme-factory .gestao-op-hero p,
+body.theme-factory .gestao-op-hero small,
+body.theme-factory .gestao-op-score b,
+body.theme-factory .gestao-op-score small{
+  color:#f0fff6!important;
+}
+
+/* Bottom nav */
+body.theme-factory .manager-bottom-nav,
+body.theme-factory #bottomNav{
+  background:rgba(6,17,12,.97)!important;
+  border-top-color:var(--factory-border)!important;
+  box-shadow:0 -18px 48px rgba(0,0,0,.38)!important;
+}
+
+body.theme-factory .manager-bottom-nav button,
+body.theme-factory #bottomNav .nav-btn{
+  color:var(--factory-muted)!important;
+}
+
+body.theme-factory .manager-bottom-nav button.active,
+body.theme-factory #bottomNav .nav-btn.active{
+  background:rgba(34,197,94,.18)!important;
+  color:var(--factory-green-2)!important;
+}
+
+/* Progress */
+body.theme-factory .progress,
+body.theme-factory .manager-flow-line,
+body.theme-factory .kpi-health-bar{
+  background:rgba(240,255,246,.10)!important;
+}
+
+body.theme-factory .progress span,
+body.theme-factory .manager-flow-line span,
+body.theme-factory .kpi-health-bar span{
+  background:linear-gradient(90deg,#22c55e,#86efac)!important;
+}
+
+/* Scrollbar */
+body.theme-factory::-webkit-scrollbar-track,
+body.theme-factory .screen::-webkit-scrollbar-track{
+  background:transparent!important;
+}
+
+body.theme-factory::-webkit-scrollbar-thumb,
+body.theme-factory .screen::-webkit-scrollbar-thumb{
+  background:rgba(134,239,172,.34)!important;
+  border-radius:999px!important;
+}
+
+/* Evita que theme-light continue interferindo caso a classe antiga fique no body */
+body.theme-factory.theme-light .manager-bottom-nav,
+body.theme-factory.theme-light .data-accel-card,
+body.theme-factory.theme-light .manager-list-card,
+body.theme-factory.theme-light .manager-setting-block,
+body.theme-factory.theme-light .manager-config-summary{
+  background:linear-gradient(180deg,var(--factory-card-2),var(--factory-card))!important;
+  color:var(--factory-text)!important;
+  border-color:var(--factory-border)!important;
+}

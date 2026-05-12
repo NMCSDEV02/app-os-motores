@@ -1,0 +1,2033 @@
+/****************************************************
+ * OS MOTORES V5 PRO - Apps Script API
+ * Banco: Google Sheets
+ * Perfis: Operador | Gestao | Admin
+ ****************************************************/
+
+const SHEETS = {
+  operadores: "operadores",
+  os: "os",
+  checklist: "checklist",
+  subtarefas: "subtarefas",
+  historico: "historico",
+  logs: "logs",
+  modelos: "modelos_checklist",
+  kits: "kits_qr",
+  config: "config",
+  lixeira: "lixeira_os",
+  solicitacoes_setor: "solicitacoes_setor",
+  setores: "setores",
+  fluxos: "fluxos",
+  config_sistema: "config_sistema",
+  permissoes: "permissoes",
+  solicitacoes_admin: "solicitacoes_admin",
+  notificacoes: "notificacoes"
+};
+
+function jsonOut(data) {
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
+
+function ss() { return SpreadsheetApp.getActiveSpreadsheet(); }
+function sh(name) { return ss().getSheetByName(name) || ss().insertSheet(name); }
+
+function ensureSheet(name, headers) {
+  const sheet = sh(name);
+  const range = sheet.getDataRange();
+  const values = range.getValues();
+  if(values.length === 0 || values[0].every(v => String(v || "").trim() === "")) {
+    sheet.clear();
+    sheet.appendRow(headers);
+    return sheet;
+  }
+
+  const current = values[0].map(h => String(h).trim());
+  headers.forEach(h => {
+    if(current.indexOf(h) < 0){
+      sheet.getRange(1, current.length + 1).setValue(h);
+      current.push(h);
+    }
+  });
+  return sheet;
+}
+
+
+function rowsAsObjects(sheetName) {
+  const sheet = sh(sheetName);
+  const values = sheet.getDataRange().getValues();
+  if (values.length === 0) return { sheet, headers: [], rows: [] };
+  const headers = values[0].map(h => String(h).trim());
+  const rows = values.slice(1).filter(r => r.some(c => c !== "")).map((row, i) => {
+    const o = { __rowNumber: i + 2 };
+    headers.forEach((h, idx) => o[h] = row[idx]);
+    return o;
+  });
+  return { sheet, headers, rows };
+}
+
+function col(headers, name) { return headers.findIndex(h => String(h).trim() === name) + 1; }
+function norm(v) { return String(v || "").trim(); }
+function lower(v) { return norm(v).toLowerCase(); }
+function isTrue(v) { return lower(v) === "true" || v === true; }
+function isDone(v) { return ["concluído", "concluido", "finalizado"].includes(lower(v)); }
+function now() { return new Date(); }
+
+function nextId(rows, field) {
+  return rows.reduce((m, r) => Math.max(m, Number(r[field] || 0)), 0) + 1;
+}
+
+function setCell(sheet, headers, rowNumber, field, value) {
+  const c = col(headers, field);
+  if (c > 0) sheet.getRange(rowNumber, c).setValue(value);
+}
+
+function ensureColumn(sheetName, field) {
+  const obj = rowsAsObjects(sheetName);
+  if (obj.headers.indexOf(field) >= 0) return rowsAsObjects(sheetName);
+  const c = obj.headers.length + 1;
+  obj.sheet.getRange(1, c).setValue(field);
+  return rowsAsObjects(sheetName);
+}
+
+function setCellSafe(sheetName, rowNumber, field, value) {
+  const obj = ensureColumn(sheetName, field);
+  setCell(obj.sheet, obj.headers, rowNumber, field, value);
+}
+
+function gerarMatricula(rows) {
+  const existentes = rows.map(r => norm(r.matricula));
+  let mat = "";
+  do {
+    mat = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + Math.floor(1000 + Math.random() * 9000);
+  } while (existentes.includes(mat));
+  return mat;
+}
+
+function addLog(acao, operador_nome, detalhes, codigo_os) {
+  const { sheet } = rowsAsObjects(SHEETS.logs);
+  sheet.appendRow([now(), acao, operador_nome || "", codigo_os || "", detalhes || ""]);
+}
+
+function addHistorico(acao, operador_nome, matricula, codigo_os, setor, detalhes) {
+  const { sheet } = rowsAsObjects(SHEETS.historico);
+  sheet.appendRow([now(), acao, operador_nome || "", matricula || "", codigo_os || "", setor || "", detalhes || ""]);
+}
+
+/****************************************************
+ * SETUP DO BANCO
+ ****************************************************/
+function setupBancoOSMotores() {
+  const schemas = {
+    operadores: ["id_operador","nome","matricula","setor","perfil","ativo","pode_criar_os","criado_em","ultimo_login_em"],
+    os: ["id_os","codigo_os","motor","data_abertura","status","etapa_atual","setor_atual","criado_por","criado_por_matricula","concluida_em","excluida","recuperavel","id_modelo","kit_qr","observacao","operador_atual_nome","operador_atual_matricula","ultimo_movimento_em"],
+    checklist: ["id_item","id_os","origem","id_subtarefa","etapa","setor","descricao","concluido","ordem","concluido_por","concluido_em","tempo_item_min"],
+    subtarefas: ["id_subtarefa","id_os","codigo_os","descricao","setor_origem","setor_destino","status","criado_por","criado_em","concluido_por","concluido_em","tempo_subtarefa_min","excluida","excluida_por","excluida_em"],
+    historico: ["data_hora","acao","operador_nome","matricula","codigo_os","setor","detalhes"],
+    logs: ["data_hora","acao","operador_nome","codigo_os","detalhes"],
+    modelos_checklist: ["id_modelo","nome_modelo","tipo","setor","etapa","descricao","ordem","ativo","criado_por","criado_em"],
+    kits_qr: ["id_kit","codigo_qr","descricao","status","id_os_atual","setor_atual","criado_em"],
+    config: ["chave","valor","descricao"],
+    lixeira_os: ["data_exclusao","id_os","codigo_os","motor","excluido_por","motivo"],
+    solicitacoes_setor: ["id_solicitacao","data_solicitacao","matricula","nome","setor_atual","setor_novo","status","avaliado_por","avaliado_em","observacao"],
+    setores: ["id_setor","nome_setor","codigo_setor","tipo","descricao","ativo","criado_por","criado_em"],
+    fluxos: ["id_fluxo","nome_fluxo","etapa","ordem","regra","ativo","criado_por","criado_em"],
+    config_sistema: ["chave","valor","atualizado_por","atualizado_em"],
+    permissoes: ["id_permissao","perfil","chave","valor","atualizado_por","atualizado_em"],
+    solicitacoes_admin: ["id_solicitacao","tipo","titulo","descricao","criado_por","matricula","setor","status","criado_em","respondido_por","respondido_em","observacao"],
+    notificacoes: ["id_notificacao","destino","origem","tipo","titulo","mensagem","codigo_os","criado_por","matricula","criado_em","lida","lida_por","lida_em"]
+  };
+
+  Object.keys(schemas).forEach(name => {
+    const sheet = sh(name);
+    if (sheet.getLastRow() === 0) sheet.appendRow(schemas[name]);
+    else if (sheet.getLastRow() >= 1 && sheet.getRange(1,1).getValue() === "") {
+      sheet.getRange(1, 1, 1, schemas[name].length).setValues([schemas[name]]);
+    }
+    sheet.setFrozenRows(1);
+  });
+
+  seedDadosExemplo();
+  return "Banco OS Motores V5 configurado.";
+}
+
+function seedDadosExemplo() {
+  const ops = rowsAsObjects(SHEETS.operadores);
+  if (ops.rows.length === 0) {
+    ops.sheet.appendRow([1,"Administrador Mestre","ADM1000","Administração","Admin",true,true,now(),""]);
+    ops.sheet.appendRow([2,"Gestor Manutenção","GES1000","Gestão","Gestao",true,true,now(),""]);
+    ops.sheet.appendRow([3,"Caio Fernando","E1000","Elétrica","Operador",true,false,now(),""]);
+    ops.sheet.appendRow([4,"Samuel Operador","D1000","Desmontagem","Operador",true,false,now(),""]);
+    ops.sheet.appendRow([5,"João Montagem","M1000","Montagem","Operador",true,false,now(),""]);
+    ops.sheet.appendRow([6,"Pedro Usinagem","U1000","Usinagem","Operador",true,false,now(),""]);
+  }
+
+  const modelos = rowsAsObjects(SHEETS.modelos);
+  if (modelos.rows.length === 0) {
+    const seed = [
+      [1,"Desmontagem padrão","Principal","Desmontagem","Desmontagem","Desenergizar e identificar o motor",1,true,"Sistema",now()],
+      [2,"Desmontagem padrão","Principal","Desmontagem","Desmontagem","Retirar tampa e componentes externos",2,true,"Sistema",now()],
+      [3,"Desmontagem padrão","Principal","Desmontagem","Desmontagem","Separar peças no carrinho kit",3,true,"Sistema",now()],
+      [4,"Montagem padrão","Principal","Montagem","Montagem","Montar carcaça e componentes",1,true,"Sistema",now()],
+      [5,"Montagem padrão","Principal","Montagem","Montagem","Fixar parafusos com torque adequado",2,true,"Sistema",now()],
+      [6,"Montagem padrão","Principal","Montagem","Montagem","Testar funcionamento final",3,true,"Sistema",now()],
+      [7,"Elétrica padrão","Subtarefa","Elétrica","Elétrica","Medir isolamento do enrolamento",1,true,"Sistema",now()],
+      [8,"Elétrica padrão","Subtarefa","Elétrica","Elétrica","Verificar parâmetros elétricos do rotor",2,true,"Sistema",now()],
+      [9,"Elétrica padrão","Subtarefa","Elétrica","Elétrica","Registrar laudo elétrico básico",3,true,"Sistema",now()],
+      [10,"Usinagem padrão","Subtarefa","Usinagem","Usinagem","Medir eixo com instrumento adequado",1,true,"Sistema",now()],
+      [11,"Usinagem padrão","Subtarefa","Usinagem","Usinagem","Corrigir desgaste ou rebarba",2,true,"Sistema",now()],
+      [12,"Usinagem padrão","Subtarefa","Usinagem","Usinagem","Liberar peça para continuidade",3,true,"Sistema",now()],
+      [13,"Produção padrão","Subtarefa","Produção","Produção","Separar material solicitado",1,true,"Sistema",now()],
+      [14,"Produção padrão","Subtarefa","Produção","Produção","Conferir peça no estoque/linha",2,true,"Sistema",now()],
+      [15,"Almoxarifado padrão","Subtarefa","Almoxarifado","Almoxarifado","Localizar item solicitado",1,true,"Sistema",now()],
+      [16,"Almoxarifado padrão","Subtarefa","Almoxarifado","Almoxarifado","Registrar retirada de material",2,true,"Sistema",now()]
+    ];
+    modelos.sheet.getRange(2,1,seed.length,seed[0].length).setValues(seed);
+  }
+
+  const osData = rowsAsObjects(SHEETS.os);
+  if (osData.rows.length === 0) {
+    criarOS({motor:"Motor WEG 15CV - Bomba CIP", setor_inicial:"Desmontagem", id_modelo:"1", criado_por:"Gestor Manutenção", criado_por_matricula:"GES1000", observacao:"Exemplo real de teste"});
+    criarOS({motor:"Motor Redutor Linha Embalagem", setor_inicial:"Desmontagem", id_modelo:"1", criado_por:"Gestor Manutenção", criado_por_matricula:"GES1000", observacao:"Teste com subtarefa elétrica"});
+    criarSubtarefa({id_os:2, descricao:"Medir parâmetros elétricos do rotor", setor_destino:"Elétrica", operador_nome:"Samuel Operador"});
+  }
+}
+
+/****************************************************
+ * ROTAS
+ ****************************************************/
+function doGet(e) {
+  const p = e.parameter || {};
+  const acao = p.acao;
+  try {
+    if (acao === "ping") return jsonOut({ok:true, data:now()});
+    if (acao === "adminPermissoesGestao") return adminPermissoesGestao();
+    if (acao === "login") return login(p.matricula);
+    if (acao === "listarOS") return listarOS(p.setor, p.matricula);
+    if (acao === "buscarOS") return buscarOS(p.termo, p.setor);
+    if (acao === "listarChecklistUnificado") return listarChecklistUnificado(p.id_os, p.etapa, p.setor, p.matricula);
+    if (acao === "listarChecklistSubtarefa") return listarChecklistSubtarefa(p.id_subtarefa, p.setor, p.matricula);
+    if (acao === "obterProgressoOS") return obterProgressoOS(p.id_os);
+    if (acao === "listarHistorico") return listarHistorico(p.matricula, p.perfil);
+    if (acao === "listarNotificacoesOperador") return listarNotificacoesOperador(p.matricula, p.setor);
+    if (acao === "gestorResumo") return gestorResumo(p.matricula);
+    if (acao === "gestorOSDetalhe") return gestorOSDetalhe(p.id_os);
+    if (acao === "gestorLixeira") return gestorLixeira();
+    if (acao === "gestorTodasSubtarefas") return gestorTodasSubtarefas();
+    if (acao === "produtividadeResumo") return produtividadeResumo(p.matricula);
+    if (acao === "kpiDashboardAvancado") return kpiDashboardAvancado(p.matricula);
+    if (acao === "dashboardLean") return dashboardLean(p.matricula);
+    if (acao === "bootstrapApp") return bootstrapApp(p.matricula);
+    if (acao === "bootstrapGestaoFinal") return bootstrapGestaoFinal(p.matricula);
+    if (acao === "listarModelosAtivos") return listarModelosAtivos();
+    if (acao === "resolverQR") return resolverQR(p.valor, p.setor, p.modo, p.contexto);
+    if (acao === "adminListarOperadores") return adminListarOperadores();
+    if (acao === "adminSubtarefasPendentes") return adminSubtarefasPendentes();
+    if (acao === "adminSolicitacoesSetor") return adminSolicitacoesSetor();
+    if (acao === "adminLixeiraOS") return adminLixeiraOS();
+    if (acao === "adminLixeiraSubtarefas") return adminLixeiraSubtarefas();
+    if (acao === "adminLogs") return adminLogs();
+    if (acao === "adminDesktopResumo") return adminDesktopResumo(p.matricula);
+    if (acao === "listarSetores") return listarSetores();
+    if (acao === "listarFluxos") return listarFluxos();
+    if (acao === "listarConfigSistema") return listarConfigSistema();
+    if (acao === "listarPermissoes") return listarPermissoes();
+    if (acao === "auditoriaFiltrada") return auditoriaFiltrada(p);
+    if (acao === "listarSolicitacoesAdmin") return listarSolicitacoesAdmin();
+    if (acao === "listarNotificacoes") return listarNotificacoes(p);
+    if (acao === "listarKitsQR") return listarKitsQR();
+    if (acao === "listarMinhasSolicitacoes") return listarMinhasSolicitacoes(p.matricula);
+    return jsonOut({erro:"Ação inválida"});
+  } catch (err) {
+    return jsonOut({erro:String(err.message || err)});
+  }
+}
+
+function doPost(e) {
+  const d = JSON.parse(e.postData.contents || "{}");
+  try {
+    if (d.acao === "cadastrarOperador") return cadastrarOperador(d);
+    if (d.acao === "gestorAplicarChecklistOS") return gestorAplicarChecklistOS(d);
+    if (d.acao === "adminSalvarPermissoesGestao") return adminSalvarPermissoesGestao(d);
+    if (d.acao === "criarOS") return jsonOut(criarOS(d));
+    if (d.acao === "concluirItem") return concluirItem(d);
+    if (d.acao === "criarSubtarefa") return criarSubtarefa(d);
+    if (d.acao === "avancarEtapaSePossivel") return avancarEtapaSePossivel(d);
+    if (d.acao === "finalizarSubtarefaSePossivel") return finalizarSubtarefaSePossivel(d);
+    if (d.acao === "solicitarTrocaSetor") return solicitarTrocaSetor(d);
+    if (d.acao === "adminResponderTrocaSetor") return adminResponderTrocaSetor(d);
+    if (d.acao === "criarModeloChecklist") return criarModeloChecklist(d);
+    if (d.acao === "adminToggleOperador") return adminToggleOperador(d);
+    if (d.acao === "adminDefinirPerfil") return adminDefinirPerfil(d);
+    if (d.acao === "excluirOS") return excluirOS(d);
+    if (d.acao === "gestorEditarOS") return gestorEditarOS(d);
+    if (d.acao === "gestorAplicarModeloChecklist") return gestorAplicarModeloChecklist(d);
+    if (d.acao === "recuperarOS") return recuperarOS(d);
+    if (d.acao === "recuperarSubtarefa") return recuperarSubtarefa(d);
+    if (d.acao === "gestorAplicarModeloSubtarefa") return gestorAplicarModeloSubtarefa(d);
+    if (d.acao === "gestorRepetirSubtarefa") return gestorRepetirSubtarefa(d);
+    if (d.acao === "gestorCriarSequenciaSubtarefas") return gestorCriarSequenciaSubtarefas(d);
+    if (d.acao === "gestorExcluirSubtarefa") return gestorExcluirSubtarefa(d);
+    if (d.acao === "gestorEditarSubtarefa") return gestorEditarSubtarefa(d);
+    if (d.acao === "gestorCriarSubtarefa") return gestorCriarSubtarefa(d);
+    if (d.acao === "registrarAcessoOS") return registrarAcessoOS(d);
+    if (d.acao === "republicarOS") return republicarOS(d);
+    if (d.acao === "reiniciarOS") return reiniciarOS(d);
+    if (d.acao === "editarSubtarefa") return editarSubtarefa(d);
+    if (d.acao === "excluirSubtarefa") return excluirSubtarefa(d);
+    if (d.acao === "criarSetor") return criarSetor(d);
+    if (d.acao === "criarFluxo") return criarFluxo(d);
+    if (d.acao === "salvarConfigSistema") return salvarConfigSistema(d);
+    if (d.acao === "salvarPermissoes") return salvarPermissoes(d);
+    if (d.acao === "criarSolicitacaoAdmin") return criarSolicitacaoAdmin(d);
+    if (d.acao === "responderSolicitacaoAdmin") return responderSolicitacaoAdmin(d);
+    if (d.acao === "criarNotificacao") return criarNotificacao(d);
+    if (d.acao === "marcarNotificacaoLida") return marcarNotificacaoLida(d);
+    if (d.acao === "salvarKitQR") return salvarKitQR(d);
+    if (d.acao === "desvincularKitQR") return desvincularKitQR(d);
+    return jsonOut({sucesso:false, erro:"Ação POST inválida"});
+  } catch (err) {
+    return jsonOut({sucesso:false, erro:String(err.message || err)});
+  }
+}
+
+/****************************************************
+ * AUTH / OPERADORES
+ ****************************************************/
+function login(matricula) {
+  const { sheet, headers, rows } = rowsAsObjects(SHEETS.operadores);
+  const user = rows.find(r => norm(r.matricula) === norm(matricula));
+  if (!user) return jsonOut(null);
+  if (!isTrue(user.ativo)) return jsonOut({erro:"Usuário inativo"});
+  setCell(sheet, headers, user.__rowNumber, "ultimo_login_em", now());
+  return jsonOut(user);
+}
+
+function cadastrarOperador(d) {
+  const { sheet, rows } = rowsAsObjects(SHEETS.operadores);
+  const id = nextId(rows, "id_operador");
+  const matricula = gerarMatricula(rows);
+  sheet.appendRow([id, d.nome, matricula, d.setor, "Operador", true, false, now(), ""]);
+  addLog("CADASTRO_OPERADOR", d.nome, "Cadastro pelo app", "");
+  return jsonOut({sucesso:true, id_operador:id, matricula});
+}
+
+/****************************************************
+ * OS / CHECKLIST
+ ****************************************************/
+function codigoOS(id) { return "OS-" + new Date().getFullYear() + "-" + String(id).padStart(4, "0"); }
+
+function criarOS(d) {
+  const osData = rowsAsObjects(SHEETS.os);
+  const id = nextId(osData.rows, "id_os");
+  const cod = codigoOS(id);
+  const modeloId = d.id_modelo || "";
+  osData.sheet.appendRow([id, cod, d.motor, now(), "Em processo", d.setor_inicial, d.setor_inicial, d.criado_por || d.operador_nome || "", d.criado_por_matricula || "", "", false, false, modeloId, "", d.observacao || "", "", "", now()]);
+  criarChecklistPrincipalPorModelo(id, d.setor_inicial, modeloId);
+  addHistorico("OS_CRIADA", d.criado_por || d.operador_nome, d.criado_por_matricula, cod, d.setor_inicial, d.motor);
+  addLog("OS_CRIADA", d.criado_por || d.operador_nome, d.motor, cod);
+  return {sucesso:true, id_os:id, codigo_os:cod};
+}
+
+function criarChecklistPrincipalPorModelo(idOS, setor, idModelo) {
+  const check = rowsAsObjects(SHEETS.checklist);
+  const modelos = rowsAsObjects(SHEETS.modelos).rows
+    .filter(m => isTrue(m.ativo) && lower(m.tipo) === "principal" && norm(m.setor) === norm(setor))
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
+  const lista = modelos.length ? modelos : [{descricao:"Executar checklist do setor", ordem:1}];
+  let idItem = nextId(check.rows, "id_item");
+  lista.forEach((m, idx) => {
+    check.sheet.appendRow([idItem++, idOS, "Principal", "", setor, setor, m.descricao, false, idx + 1, "", "", ""]);
+  });
+}
+
+function calcularProgresso(idOS) {
+  const subtRows = rowsAsObjects(SHEETS.subtarefas).rows;
+  const subtExcluidas = subtRows
+    .filter(s => String(s.id_os) === String(idOS) && isTrue(s.excluida))
+    .map(s => String(s.id_subtarefa));
+
+  const checklist = rowsAsObjects(SHEETS.checklist).rows
+    .filter(i => String(i.id_os) === String(idOS))
+    .filter(i => !(i.id_subtarefa && subtExcluidas.indexOf(String(i.id_subtarefa)) >= 0));
+
+  const total = checklist.length;
+  const concluidos = checklist.filter(i => isTrue(i.concluido)).length;
+  const principal = checklist.filter(i => norm(i.origem) === "Principal");
+  const sub = checklist.filter(i => norm(i.origem) === "Subtarefa");
+
+  const subtarefasAtivas = subtRows.filter(s => String(s.id_os) === String(idOS) && !isTrue(s.excluida));
+  const subtPendentes = subtarefasAtivas.filter(s => !isDone(s.status)).length;
+
+  return {
+    total_itens: total,
+    total_concluidos: concluidos,
+    checklist_total: principal.length,
+    checklist_concluidos: principal.filter(i=>isTrue(i.concluido)).length,
+    subtarefas_total: subtarefasAtivas.length,
+    subtarefas_concluidas: subtarefasAtivas.filter(s=>isDone(s.status)).length,
+    subtarefas_pendentes: subtPendentes,
+    percentual_total: total ? Math.round((concluidos/total)*100) : 0,
+    atualizado_em: now()
+  };
+}
+
+function listarOS(setor, matricula) {
+  const setorNorm = norm(setor);
+  const osRows = rowsAsObjects(SHEETS.os).rows
+    .filter(o => !isTrue(o.excluida) && !isDone(o.status));
+
+  const subt = rowsAsObjects(SHEETS.subtarefas).rows
+    .filter(s => !isTrue(s.excluida) && !isDone(s.status));
+
+  const result = [];
+  const seen = {};
+
+  osRows.forEach(o => {
+    const prog = calcularProgresso(o.id_os);
+
+    // Card principal: somente setor atual da OS.
+    if (norm(o.setor_atual) === setorNorm) {
+      const key = "OS:" + o.id_os;
+      if(!seen[key]){
+        seen[key] = true;
+        result.push(Object.assign({}, o, prog, {modo_subtarefa:false, tipo_card:"Principal"}));
+      }
+    }
+
+    // Card de subtarefa: somente setor destino da subtarefa.
+    subt
+      .filter(s => String(s.id_os) === String(o.id_os) && norm(s.setor_destino) === setorNorm)
+      .forEach(s => {
+        const key = "SUB:" + s.id_subtarefa;
+        if(seen[key]) return;
+        seen[key] = true;
+
+        result.push(Object.assign({}, o, prog, {
+          modo_subtarefa:true,
+          tipo_card:"Subtarefa",
+          id_subtarefa:s.id_subtarefa,
+          descricao_subtarefa:s.descricao,
+          setor_origem:s.setor_origem,
+          setor_destino:s.setor_destino,
+          setor_atual:s.setor_destino
+        }));
+      });
+  });
+
+  return jsonOut(result);
+}
+
+function buscarOS(termo, setor) {
+  const clean = norm(termo);
+  const setorNorm = norm(setor);
+  const osRows = rowsAsObjects(SHEETS.os).rows.filter(o => !isTrue(o.excluida));
+  const os = osRows.find(o => norm(o.codigo_os) === clean || norm(o.codigo_os).endsWith(clean.padStart(4, "0")) || String(o.id_os) === clean);
+  if (!os) return jsonOut({erro:"OS não encontrada"});
+
+  const subt = rowsAsObjects(SHEETS.subtarefas).rows
+    .filter(s => !isTrue(s.excluida) && !isDone(s.status) && String(s.id_os) === String(os.id_os) && norm(s.setor_destino) === setorNorm);
+
+  if (norm(os.setor_atual) === setorNorm) {
+    return jsonOut(Object.assign({}, os, calcularProgresso(os.id_os), {permitido:true, modo_subtarefa:false, tipo_card:"Principal"}));
+  }
+
+  if (subt.length > 0) {
+    const s = subt[0];
+    return jsonOut(Object.assign({}, os, calcularProgresso(os.id_os), {
+      permitido:true,
+      modo_subtarefa:true,
+      tipo_card:"Subtarefa",
+      id_subtarefa:s.id_subtarefa,
+      descricao_subtarefa:s.descricao,
+      setor_origem:s.setor_origem,
+      setor_destino:s.setor_destino,
+      setor_atual:s.setor_destino
+    }));
+  }
+
+  return jsonOut(Object.assign({}, os, calcularProgresso(os.id_os), {permitido:false}));
+}
+
+function listarChecklistUnificado(idOS, etapa, setor, matricula) {
+  const setorNorm = norm(setor || etapa);
+  const os = rowsAsObjects(SHEETS.os).rows.find(o => String(o.id_os) === String(idOS));
+
+  if (!os) return jsonOut([]);
+  if (norm(os.setor_atual) !== setorNorm) {
+    // Operador não recebe checklist principal de outro setor.
+    return jsonOut([]);
+  }
+
+  const rows = rowsAsObjects(SHEETS.checklist).rows
+    .filter(i => String(i.id_os) === String(idOS) && !isTrue(i.concluido))
+    .filter(i => norm(i.origem) === "Principal")
+    .filter(i => norm(i.etapa) === norm(etapa) || norm(i.setor) === setorNorm)
+    .filter(i => norm(i.setor || i.etapa) === setorNorm)
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0))
+    .map(i => Object.assign({}, i, {tipo:"Principal"}));
+
+  return jsonOut(rows);
+}
+
+function listarChecklistSubtarefa(idSubtarefa, setor, matricula) {
+  const setorNorm = norm(setor);
+  const sub = rowsAsObjects(SHEETS.subtarefas).rows
+    .find(s => String(s.id_subtarefa) === String(idSubtarefa) && !isTrue(s.excluida) && !isDone(s.status));
+
+  if (!sub) return jsonOut([]);
+  if (norm(sub.setor_destino) !== setorNorm) {
+    // Subtarefa só aparece para o setor destino.
+    return jsonOut([]);
+  }
+
+  const rows = rowsAsObjects(SHEETS.checklist).rows
+    .filter(i => String(i.id_subtarefa) === String(idSubtarefa))
+    .filter(i => norm(i.origem) === "Subtarefa")
+    .filter(i => !isTrue(i.concluido))
+    .filter(i => norm(i.setor || i.etapa) === setorNorm)
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0))
+    .map(i => Object.assign({}, i, {
+      tipo:"Subtarefa",
+      setor_destino:sub.setor_destino,
+      setor_origem:sub.setor_origem
+    }));
+
+  return jsonOut(rows);
+}
+
+function concluirItem(d) {
+  const data = rowsAsObjects(SHEETS.checklist);
+  const item = data.rows.find(i => String(i.id_item) === String(d.id_item));
+  if (!item) return jsonOut({sucesso:false, erro:"Item não encontrado"});
+
+  const setorNorm = norm(d.setor);
+  const origem = norm(item.origem);
+
+  if (origem === "Subtarefa") {
+    const sub = rowsAsObjects(SHEETS.subtarefas).rows.find(s => String(s.id_subtarefa) === String(item.id_subtarefa));
+    if (!sub || isTrue(sub.excluida)) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada ou excluída"});
+    if (norm(sub.setor_destino) !== setorNorm) {
+      return jsonOut({sucesso:false, erro:"Este item pertence a outro setor"});
+    }
+  } else {
+    const os = rowsAsObjects(SHEETS.os).rows.find(o => String(o.id_os) === String(item.id_os));
+    if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+    if (norm(os.setor_atual) !== setorNorm || norm(item.setor || item.etapa) !== setorNorm) {
+      return jsonOut({sucesso:false, erro:"Este checklist pertence a outro setor"});
+    }
+  }
+
+  setCell(data.sheet, data.headers, item.__rowNumber, "concluido", true);
+  setCell(data.sheet, data.headers, item.__rowNumber, "concluido_por", d.operador_nome);
+  setCell(data.sheet, data.headers, item.__rowNumber, "concluido_em", now());
+
+  ensureColumn(SHEETS.os, "operador_atual_nome");
+  ensureColumn(SHEETS.os, "operador_atual_matricula");
+  ensureColumn(SHEETS.os, "ultimo_movimento_em");
+
+  const os = rowsAsObjects(SHEETS.os).rows.find(o => String(o.id_os) === String(item.id_os));
+  const codigo = os ? os.codigo_os : "";
+
+  if (os) {
+    setCellSafe(SHEETS.os, os.__rowNumber, "operador_atual_nome", d.operador_nome || "");
+    setCellSafe(SHEETS.os, os.__rowNumber, "operador_atual_matricula", d.matricula || "");
+    setCellSafe(SHEETS.os, os.__rowNumber, "ultimo_movimento_em", now());
+  }
+
+  addHistorico("ITEM_CONCLUIDO", d.operador_nome, d.matricula, codigo, item.setor, item.descricao);
+  addLog("ITEM_CONCLUIDO", d.operador_nome, item.descricao, codigo);
+
+  return jsonOut(Object.assign({sucesso:true}, calcularProgresso(item.id_os)));
+}
+
+/****************************************************
+ * SUBTAREFAS
+ ****************************************************/
+function criarSubtarefa(d) {
+  const osRows = rowsAsObjects(SHEETS.os).rows;
+  const os = osRows.find(o => String(o.id_os) === String(d.id_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+
+  const sub = rowsAsObjects(SHEETS.subtarefas);
+  const idSub = nextId(sub.rows, "id_subtarefa");
+  sub.sheet.appendRow([idSub, os.id_os, os.codigo_os, d.descricao, os.setor_atual, d.setor_destino, "Pendente", d.operador_nome || "", now(), "", "", ""]);
+
+  const check = rowsAsObjects(SHEETS.checklist);
+  const modelos = rowsAsObjects(SHEETS.modelos).rows
+    .filter(m => isTrue(m.ativo) && lower(m.tipo) === "subtarefa" && norm(m.setor) === norm(d.setor_destino))
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
+  const lista = [{descricao:"Pendência: " + d.descricao}].concat(modelos.map(m => ({descricao:m.descricao})));
+  let idItem = nextId(check.rows, "id_item");
+  lista.forEach((m, idx) => {
+    check.sheet.appendRow([idItem++, os.id_os, "Subtarefa", idSub, d.setor_destino, d.setor_destino, m.descricao, false, idx + 1, "", "", ""]);
+  });
+
+  addHistorico("SUBTAREFA_CRIADA", d.operador_nome, "", os.codigo_os, d.setor_destino, d.descricao);
+  addLog("SUBTAREFA_CRIADA", d.operador_nome, `${d.descricao} -> ${d.setor_destino}`, os.codigo_os);
+  return jsonOut({sucesso:true, id_subtarefa:idSub});
+}
+
+function finalizarSubtarefaSePossivel(d) {
+  const sub = rowsAsObjects(SHEETS.subtarefas);
+  const item = sub.rows.find(s => String(s.id_subtarefa) === String(d.id_subtarefa));
+  if (!item || isTrue(item.excluida)) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada"});
+
+  if (norm(item.setor_destino) !== norm(d.setor)) {
+    return jsonOut({sucesso:false, erro:"Subtarefa pertence a outro setor"});
+  }
+
+  const checks = rowsAsObjects(SHEETS.checklist).rows
+    .filter(i => String(i.id_subtarefa) === String(d.id_subtarefa))
+    .filter(i => norm(i.origem) === "Subtarefa");
+
+  if (checks.some(i => !isTrue(i.concluido))) {
+    return jsonOut({sucesso:false, erro:"Ainda há itens pendentes na subtarefa."});
+  }
+
+  setCell(sub.sheet, sub.headers, item.__rowNumber, "status", "Concluído");
+  setCell(sub.sheet, sub.headers, item.__rowNumber, "concluido_por", d.operador_nome);
+  setCell(sub.sheet, sub.headers, item.__rowNumber, "concluido_em", now());
+
+  addHistorico("SUBTAREFA_CONCLUIDA", d.operador_nome, d.matricula || "", item.codigo_os, item.setor_destino, item.descricao);
+  addLog("SUBTAREFA_CONCLUIDA", d.operador_nome, item.descricao, item.codigo_os);
+
+  return jsonOut({sucesso:true});
+}
+
+function avancarEtapaSePossivel(d) {
+  const osData = rowsAsObjects(SHEETS.os);
+  const os = osData.rows.find(o => String(o.id_os) === String(d.id_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+  if (norm(os.setor_atual) !== norm(d.setor)) return jsonOut({sucesso:false, erro:"OS pertence a outro setor"});
+  const checks = rowsAsObjects(SHEETS.checklist).rows.filter(i => String(i.id_os) === String(os.id_os));
+  if (checks.some(i => !isTrue(i.concluido))) return jsonOut({sucesso:false, erro:"Ainda existem itens pendentes."});
+
+  if (norm(os.etapa_atual) === "Desmontagem") {
+    setCell(osData.sheet, osData.headers, os.__rowNumber, "etapa_atual", "Montagem");
+    setCell(osData.sheet, osData.headers, os.__rowNumber, "setor_atual", "Montagem");
+    criarChecklistPrincipalPorModelo(os.id_os, "Montagem", "");
+    addHistorico("ETAPA_AVANCADA", d.operador_nome, "", os.codigo_os, "Montagem", "Desmontagem concluída");
+  } else {
+    setCell(osData.sheet, osData.headers, os.__rowNumber, "status", "Concluído");
+    setCell(osData.sheet, osData.headers, os.__rowNumber, "etapa_atual", "Concluído");
+    setCell(osData.sheet, osData.headers, os.__rowNumber, "setor_atual", "Finalizado");
+    setCell(osData.sheet, osData.headers, os.__rowNumber, "concluida_em", now());
+    addHistorico("OS_CONCLUIDA", d.operador_nome, "", os.codigo_os, "Finalizado", "OS finalizada");
+  }
+  return jsonOut({sucesso:true});
+}
+
+/****************************************************
+ * GESTÃO / ADMIN / QR
+ ****************************************************/
+function listarHistorico(matricula, perfil) {
+  const rows = rowsAsObjects(SHEETS.historico).rows.sort((a,b)=>new Date(b.data_hora)-new Date(a.data_hora)).slice(0,80);
+  if (lower(perfil) === "operador") return jsonOut(rows.filter(r => norm(r.matricula) === norm(matricula)).slice(0,40));
+  return jsonOut(rows);
+}
+
+function isHoje(data) {
+  if (!data) return false;
+  const d = new Date(data);
+  if (isNaN(d.getTime())) return false;
+  const h = new Date();
+  return d.getFullYear() === h.getFullYear() && d.getMonth() === h.getMonth() && d.getDate() === h.getDate();
+}
+
+function listarNotificacoesOperador(matricula, setor) {
+  const mat = norm(matricula);
+  const setorNorm = norm(setor);
+  const rows = rowsAsObjects(SHEETS.historico).rows
+    .filter(r => isHoje(r.data_hora))
+    .sort((a,b)=>new Date(b.data_hora)-new Date(a.data_hora));
+
+  const relevantes = rows.filter(r => {
+    const acao = norm(r.acao).toUpperCase();
+    const rMat = norm(r.matricula);
+    const rSetor = norm(r.setor);
+
+    // Ações próprias do operador.
+    if (rMat && rMat === mat) return true;
+
+    // Demandas novas encaminhadas/listadas para o setor do operador.
+    if ((acao === "OS_CRIADA" || acao === "SUBTAREFA_CRIADA") && rSetor === setorNorm) return true;
+
+    // Respostas da administração sobre troca de setor do próprio operador.
+    if ((acao === "TROCA_SETOR_APROVADA" || acao === "TROCA_SETOR_NEGADA") && norm(r.detalhes).indexOf(mat) >= 0) return true;
+
+    return false;
+  }).slice(0,60);
+
+  return jsonOut(relevantes);
+}
+
+function gestorResumo(matricula) {
+  const osRows = rowsAsObjects(SHEETS.os).rows.filter(o => !isTrue(o.excluida));
+  const checks = rowsAsObjects(SHEETS.checklist).rows;
+  const subs = rowsAsObjects(SHEETS.subtarefas).rows;
+  const osOut = osRows.map(o => Object.assign({}, o, calcularProgresso(o.id_os))).sort((a,b)=>new Date(b.data_abertura)-new Date(a.data_abertura));
+  const kpi = {
+    os_abertas: osRows.filter(o => !isDone(o.status)).length,
+    sub_pendentes: subs.filter(s => !isDone(s.status)).length,
+    itens_total: checks.length,
+    itens_concluidos: checks.filter(c => isTrue(c.concluido)).length,
+    tempo_medio_os: 0
+  };
+  return jsonOut({kpi, os:osOut});
+}
+
+function listarModelosAtivos() {
+  return jsonOut(rowsAsObjects(SHEETS.modelos).rows.filter(m => isTrue(m.ativo)).sort((a,b)=>norm(a.setor).localeCompare(norm(b.setor)) || Number(a.ordem||0)-Number(b.ordem||0)));
+}
+
+function criarModeloChecklist(d) {
+  const m = rowsAsObjects(SHEETS.modelos);
+  const id = nextId(m.rows, "id_modelo");
+  const ordem = m.rows.filter(r => norm(r.setor) === norm(d.setor) && norm(r.tipo) === norm(d.tipo)).length + 1;
+  m.sheet.appendRow([id, d.nome_modelo || `${d.setor} padrão`, d.tipo, d.setor, d.setor, d.descricao, ordem, true, d.criado_por || "", now()]);
+  addLog("MODELO_CRIADO", d.criado_por, d.descricao, "");
+  return jsonOut({sucesso:true, id_modelo:id});
+}
+
+function resolverQR(valor, setor, modo, contexto) {
+  const v = norm(valor);
+  const modoQR = norm(modo || "auto");
+
+  if (modoQR !== "auto" && modoQR !== "kit" && v.startsWith("KIT:")) return jsonOut({erro:"QR de kit bloqueado pelo modo atual"});
+
+  if (v.startsWith("KIT:")) {
+    const codigo = v.replace("KIT:", "");
+    const kit = garantirKitsQR().rows.find(k => norm(k.codigo_qr) === norm(codigo));
+    if (!kit) return jsonOut({erro:"Kit não encontrado"});
+    const os = kit.id_os_atual ? rowsAsObjects(SHEETS.os).rows.find(o => String(o.id_os) === String(kit.id_os_atual)) : null;
+    if (os) {
+      return jsonOut({
+        tipo:"KIT",
+        mensagem:`Kit ${kit.codigo_qr} vinculado à ${os.codigo_os}`,
+        kit:kit,
+        os:Object.assign({}, os, calcularProgresso(os.id_os), {kit_qr:kit.codigo_qr})
+      });
+    }
+    return jsonOut({tipo:"KIT", mensagem:`Kit ${kit.codigo_qr} livre`, kit:kit});
+  }
+
+  if (modoQR !== "auto" && modoQR !== "subtarefa" && v.startsWith("SUB:")) return jsonOut({erro:"QR de subtarefa bloqueado pelo modo atual"});
+
+  if (v.startsWith("SUB:")) {
+    const id = v.split(":")[1];
+    const sub = rowsAsObjects(SHEETS.subtarefas).rows.find(s => String(s.id_subtarefa) === String(id));
+    if (!sub) return jsonOut({erro:"Subtarefa não encontrada"});
+    const os = rowsAsObjects(SHEETS.os).rows.find(o => String(o.id_os) === String(sub.id_os));
+    return jsonOut({tipo:"Subtarefa", os:Object.assign({}, os, calcularProgresso(os.id_os), {modo_subtarefa:true, id_subtarefa:sub.id_subtarefa, descricao_subtarefa:sub.descricao})});
+  }
+
+  const busca = buscarOSRaw(v);
+  if (busca) return jsonOut({tipo:"OS", os:Object.assign({}, busca, calcularProgresso(busca.id_os))});
+  return jsonOut({erro:"QR não reconhecido"});
+}
+
+function buscarOSRaw(termo) {
+  const clean = norm(termo).replace("OS:", "");
+  return rowsAsObjects(SHEETS.os).rows.find(o => norm(o.codigo_os) === clean || norm(o.codigo_os).endsWith(clean.padStart(4, "0")) || String(o.id_os) === clean);
+}
+
+function garantirSolicitacoesSetor() {
+  const sheet = sh(SHEETS.solicitacoes_setor);
+  const headers = ["id_solicitacao","data_solicitacao","matricula","nome","setor_atual","setor_novo","status","avaliado_por","avaliado_em","observacao"];
+  if (sheet.getLastRow() === 0) sheet.appendRow(headers);
+  else if (String(sheet.getRange(1,1).getValue()).trim() !== "id_solicitacao") {
+    sheet.insertRowBefore(1);
+    sheet.getRange(1,1,1,headers.length).setValues([headers]);
+  }
+  sheet.setFrozenRows(1);
+  return rowsAsObjects(SHEETS.solicitacoes_setor);
+}
+
+function solicitarTrocaSetor(d) {
+  const ops = rowsAsObjects(SHEETS.operadores);
+  const op = ops.rows.find(o => norm(o.matricula) === norm(d.matricula));
+  if (!op) return jsonOut({sucesso:false, erro:"Operador não encontrado"});
+
+  const sol = garantirSolicitacoesSetor();
+  const pendente = sol.rows.find(r => norm(r.matricula) === norm(d.matricula) && lower(r.status || "Pendente") === "pendente");
+  if (pendente) return jsonOut({sucesso:false, erro:"Já existe uma solicitação pendente para este operador."});
+
+  const id = nextId(sol.rows, "id_solicitacao");
+  const setorAtual = d.setor_atual || op.setor || "";
+  sol.sheet.appendRow([id, now(), d.matricula, d.nome || op.nome || "", setorAtual, d.setor_novo, "Pendente", "", "", "Aguardando aprovação do administrador"]);
+  addLog("SOLICITACAO_TROCA_SETOR", op.nome || d.matricula, `Novo setor solicitado: ${setorAtual} -> ${d.setor_novo}`, "");
+  addHistorico("SOLICITACAO_TROCA_SETOR", op.nome || "", d.matricula, "", setorAtual, `Solicitou troca para ${d.setor_novo}`);
+  return jsonOut({sucesso:true, status:"Pendente"});
+}
+
+function adminSolicitacoesSetor() {
+  const sol = garantirSolicitacoesSetor();
+  return jsonOut(sol.rows.sort((a,b)=>new Date(b.data_solicitacao)-new Date(a.data_solicitacao)));
+}
+
+function adminResponderTrocaSetor(d) {
+  const sol = garantirSolicitacoesSetor();
+  const item = sol.rows.find(r => String(r.id_solicitacao) === String(d.id_solicitacao));
+  if (!item) return jsonOut({sucesso:false, erro:"Solicitação não encontrada"});
+  if (lower(item.status || "Pendente") !== "pendente") return jsonOut({sucesso:false, erro:"Solicitação já avaliada"});
+
+  const status = norm(d.status) === "Aprovado" ? "Aprovado" : "Rejeitado";
+  setCell(sol.sheet, sol.headers, item.__rowNumber, "status", status);
+  setCell(sol.sheet, sol.headers, item.__rowNumber, "avaliado_por", d.admin || "Administrador");
+  setCell(sol.sheet, sol.headers, item.__rowNumber, "avaliado_em", now());
+
+  if (status === "Aprovado") {
+    const ops = rowsAsObjects(SHEETS.operadores);
+    const op = ops.rows.find(o => norm(o.matricula) === norm(item.matricula));
+    if (op) setCell(ops.sheet, ops.headers, op.__rowNumber, "setor", item.setor_novo);
+    addLog("TROCA_SETOR_APROVADA", d.admin, `${item.nome || item.matricula}: ${item.setor_atual} -> ${item.setor_novo}`, "");
+    addHistorico("TROCA_SETOR_APROVADA", d.admin, "", "", item.setor_novo, `${item.nome || item.matricula} autorizado a mudar de setor`);
+  } else {
+    addLog("TROCA_SETOR_NEGADA", d.admin, `${item.nome || item.matricula}: ${item.setor_atual} -> ${item.setor_novo}`, "");
+    addHistorico("TROCA_SETOR_NEGADA", d.admin, "", "", item.setor_atual, `${item.nome || item.matricula} teve a troca negada`);
+  }
+
+  return jsonOut({sucesso:true, status});
+}
+
+function adminListarOperadores() { return jsonOut(rowsAsObjects(SHEETS.operadores).rows); }
+function adminLogs() { return jsonOut(rowsAsObjects(SHEETS.logs).rows.sort((a,b)=>new Date(b.data_hora)-new Date(a.data_hora)).slice(0,100)); }
+function adminSubtarefasPendentes() {
+  return jsonOut(rowsAsObjects(SHEETS.subtarefas).rows
+    .filter(s => !isDone(s.status) && !isTrue(s.excluida))
+    .sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em))
+  );
+}
+function adminLixeiraOS() { return jsonOut(rowsAsObjects(SHEETS.os).rows.filter(o => isTrue(o.excluida))); }
+function adminLixeiraSubtarefas() {
+  ensureColumn(SHEETS.subtarefas, "excluida");
+  return jsonOut(rowsAsObjects(SHEETS.subtarefas).rows.filter(s => isTrue(s.excluida)));
+}
+
+function registrarAcessoOS(d) {
+  const osObj = rowsAsObjects(SHEETS.os);
+  const os = osObj.rows.find(o => String(o.id_os) === String(d.id_os) || String(o.codigo_os) === String(d.codigo_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+  const nome = d.operador_nome || "";
+  const perfil = String(d.perfil || "").toLowerCase();
+  const nomeLower = String(nome).toLowerCase();
+  if (perfil.indexOf("admin") >= 0 || perfil.indexOf("gest") >= 0 || nomeLower.indexOf("administrador") >= 0 || nomeLower.indexOf("gestor") >= 0 || nomeLower.indexOf("mestre") >= 0) {
+    return jsonOut({sucesso:true, ignorado:true});
+  }
+  ensureColumn(SHEETS.os, "operador_atual_nome");
+  ensureColumn(SHEETS.os, "operador_atual_matricula");
+  ensureColumn(SHEETS.os, "ultimo_movimento_em");
+  setCellSafe(SHEETS.os, os.__rowNumber, "operador_atual_nome", nome);
+  setCellSafe(SHEETS.os, os.__rowNumber, "operador_atual_matricula", d.matricula || "");
+  setCellSafe(SHEETS.os, os.__rowNumber, "ultimo_movimento_em", now());
+  addLog("OS_ACESSADA", nome, `Operador abriu a OS no setor ${d.setor || os.setor_atual || ""}`, os.codigo_os);
+  return jsonOut({sucesso:true});
+}
+
+
+function adminToggleOperador(d) {
+  const data = rowsAsObjects(SHEETS.operadores);
+  const op = data.rows.find(o => norm(o.matricula) === norm(d.matricula));
+  if (!op) return jsonOut({sucesso:false, erro:"Operador não encontrado"});
+  setCell(data.sheet, data.headers, op.__rowNumber, "ativo", !isTrue(op.ativo));
+  addLog("ADMIN_TOGGLE_OPERADOR", d.admin, d.matricula, "");
+  return jsonOut({sucesso:true});
+}
+
+function adminDefinirPerfil(d) {
+  const data = rowsAsObjects(SHEETS.operadores);
+  const op = data.rows.find(o => norm(o.matricula) === norm(d.matricula));
+  if (!op) return jsonOut({sucesso:false, erro:"Operador não encontrado"});
+
+  // Regra de segurança: o sistema aceita apenas um Administrador mestre.
+  // Se já existe um Admin diferente, não permite transformar outro usuário em Admin.
+  if (lower(d.perfil) === "admin") {
+    const adminExistente = data.rows.find(o => lower(o.perfil) === "admin" && norm(o.matricula) !== norm(d.matricula));
+    if (adminExistente) return jsonOut({sucesso:false, erro:"Já existe um Administrador mestre cadastrado."});
+  }
+
+  setCell(data.sheet, data.headers, op.__rowNumber, "perfil", d.perfil);
+  addLog("ADMIN_PERFIL_OPERADOR", d.admin, `${d.matricula} -> ${d.perfil}`, "");
+  return jsonOut({sucesso:true});
+}
+
+function excluirOS(d) {
+  const data = rowsAsObjects(SHEETS.os);
+  const os = data.rows.find(o => String(o.id_os) === String(d.id_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+  setCell(data.sheet, data.headers, os.__rowNumber, "excluida", true);
+  setCell(data.sheet, data.headers, os.__rowNumber, "recuperavel", true);
+  rowsAsObjects(SHEETS.lixeira).sheet.appendRow([now(), os.id_os, os.codigo_os, os.motor, d.operador_nome || "", d.motivo || ""]);
+  addLog("OS_EXCLUIDA", d.operador_nome, d.motivo || "", os.codigo_os);
+  return jsonOut({sucesso:true});
+}
+
+function recuperarOS(d) {
+  const data = rowsAsObjects(SHEETS.os);
+  const os = data.rows.find(o => String(o.id_os) === String(d.id_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+  setCell(data.sheet, data.headers, os.__rowNumber, "excluida", false);
+  setCell(data.sheet, data.headers, os.__rowNumber, "recuperavel", false);
+  addLog("OS_RECUPERADA", d.operador_nome, "", os.codigo_os);
+  return jsonOut({sucesso:true});
+}
+
+
+
+function etapaInicialDaOS(os, checkRows) {
+  const modelos = rowsAsObjects(SHEETS.modelos).rows;
+  const modelo = modelos.find(m => String(m.id_modelo) === String(os.id_modelo) && String(m.tipo).toLowerCase() === "principal");
+  if (modelo && modelo.setor) return modelo.setor;
+  const principais = (checkRows || rowsAsObjects(SHEETS.checklist).rows)
+    .filter(i => String(i.id_os) === String(os.id_os) && String(i.origem || "").toLowerCase() === "principal")
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
+  if (principais[0] && principais[0].etapa) return principais[0].etapa;
+  return "Desmontagem";
+}
+
+function republicarOS(d) {
+  const osObj = rowsAsObjects(SHEETS.os);
+  const original = osObj.rows.find(o => String(o.id_os) === String(d.id_os));
+  if (!original) return jsonOut({sucesso:false, erro:"OS original não encontrada"});
+
+  const check = rowsAsObjects(SHEETS.checklist);
+  const subs = rowsAsObjects(SHEETS.subtarefas);
+  const etapaInicial = etapaInicialDaOS(original, check.rows);
+
+  const novoId = nextId(osObj.rows, "id_os");
+  const novoCodigo = codigoOS(novoId);
+  osObj.sheet.appendRow([novoId, novoCodigo, original.motor, now(), "Em processo", etapaInicial, etapaInicial, d.operador_nome || "", d.matricula || "", "", false, false, original.id_modelo || "", original.kit_qr || "", `Republicada limpa a partir de ${original.codigo_os}`, "", "", now()]);
+
+  const subMap = {};
+  let nextSub = nextId(subs.rows, "id_subtarefa");
+  subs.rows.filter(s => String(s.id_os) === String(original.id_os) && !isTrue(s.excluida)).forEach(s => {
+    const idNovoSub = nextSub++;
+    subMap[String(s.id_subtarefa)] = idNovoSub;
+    subs.sheet.appendRow([idNovoSub, novoId, novoCodigo, s.descricao, s.setor_origem, s.setor_destino, "Pendente", d.operador_nome || "", now(), "", "", "", false, "", ""]);
+  });
+
+  let nextItem = nextId(check.rows, "id_item");
+  check.rows.filter(i => String(i.id_os) === String(original.id_os)).forEach(i => {
+    const idSubNovo = i.id_subtarefa ? (subMap[String(i.id_subtarefa)] || "") : "";
+    check.sheet.appendRow([nextItem++, novoId, i.origem, idSubNovo, i.etapa, i.setor, i.descricao, false, i.ordem, "", "", ""]);
+  });
+
+  addLog("OS_REPUBLICADA", d.operador_nome, `${original.codigo_os} -> ${novoCodigo} (limpa)`, novoCodigo);
+  addHistorico("OS_REPUBLICADA", d.operador_nome, d.matricula, novoCodigo, etapaInicial, `Republicada limpa a partir de ${original.codigo_os}`);
+  return jsonOut({sucesso:true, id_os:novoId, codigo_os:novoCodigo});
+}
+
+function reiniciarOS(d) {
+  const osObj = rowsAsObjects(SHEETS.os);
+  const os = osObj.rows.find(o => String(o.id_os) === String(d.id_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+  const check = rowsAsObjects(SHEETS.checklist);
+  const etapaInicial = etapaInicialDaOS(os, check.rows);
+
+  setCell(osObj.sheet, osObj.headers, os.__rowNumber, "status", "Em processo");
+  setCell(osObj.sheet, osObj.headers, os.__rowNumber, "etapa_atual", etapaInicial);
+  setCell(osObj.sheet, osObj.headers, os.__rowNumber, "setor_atual", etapaInicial);
+  setCell(osObj.sheet, osObj.headers, os.__rowNumber, "data_abertura", now());
+  setCell(osObj.sheet, osObj.headers, os.__rowNumber, "concluida_em", "");
+  setCell(osObj.sheet, osObj.headers, os.__rowNumber, "excluida", false);
+  setCell(osObj.sheet, osObj.headers, os.__rowNumber, "recuperavel", false);
+  setCellSafe(SHEETS.os, os.__rowNumber, "ultimo_movimento_em", now());
+  setCellSafe(SHEETS.os, os.__rowNumber, "operador_atual_nome", "");
+  setCellSafe(SHEETS.os, os.__rowNumber, "operador_atual_matricula", "");
+
+  check.rows.filter(i => String(i.id_os) === String(os.id_os)).forEach(i => {
+    setCell(check.sheet, check.headers, i.__rowNumber, "concluido", false);
+    setCell(check.sheet, check.headers, i.__rowNumber, "concluido_por", "");
+    setCell(check.sheet, check.headers, i.__rowNumber, "concluido_em", "");
+    setCell(check.sheet, check.headers, i.__rowNumber, "tempo_item_min", "");
+  });
+  const subs = rowsAsObjects(SHEETS.subtarefas);
+  subs.rows.filter(s => String(s.id_os) === String(os.id_os)).forEach(s => {
+    setCell(subs.sheet, subs.headers, s.__rowNumber, "status", "Pendente");
+    setCell(subs.sheet, subs.headers, s.__rowNumber, "concluido_por", "");
+    setCell(subs.sheet, subs.headers, s.__rowNumber, "concluido_em", "");
+    setCell(subs.sheet, subs.headers, s.__rowNumber, "tempo_subtarefa_min", "");
+    setCellSafe(SHEETS.subtarefas, s.__rowNumber, "excluida", false);
+    setCellSafe(SHEETS.subtarefas, s.__rowNumber, "excluida_por", "");
+    setCellSafe(SHEETS.subtarefas, s.__rowNumber, "excluida_em", "");
+  });
+  addLog("OS_REINICIADA", d.operador_nome, `OS zerada e enviada para ${etapaInicial}`, os.codigo_os);
+  addHistorico("OS_REINICIADA", d.operador_nome, d.matricula, os.codigo_os, etapaInicial, "OS reiniciada pelo painel administrativo");
+  return jsonOut({sucesso:true});
+}
+
+function editarSubtarefa(d) {
+  const subs = ensureColumn(SHEETS.subtarefas, "excluida");
+  ensureColumn(SHEETS.subtarefas, "excluida_por");
+  ensureColumn(SHEETS.subtarefas, "excluida_em");
+  const s = rowsAsObjects(SHEETS.subtarefas).rows.find(x => String(x.id_subtarefa) === String(d.id_subtarefa));
+  if (!s) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada"});
+  const subObj = rowsAsObjects(SHEETS.subtarefas);
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "descricao", d.descricao || s.descricao);
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "setor_origem", d.setor_origem || s.setor_origem);
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "setor_destino", d.setor_destino || s.setor_destino);
+
+  const check = rowsAsObjects(SHEETS.checklist);
+  check.rows.filter(i => String(i.id_subtarefa) === String(s.id_subtarefa)).forEach(i => {
+    if (String(i.descricao || "").indexOf("Pendência:") === 0) setCell(check.sheet, check.headers, i.__rowNumber, "descricao", "Pendência: " + (d.descricao || s.descricao));
+    setCell(check.sheet, check.headers, i.__rowNumber, "setor", d.setor_destino || s.setor_destino);
+    setCell(check.sheet, check.headers, i.__rowNumber, "etapa", d.setor_destino || s.setor_destino);
+  });
+  addLog("SUBTAREFA_EDITADA", d.operador_nome, `${s.codigo_os}: ${d.descricao || s.descricao}`, s.codigo_os);
+  return jsonOut({sucesso:true});
+}
+
+function excluirSubtarefa(d) {
+  ensureColumn(SHEETS.subtarefas, "excluida");
+  ensureColumn(SHEETS.subtarefas, "excluida_por");
+  ensureColumn(SHEETS.subtarefas, "excluida_em");
+  const subObj = rowsAsObjects(SHEETS.subtarefas);
+  const s = subObj.rows.find(x => String(x.id_subtarefa) === String(d.id_subtarefa));
+  if (!s) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada"});
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "excluida", true);
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "status", "Excluída");
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "excluida_por", d.operador_nome || "");
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "excluida_em", now());
+  addLog("SUBTAREFA_EXCLUIDA", d.operador_nome, s.descricao, s.codigo_os);
+  return jsonOut({sucesso:true});
+}
+
+function recuperarSubtarefa(d) {
+  ensureColumn(SHEETS.subtarefas, "excluida");
+  ensureColumn(SHEETS.subtarefas, "excluida_por");
+  ensureColumn(SHEETS.subtarefas, "excluida_em");
+  const subObj = rowsAsObjects(SHEETS.subtarefas);
+  const s = subObj.rows.find(x => String(x.id_subtarefa) === String(d.id_subtarefa));
+  if (!s) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada"});
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "excluida", false);
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "status", "Pendente");
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "excluida_por", "");
+  setCell(subObj.sheet, subObj.headers, s.__rowNumber, "excluida_em", "");
+  addLog("SUBTAREFA_RECUPERADA", d.operador_nome, s.descricao, s.codigo_os);
+  return jsonOut({sucesso:true});
+}
+
+
+
+/****************************************************
+ * PRODUTIVIDADE TOTAL — V3.2
+ ****************************************************/
+function produtividadeResumo(matricula) {
+  const osRows = rowsAsObjects(SHEETS.os).rows.filter(o => !isTrue(o.excluida));
+  const checks = rowsAsObjects(SHEETS.checklist).rows;
+  const subs = rowsAsObjects(SHEETS.subtarefas).rows.filter(s => !isTrue(s.excluida));
+  const hist = rowsAsObjects(SHEETS.historico).rows;
+  const logs = rowsAsObjects(SHEETS.logs).rows;
+
+  const totalItens = checks.length;
+  const concluidos = checks.filter(c => isTrue(c.concluido)).length;
+  const abertas = osRows.filter(o => !isDone(o.status)).length;
+  const subPendentes = subs.filter(s => !isDone(s.status)).length;
+
+  const progresso = totalItens ? Math.round((concluidos / totalItens) * 100) : 0;
+  const score = Math.max(0, Math.min(100, Math.round(progresso + 20 - Math.min(24, abertas * 3) - Math.min(18, subPendentes * 4))));
+
+  const operadoresMap = {};
+  hist.forEach(h => {
+    const nome = norm(h.operador_nome);
+    if (!nome || lower(nome).indexOf("admin") >= 0 || lower(nome).indexOf("gestor") >= 0) return;
+    if (!operadoresMap[nome]) operadoresMap[nome] = {nome:nome, setor:h.setor || "", total:0, acao:"ações"};
+    operadoresMap[nome].total++;
+    if (h.setor) operadoresMap[nome].setor = h.setor;
+  });
+
+  const ranking = Object.keys(operadoresMap)
+    .map(k => operadoresMap[k])
+    .sort((a,b)=>b.total-a.total)
+    .slice(0,8);
+
+  const setorMap = {};
+  subs.filter(s => !isDone(s.status)).forEach(s => {
+    const setor = norm(s.setor_destino) || "Sem setor";
+    if (!setorMap[setor]) setorMap[setor] = {setor:setor, total:0};
+    setorMap[setor].total++;
+  });
+
+  const gargalos = Object.keys(setorMap)
+    .map(k => setorMap[k])
+    .sort((a,b)=>b.total-a.total)
+    .slice(0,8);
+
+  const alertas = [];
+  if (subPendentes > 0) alertas.push(subPendentes + " subtarefa(s) pendente(s) podem bloquear avanço de OS.");
+  if (abertas > 5) alertas.push("Fila elevada: " + abertas + " OS abertas no sistema.");
+  if (score < 50) alertas.push("Produtividade crítica: revisar gargalos e pendências por setor.");
+
+  const hoje = new Date();
+  const logsHoje = logs.filter(l => {
+    const d = new Date(l.data_hora);
+    return !isNaN(d.getTime()) && d.getFullYear() === hoje.getFullYear() && d.getMonth() === hoje.getMonth() && d.getDate() === hoje.getDate();
+  });
+
+  return jsonOut({
+    score: score,
+    progresso: progresso,
+    ranking_operadores: ranking,
+    gargalos_setor: gargalos,
+    alertas: alertas,
+    eventos_hoje: logsHoje.length,
+    resumo: {
+      os_abertas: abertas,
+      subtarefas_pendentes: subPendentes,
+      itens_total: totalItens,
+      itens_concluidos: concluidos
+    }
+  });
+}
+
+
+
+/****************************************************
+ * ADMIN CONFIGURÁVEL — V3.3
+ ****************************************************/
+function listarSetores() {
+  const data = rowsAsObjects(SHEETS.setores);
+  if (data.rows.length === 0) {
+    const base = ["Desmontagem","Montagem","Elétrica","Usinagem","Produção","Almoxarifado","Qualidade"];
+    base.forEach((nome, i) => data.sheet.appendRow([i+1,nome,nome.substring(0,3).toUpperCase(),"Operacional","Setor padrão do sistema",true,"Sistema",now()]));
+  }
+  return jsonOut(rowsAsObjects(SHEETS.setores).rows.filter(s => isTrue(s.ativo)));
+}
+
+function criarSetor(d) {
+  const data = rowsAsObjects(SHEETS.setores);
+  const id = nextId(data.rows, "id_setor");
+  const codigo = d.codigo_setor || String(d.nome_setor || "").substring(0,3).toUpperCase();
+  data.sheet.appendRow([id, d.nome_setor, codigo, d.tipo || "Operacional", d.descricao || "", true, d.criado_por || "", now()]);
+  addLog("SETOR_CRIADO", d.criado_por, `${d.nome_setor} (${codigo})`, "");
+  addHistorico("SETOR_CRIADO", d.criado_por, d.matricula, "", "Administração", d.nome_setor);
+  return jsonOut({sucesso:true, id_setor:id});
+}
+
+function listarFluxos() {
+  const data = rowsAsObjects(SHEETS.fluxos);
+  if (data.rows.length === 0) {
+    const base = [
+      ["Manutenção de motor","Desmontagem",1,"Checklist e subtarefas concluídas"],
+      ["Manutenção de motor","Montagem",2,"Checklist e subtarefas concluídas"],
+      ["Manutenção de motor","Finalizado",3,"Entrega liberada"]
+    ];
+    base.forEach((f, i) => data.sheet.appendRow([i+1,f[0],f[1],f[2],f[3],true,"Sistema",now()]));
+  }
+  return jsonOut(rowsAsObjects(SHEETS.fluxos).rows.filter(f => isTrue(f.ativo)).sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0)));
+}
+
+function criarFluxo(d) {
+  const data = rowsAsObjects(SHEETS.fluxos);
+  const id = nextId(data.rows, "id_fluxo");
+  data.sheet.appendRow([id, d.nome_fluxo, d.etapa, Number(d.ordem || 1), d.regra || "", true, d.criado_por || "", now()]);
+  addLog("FLUXO_CRIADO", d.criado_por, `${d.nome_fluxo}: ${d.etapa}`, "");
+  addHistorico("FLUXO_CRIADO", d.criado_por, d.matricula, "", "Administração", `${d.nome_fluxo}: ${d.etapa}`);
+  return jsonOut({sucesso:true, id_fluxo:id});
+}
+
+function listarConfigSistema() {
+  const data = rowsAsObjects(SHEETS.config_sistema);
+  const obj = {};
+  data.rows.forEach(r => obj[String(r.chave)] = r.valor);
+  return jsonOut({
+    nome_sistema: obj.nome_sistema || "Projeto Natan V3",
+    modo_sistema: obj.modo_sistema || "OS Motores",
+    tema_padrao: obj.tema_padrao || "light",
+    descricao: obj.descricao || "Sistema industrial configurável para OS, checklist e rastreabilidade."
+  });
+}
+
+function salvarConfigSistema(d) {
+  const data = rowsAsObjects(SHEETS.config_sistema);
+  const pares = {
+    nome_sistema: d.nome_sistema || "Projeto Natan V3",
+    modo_sistema: d.modo_sistema || "OS Motores",
+    tema_padrao: d.tema_padrao || "light",
+    descricao: d.descricao || ""
+  };
+
+  Object.keys(pares).forEach(chave => {
+    const row = data.rows.find(r => String(r.chave) === chave);
+    if (row) {
+      setCell(data.sheet, data.headers, row.__rowNumber, "valor", pares[chave]);
+      setCell(data.sheet, data.headers, row.__rowNumber, "atualizado_por", d.operador_nome || "");
+      setCell(data.sheet, data.headers, row.__rowNumber, "atualizado_em", now());
+    } else {
+      data.sheet.appendRow([chave, pares[chave], d.operador_nome || "", now()]);
+    }
+  });
+
+  addLog("CONFIG_SISTEMA_ATUALIZADA", d.operador_nome, d.nome_sistema || "", "");
+  addHistorico("CONFIG_SISTEMA_ATUALIZADA", d.operador_nome, d.matricula, "", "Administração", d.modo_sistema || "");
+  return jsonOut({sucesso:true});
+}
+
+
+
+/****************************************************
+ * PERMISSÕES — V3.4
+ ****************************************************/
+function listarPermissoes() {
+  const data = rowsAsObjects(SHEETS.permissoes);
+  if (data.rows.length === 0) {
+    seedPermissoesPadrao();
+  }
+  return jsonOut(rowsAsObjects(SHEETS.permissoes).rows);
+}
+
+function seedPermissoesPadrao() {
+  const data = rowsAsObjects(SHEETS.permissoes);
+  const catalogo = ["ver_dashboard","gerenciar_os","criar_subtarefa","editar_modelos","solicitar_alteracao","aprovar_alteracao","gerenciar_usuarios","gerenciar_setores","gerenciar_fluxos","ver_auditoria_completa","usar_lixeira","configurar_sistema"];
+  let id = nextId(data.rows, "id_permissao");
+
+  ["Admin","Gestao","Operador"].forEach(perfil => {
+    catalogo.forEach(chave => {
+      let valor = false;
+      if (perfil === "Admin") valor = true;
+      if (perfil === "Gestao") valor = ["ver_dashboard","gerenciar_os","criar_subtarefa","editar_modelos","solicitar_alteracao"].indexOf(chave) >= 0;
+      if (perfil === "Operador") valor = ["ver_dashboard","criar_subtarefa"].indexOf(chave) >= 0;
+      data.sheet.appendRow([id++, perfil, chave, valor, "Sistema", now()]);
+    });
+  });
+}
+
+function salvarPermissoes(d) {
+  const data = rowsAsObjects(SHEETS.permissoes);
+  const perfil = d.perfil || "Operador";
+  const permissoes = d.permissoes || {};
+  let id = nextId(data.rows, "id_permissao");
+
+  Object.keys(permissoes).forEach(chave => {
+    const row = data.rows.find(r => String(r.perfil) === String(perfil) && String(r.chave) === String(chave));
+    if (row) {
+      setCell(data.sheet, data.headers, row.__rowNumber, "valor", permissoes[chave] === true);
+      setCell(data.sheet, data.headers, row.__rowNumber, "atualizado_por", d.operador_nome || "");
+      setCell(data.sheet, data.headers, row.__rowNumber, "atualizado_em", now());
+    } else {
+      data.sheet.appendRow([id++, perfil, chave, permissoes[chave] === true, d.operador_nome || "", now()]);
+    }
+  });
+
+  addLog("PERMISSOES_ATUALIZADAS", d.operador_nome, `Perfil ${perfil}`, "");
+  addHistorico("PERMISSOES_ATUALIZADAS", d.operador_nome, d.matricula, "", "Administração", `Perfil ${perfil}`);
+  return jsonOut({sucesso:true});
+}
+
+function temPermissao(matricula, chave) {
+  const ops = rowsAsObjects(SHEETS.operadores).rows;
+  const op = ops.find(o => norm(o.matricula) === norm(matricula));
+  if (!op || !isTrue(op.ativo)) return false;
+  if (lower(op.perfil) === "admin") return true;
+
+  const data = rowsAsObjects(SHEETS.permissoes);
+  const row = data.rows.find(r => String(r.perfil) === String(op.perfil) && String(r.chave) === String(chave));
+  if (!row) return false;
+  return isTrue(row.valor);
+}
+
+
+
+/****************************************************
+ * FULL SYSTEM — V3.5
+ ****************************************************/
+function operadorPorMatricula(matricula) {
+  return rowsAsObjects(SHEETS.operadores).rows.find(o => norm(o.matricula) === norm(matricula));
+}
+
+function exigirPerfil(matricula, perfis) {
+  const op = operadorPorMatricula(matricula);
+  if (!op || !isTrue(op.ativo)) throw new Error("Usuário inválido ou inativo");
+  const perfil = lower(op.perfil);
+  const permitidos = (perfis || []).map(p => lower(p));
+  if (permitidos.indexOf(perfil) < 0) throw new Error("Permissão negada");
+  return op;
+}
+
+function auditoriaFiltrada(p) {
+  const hist = rowsAsObjects(SHEETS.historico).rows.map(h => ({
+    origem:"Histórico",
+    data_hora:h.data_hora,
+    acao:h.acao,
+    operador_nome:h.operador_nome,
+    codigo_os:h.codigo_os,
+    setor:h.setor,
+    detalhes:h.detalhes
+  }));
+
+  const logs = rowsAsObjects(SHEETS.logs).rows.map(l => ({
+    origem:"Log",
+    data_hora:l.data_hora,
+    acao:l.acao,
+    operador_nome:l.operador_nome,
+    codigo_os:l.codigo_os,
+    setor:"Sistema",
+    detalhes:l.detalhes
+  }));
+
+  let rows = hist.concat(logs).sort((a,b)=>new Date(b.data_hora)-new Date(a.data_hora));
+
+  if (p.acao) rows = rows.filter(r => lower(r.acao).indexOf(lower(p.acao)) >= 0);
+  if (p.operador) rows = rows.filter(r => lower(r.operador_nome).indexOf(lower(p.operador)) >= 0);
+  if (p.codigo_os) rows = rows.filter(r => lower(r.codigo_os).indexOf(lower(p.codigo_os)) >= 0);
+  if (p.setor) rows = rows.filter(r => lower(r.setor).indexOf(lower(p.setor)) >= 0);
+
+  return jsonOut(rows.slice(0,300));
+}
+
+
+
+/****************************************************
+ * PERFORMANCE — V3.6
+ ****************************************************/
+function adminDesktopResumo(matricula) {
+  const resumo = JSON.parse(gestorResumo(matricula).getContent());
+  const usuarios = rowsAsObjects(SHEETS.operadores).rows;
+  const logs = rowsAsObjects(SHEETS.logs).rows.sort((a,b)=>new Date(b.data_hora)-new Date(a.data_hora)).slice(0,40);
+  const produtividade = JSON.parse(produtividadeResumo(matricula).getContent());
+  const setores = rowsAsObjects(SHEETS.setores).rows.filter(s => isTrue(s.ativo));
+  const fluxos = rowsAsObjects(SHEETS.fluxos).rows.filter(f => isTrue(f.ativo));
+
+  return jsonOut({
+    resumo: resumo,
+    usuarios: usuarios,
+    logs: logs,
+    produtividade: produtividade,
+    setores: setores,
+    fluxos: fluxos
+  });
+}
+
+
+
+/****************************************************
+ * PROGRESS ENGINE — V3.8
+ ****************************************************/
+function obterProgressoOS(idOS) {
+  if (!idOS) return jsonOut({erro:"id_os não informado"});
+  const os = rowsAsObjects(SHEETS.os).rows.find(o => String(o.id_os) === String(idOS));
+  if (!os) return jsonOut({erro:"OS não encontrada"});
+  const prog = calcularProgresso(idOS);
+  return jsonOut(Object.assign({}, prog, {
+    id_os: os.id_os,
+    codigo_os: os.codigo_os,
+    status: os.status,
+    etapa_atual: os.etapa_atual,
+    setor_atual: os.setor_atual
+  }));
+}
+
+
+
+/****************************************************
+ * SOLICITAÇÕES ADMIN — V3.9
+ ****************************************************/
+function listarSolicitacoesAdmin() {
+  const rows = rowsAsObjects(SHEETS.solicitacoes_admin).rows
+    .sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em));
+  return jsonOut(rows);
+}
+
+function listarMinhasSolicitacoes(matricula) {
+  const rows = rowsAsObjects(SHEETS.solicitacoes_admin).rows
+    .filter(r => norm(r.matricula) === norm(matricula))
+    .sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em));
+  return jsonOut(rows);
+}
+
+function criarSolicitacaoAdmin(d) {
+  const data = rowsAsObjects(SHEETS.solicitacoes_admin);
+  const id = nextId(data.rows, "id_solicitacao");
+  data.sheet.appendRow([id, d.tipo || "Solicitação", d.titulo || "", d.descricao || "", d.criado_por || "", d.matricula || "", d.setor || "", "Pendente", now(), "", "", "Aguardando avaliação do administrador"]);
+  addLog("SOLICITACAO_ADMIN_CRIADA", d.criado_por, `${d.tipo}: ${d.titulo}`, "");
+  addHistorico("SOLICITACAO_ADMIN_CRIADA", d.criado_por, d.matricula, "", d.setor || "Gestão", d.titulo || "");
+  criarNotificacaoSistema("Admin", "Gestão", "Solicitação", d.titulo || "Nova solicitação da Gestão", d.descricao || "", "", d.criado_por || "", d.matricula || "");
+  return jsonOut({sucesso:true, id_solicitacao:id});
+}
+
+function responderSolicitacaoAdmin(d) {
+  const data = rowsAsObjects(SHEETS.solicitacoes_admin);
+  const item = data.rows.find(r => String(r.id_solicitacao) === String(d.id_solicitacao));
+  if (!item) return jsonOut({sucesso:false, erro:"Solicitação não encontrada"});
+  if (lower(item.status) !== "pendente") return jsonOut({sucesso:false, erro:"Solicitação já respondida"});
+
+  const status = norm(d.status) === "Aprovado" ? "Aprovado" : "Rejeitado";
+  setCell(data.sheet, data.headers, item.__rowNumber, "status", status);
+  setCell(data.sheet, data.headers, item.__rowNumber, "respondido_por", d.respondido_por || "Admin");
+  setCell(data.sheet, data.headers, item.__rowNumber, "respondido_em", now());
+
+  addLog("SOLICITACAO_ADMIN_" + status.toUpperCase(), d.respondido_por, item.titulo, "");
+  addHistorico("SOLICITACAO_ADMIN_" + status.toUpperCase(), d.respondido_por, d.matricula, "", "Administração", item.titulo);
+  return jsonOut({sucesso:true, status});
+}
+
+
+function garantirKitsQR() {
+  ensureColumn(SHEETS.kits, "codigo_os");
+  ensureColumn(SHEETS.kits, "motor");
+  ensureColumn(SHEETS.kits, "observacao");
+  ensureColumn(SHEETS.kits, "atualizado_por");
+  ensureColumn(SHEETS.kits, "atualizado_em");
+  return rowsAsObjects(SHEETS.kits);
+}
+
+function listarKitsQR() {
+  const data = garantirKitsQR();
+  const osRows = rowsAsObjects(SHEETS.os).rows;
+  const rows = data.rows.map(k => {
+    const os = osRows.find(o => String(o.id_os) === String(k.id_os_atual));
+    return Object.assign({}, k, {
+      codigo_os: k.codigo_os || (os ? os.codigo_os : ""),
+      motor: k.motor || (os ? os.motor : "")
+    });
+  }).sort((a,b)=>String(a.codigo_qr).localeCompare(String(b.codigo_qr)));
+  return jsonOut(rows);
+}
+
+function salvarKitQR(d) {
+  const data = garantirKitsQR();
+  const codigo = norm(d.codigo_qr);
+  if (!codigo) return jsonOut({sucesso:false, erro:"Código do kit não informado"});
+
+  const osObj = rowsAsObjects(SHEETS.os);
+  const os = d.id_os_atual ? osObj.rows.find(o => String(o.id_os) === String(d.id_os_atual)) : null;
+
+  let row = data.rows.find(k => norm(k.codigo_qr) === codigo);
+  if (!row) {
+    const id = nextId(data.rows, "id_kit");
+    data.sheet.appendRow([id, codigo, d.descricao || "", d.status || "Livre", d.id_os_atual || "", os ? os.setor_atual : "", now(), os ? os.codigo_os : "", os ? os.motor : "", d.observacao || "", d.operador_nome || "", now()]);
+  } else {
+    setCellSafe(SHEETS.kits, row.__rowNumber, "descricao", d.descricao || row.descricao || "");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "status", d.status || row.status || "Livre");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "id_os_atual", d.id_os_atual || "");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "setor_atual", os ? os.setor_atual : "");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "codigo_os", os ? os.codigo_os : "");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "motor", os ? os.motor : "");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "observacao", d.observacao || "");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "atualizado_por", d.operador_nome || "");
+    setCellSafe(SHEETS.kits, row.__rowNumber, "atualizado_em", now());
+  }
+
+  if (os) {
+    setCellSafe(SHEETS.os, os.__rowNumber, "kit_qr", codigo);
+    addHistorico("KIT_VINCULADO", d.operador_nome, d.matricula, os.codigo_os, os.setor_atual, codigo);
+    addLog("KIT_VINCULADO", d.operador_nome, `${codigo} -> ${os.codigo_os}`, os.codigo_os);
+  } else {
+    addLog("KIT_SALVO", d.operador_nome, codigo, "");
+  }
+
+  return jsonOut({sucesso:true});
+}
+
+function desvincularKitQR(d) {
+  const data = garantirKitsQR();
+  const kit = data.rows.find(k => String(k.id_kit) === String(d.id_kit));
+  if (!kit) return jsonOut({sucesso:false, erro:"Kit não encontrado"});
+
+  const osObj = rowsAsObjects(SHEETS.os);
+  const os = osObj.rows.find(o => String(o.id_os) === String(kit.id_os_atual));
+  if (os) setCellSafe(SHEETS.os, os.__rowNumber, "kit_qr", "");
+
+  setCellSafe(SHEETS.kits, kit.__rowNumber, "id_os_atual", "");
+  setCellSafe(SHEETS.kits, kit.__rowNumber, "codigo_os", "");
+  setCellSafe(SHEETS.kits, kit.__rowNumber, "motor", "");
+  setCellSafe(SHEETS.kits, kit.__rowNumber, "status", "Livre");
+  setCellSafe(SHEETS.kits, kit.__rowNumber, "atualizado_por", d.operador_nome || "");
+  setCellSafe(SHEETS.kits, kit.__rowNumber, "atualizado_em", now());
+
+  addLog("KIT_DESVINCULADO", d.operador_nome, kit.codigo_qr, os ? os.codigo_os : "");
+  return jsonOut({sucesso:true});
+}
+
+
+
+/****************************************************
+ * KPI DASHBOARD AVANÇADO — V3.11
+ ****************************************************/
+function kpiDashboardAvancado(matricula) {
+  const osRows = rowsAsObjects(SHEETS.os).rows.filter(o => !isTrue(o.excluida));
+  const checks = rowsAsObjects(SHEETS.checklist).rows;
+  const subs = rowsAsObjects(SHEETS.subtarefas).rows.filter(s => !isTrue(s.excluida));
+  const hist = rowsAsObjects(SHEETS.historico).rows;
+  const logs = rowsAsObjects(SHEETS.logs).rows;
+  const operadores = rowsAsObjects(SHEETS.operadores).rows;
+
+  const abertas = osRows.filter(o => !isDone(o.status)).length;
+  const concluidas = osRows.filter(o => isDone(o.status)).length;
+  const subPendentes = subs.filter(s => !isDone(s.status)).length;
+  const totalItens = checks.length;
+  const itensConcluidos = checks.filter(c => isTrue(c.concluido)).length;
+  const taxaConclusao = totalItens ? Math.round((itensConcluidos / totalItens) * 100) : 0;
+
+  const agora = new Date();
+  const osAtrasadas = osRows.filter(o => {
+    if (isDone(o.status)) return false;
+    const d = new Date(o.data_abertura);
+    if (isNaN(d.getTime())) return false;
+    const horas = (agora - d) / 36e5;
+    return horas >= 24;
+  }).length;
+
+  const hojeLogs = logs.filter(l => {
+    const d = new Date(l.data_hora);
+    return !isNaN(d.getTime()) && d.getFullYear() === agora.getFullYear() && d.getMonth() === agora.getMonth() && d.getDate() === agora.getDate();
+  }).length;
+
+  const setorMap = {};
+  subs.filter(s => !isDone(s.status)).forEach(s => {
+    const setor = norm(s.setor_destino) || "Sem setor";
+    if (!setorMap[setor]) setorMap[setor] = {setor:setor, total:0};
+    setorMap[setor].total++;
+  });
+  const setores = Object.keys(setorMap).map(k => setorMap[k]).sort((a,b)=>b.total-a.total);
+
+  const operadorMap = {};
+  hist.forEach(h => {
+    const nome = norm(h.operador_nome);
+    if (!nome || lower(nome).indexOf("admin") >= 0 || lower(nome).indexOf("gestor") >= 0) return;
+    if (!operadorMap[nome]) operadorMap[nome] = {nome:nome, total:0, setor:h.setor || ""};
+    operadorMap[nome].total++;
+    if (h.setor) operadorMap[nome].setor = h.setor;
+  });
+  const rankingOps = Object.keys(operadorMap).map(k=>operadorMap[k]).sort((a,b)=>b.total-a.total);
+
+  const score = Math.max(0, Math.min(100,
+    Math.round(taxaConclusao + 20 - Math.min(30, osAtrasadas * 5) - Math.min(25, subPendentes * 3) - Math.min(15, abertas * 1.5))
+  ));
+
+  const alertas = [];
+  if (osAtrasadas > 0) alertas.push(osAtrasadas + " OS em atraso exigem prioridade.");
+  if (subPendentes > 0) alertas.push(subPendentes + " subtarefa(s) pendente(s) podem bloquear fluxo.");
+  if (setores[0]) alertas.push("Maior gargalo atual: " + setores[0].setor + ".");
+  if (score < 50) alertas.push("Saúde operacional crítica: revisar fila, atrasos e pendências.");
+
+  return jsonOut({
+    kpis: {
+      score_operacional: score,
+      os_abertas: abertas,
+      os_concluidas: concluidas,
+      os_atrasadas: osAtrasadas,
+      subtarefas_pendentes: subPendentes,
+      itens_total: totalItens,
+      itens_concluidos: itensConcluidos,
+      taxa_conclusao: taxaConclusao,
+      eventos_hoje: hojeLogs,
+      setor_critico: setores[0] ? setores[0].setor : "",
+      gargalo_principal: setores[0] ? setores[0].setor : "",
+      operador_destaque: rankingOps[0] ? rankingOps[0].nome : "",
+      usuarios_ativos: operadores.filter(o => isTrue(o.ativo)).length
+    },
+    setores: setores,
+    operadores: rankingOps,
+    alertas: alertas,
+    atualizado_em: now()
+  });
+}
+
+
+
+/****************************************************
+ * CENTRAL DE NOTIFICAÇÕES — V3.14
+ ****************************************************/
+function listarNotificacoes(p) {
+  const data = rowsAsObjects(SHEETS.notificacoes);
+  const destino = norm(p.destino || "Admin");
+  const somente = String(p.somente_nao_lidas || "").toLowerCase() === "true";
+
+  let rows = data.rows.filter(n => !destino || norm(n.destino) === destino);
+  if (somente) rows = rows.filter(n => !isTrue(n.lida));
+
+  rows = rows.sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em));
+  return jsonOut(rows);
+}
+
+function criarNotificacao(d) {
+  const data = rowsAsObjects(SHEETS.notificacoes);
+  const id = nextId(data.rows, "id_notificacao");
+
+  data.sheet.appendRow([
+    id,
+    d.destino || "Admin",
+    d.origem || "Sistema",
+    d.tipo || "Informação",
+    d.titulo || "Nova notificação",
+    d.mensagem || "",
+    d.codigo_os || "",
+    d.criado_por || "",
+    d.matricula || "",
+    now(),
+    false,
+    "",
+    ""
+  ]);
+
+  addLog("NOTIFICACAO_CRIADA", d.criado_por || "Sistema", d.titulo || "", d.codigo_os || "");
+  return jsonOut({sucesso:true, id_notificacao:id});
+}
+
+function marcarNotificacaoLida(d) {
+  const data = rowsAsObjects(SHEETS.notificacoes);
+  const n = data.rows.find(r => String(r.id_notificacao) === String(d.id_notificacao));
+  if (!n) return jsonOut({sucesso:false, erro:"Notificação não encontrada"});
+
+  setCell(data.sheet, data.headers, n.__rowNumber, "lida", true);
+  setCell(data.sheet, data.headers, n.__rowNumber, "lida_por", d.operador_nome || "");
+  setCell(data.sheet, data.headers, n.__rowNumber, "lida_em", now());
+
+  addLog("NOTIFICACAO_LIDA", d.operador_nome || "", n.titulo || "", n.codigo_os || "");
+  return jsonOut({sucesso:true});
+}
+
+function criarNotificacaoSistema(destino, origem, tipo, titulo, mensagem, codigoOS, criadoPor, matricula) {
+  return criarNotificacao({
+    destino: destino || "Admin",
+    origem: origem || "Sistema",
+    tipo: tipo || "Sistema",
+    titulo: titulo || "Notificação",
+    mensagem: mensagem || "",
+    codigo_os: codigoOS || "",
+    criado_por: criadoPor || "Sistema",
+    matricula: matricula || ""
+  });
+}
+
+
+
+/****************************************************
+ * PERFORMANCE API — V3.15
+ * Reduz leituras repetidas e prepara crescimento.
+ ****************************************************/
+function cacheJson_(key, seconds, fn) {
+  const cache = CacheService.getScriptCache();
+  const hit = cache.get(key);
+  if (hit) return jsonOut(JSON.parse(hit));
+
+  const data = fn();
+  try {
+    cache.put(key, JSON.stringify(data), seconds || 20);
+  } catch(e) {}
+  return jsonOut(data);
+}
+
+function dashboardLean(matricula) {
+  return cacheJson_("dashboardLean:" + norm(matricula), 15, function(){
+    const kpi = JSON.parse(kpiDashboardAvancado(matricula).getContent());
+    const logs = rowsAsObjects(SHEETS.logs).rows
+      .sort((a,b)=>new Date(b.data_hora)-new Date(a.data_hora))
+      .slice(0,30);
+    const notif = rowsAsObjects(SHEETS.notificacoes).rows
+      .filter(n => norm(n.destino) === "Admin" && !isTrue(n.lida))
+      .length;
+
+    return {
+      kpis:kpi.kpis || {},
+      setores:kpi.setores || [],
+      operadores:kpi.operadores || [],
+      alertas:kpi.alertas || [],
+      logs:logs,
+      notificacoes_nao_lidas:notif,
+      atualizado_em:now()
+    };
+  });
+}
+
+function bootstrapApp(matricula) {
+  return cacheJson_("bootstrapApp:" + norm(matricula), 12, function(){
+    const op = rowsAsObjects(SHEETS.operadores).rows.find(o => norm(o.matricula) === norm(matricula));
+    if (!op) return {operador:null, erro:"Operador não encontrado"};
+
+    const perfil = lower(op.perfil);
+    const base = {
+      operador:op,
+      perfil:op.perfil,
+      setor:op.setor,
+      atualizado_em:now()
+    };
+
+    if (perfil === "admin") {
+      const dash = JSON.parse(dashboardLean(matricula).getContent());
+      return Object.assign(base, {dashboard:dash});
+    }
+
+    if (perfil === "gestao" || perfil === "gestor") {
+      const resumo = JSON.parse(gestorResumo(matricula).getContent());
+      const kpi = JSON.parse(kpiDashboardAvancado(matricula).getContent());
+      return Object.assign(base, {resumo:resumo, dashboard:kpi});
+    }
+
+    const resumo = JSON.parse(gestorResumo(matricula).getContent());
+    return Object.assign(base, {resumo:resumo});
+  });
+}
+
+
+
+/****************************************************
+ * GESTÃO — OS OPERACIONAL V3.24
+ ****************************************************/
+function gestorOSDetalhe(idOS) {
+  const os = rowsAsObjects(SHEETS.os).rows.find(o => String(o.id_os) === String(idOS));
+  if (!os) return jsonOut({erro:"OS não encontrada"});
+
+  const checklist = rowsAsObjects(SHEETS.checklist).rows
+    .filter(i => String(i.id_os) === String(idOS))
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
+
+  const subtarefas = rowsAsObjects(SHEETS.subtarefas).rows
+    .filter(s => String(s.id_os) === String(idOS) && !isTrue(s.excluida))
+    .sort((a,b)=>new Date(b.criado_em || b.data_criacao || 0)-new Date(a.criado_em || a.data_criacao || 0));
+
+  return jsonOut({
+    os:Object.assign({}, os, calcularProgresso(idOS)),
+    checklist:checklist,
+    subtarefas:subtarefas
+  });
+}
+
+function gestorEditarOS(d) {
+  const data = rowsAsObjects(SHEETS.os);
+  const os = data.rows.find(o => String(o.id_os) === String(d.id_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+
+  if (d.motor !== undefined) setCell(data.sheet, data.headers, os.__rowNumber, "motor", d.motor);
+  if (d.status !== undefined) setCell(data.sheet, data.headers, os.__rowNumber, "status", d.status);
+  if (d.setor_atual !== undefined) setCell(data.sheet, data.headers, os.__rowNumber, "setor_atual", d.setor_atual);
+  if (d.etapa_atual !== undefined) setCell(data.sheet, data.headers, os.__rowNumber, "etapa_atual", d.etapa_atual);
+  if (d.observacao !== undefined) {
+    ensureColumn(SHEETS.os, "observacao");
+    setCellSafe(SHEETS.os, os.__rowNumber, "observacao", d.observacao);
+  }
+  ensureColumn(SHEETS.os, "ultimo_movimento_em");
+  setCellSafe(SHEETS.os, os.__rowNumber, "ultimo_movimento_em", now());
+
+  addHistorico("OS_EDITADA_GESTAO", d.operador_nome || "Gestão", d.matricula || "", os.codigo_os, d.setor_atual || os.setor_atual, d.motor || os.motor);
+  addLog("OS_EDITADA_GESTAO", d.operador_nome || "Gestão", d.motor || os.motor, os.codigo_os);
+
+  return jsonOut({sucesso:true});
+}
+
+function gestorAplicarModeloChecklist(d) {
+  const osData = rowsAsObjects(SHEETS.os);
+  const os = osData.rows.find(o => String(o.id_os) === String(d.id_os));
+  if (!os) return jsonOut({sucesso:false, erro:"OS não encontrada"});
+
+  const modelos = rowsAsObjects(SHEETS.modelos).rows;
+  const modelo = modelos.find(m => String(m.id_modelo) === String(d.id_modelo));
+  if (!modelo) return jsonOut({sucesso:false, erro:"Modelo não encontrado"});
+
+  const setor = modelo.setor || os.setor_atual || os.etapa_atual || "Operação";
+  const check = rowsAsObjects(SHEETS.checklist);
+  const atuais = check.rows
+    .filter(i => String(i.id_os) === String(os.id_os))
+    .filter(i => norm(i.origem) === "Principal")
+    .filter(i => norm(i.setor || i.etapa) === norm(setor));
+
+  if (String(d.modo || "adicionar").toLowerCase() === "substituir") {
+    atuais
+      .filter(i => !isTrue(i.concluido))
+      .forEach(i => setCell(check.sheet, check.headers, i.__rowNumber, "concluido", true));
+  }
+
+  const modelosDoSetor = modelos
+    .filter(m => isTrue(m.ativo))
+    .filter(m => lower(m.tipo) === "principal")
+    .filter(m => norm(m.setor) === norm(setor))
+    .sort((a,b)=>Number(a.ordem||0)-Number(b.ordem||0));
+
+  const base = modelosDoSetor.length ? modelosDoSetor : [modelo];
+  let idItem = nextId(check.rows, "id_item");
+  let ordem = atuais.length + 1;
+  let criados = 0;
+
+  base.forEach(m => {
+    const descricao = m.descricao || modelo.descricao || "Item do modelo";
+    const existe = check.rows.some(i =>
+      String(i.id_os) === String(os.id_os) &&
+      norm(i.origem) === "Principal" &&
+      norm(i.setor || i.etapa) === norm(setor) &&
+      norm(i.descricao) === norm(descricao) &&
+      !isTrue(i.concluido)
+    );
+
+    if (existe && String(d.modo || "adicionar").toLowerCase() !== "substituir") return;
+
+    check.sheet.appendRow([idItem++, os.id_os, "Principal", "", setor, setor, descricao, false, ordem++, "", "", ""]);
+    criados++;
+  });
+
+  ensureColumn(SHEETS.os, "id_modelo");
+  setCellSafe(SHEETS.os, os.__rowNumber, "id_modelo", d.id_modelo);
+
+  addHistorico("CHECKLIST_MODELO_APLICADO", d.operador_nome || "Gestão", d.matricula || "", os.codigo_os, setor, `Modelo ${d.id_modelo} • ${criados} item(ns)`);
+  addLog("CHECKLIST_MODELO_APLICADO", d.operador_nome || "Gestão", `${criados} item(ns)`, os.codigo_os);
+
+  return jsonOut({sucesso:true, criados:criados});
+}
+
+
+
+/****************************************************
+ * GESTÃO — LIXEIRA OS + SUBTAREFAS V3.29
+ ****************************************************/
+function gestorLixeira() {
+  ensureColumn(SHEETS.os, "excluida");
+  ensureColumn(SHEETS.os, "excluido");
+  ensureColumn(SHEETS.subtarefas, "excluida");
+  ensureColumn(SHEETS.subtarefas, "excluido");
+
+  const osRows = rowsAsObjects(SHEETS.os).rows
+    .filter(o => isTrue(o.excluida) || isTrue(o.excluido))
+    .sort((a,b)=>String(b.excluido_em || b.excluida_em || "").localeCompare(String(a.excluido_em || a.excluida_em || "")));
+
+  const subRows = rowsAsObjects(SHEETS.subtarefas).rows
+    .filter(s => isTrue(s.excluida) || isTrue(s.excluido))
+    .sort((a,b)=>String(b.excluido_em || b.excluida_em || "").localeCompare(String(a.excluido_em || a.excluida_em || "")));
+
+  return jsonOut({sucesso:true, os:osRows, subtarefas:subRows});
+}
+
+function recuperarSubtarefa(d) {
+  const data = rowsAsObjects(SHEETS.subtarefas);
+  const row = data.rows.find(s => String(s.id_subtarefa) === String(d.id_subtarefa));
+  if (!row) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada"});
+
+  ensureColumn(SHEETS.subtarefas, "excluida");
+  ensureColumn(SHEETS.subtarefas, "excluido");
+  ensureColumn(SHEETS.subtarefas, "recuperado_por");
+  ensureColumn(SHEETS.subtarefas, "recuperado_em");
+
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "excluida", false);
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "excluido", false);
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "recuperado_por", d.operador_nome || "Gestão");
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "recuperado_em", now());
+
+  addHistorico("SUBTAREFA_RECUPERADA_GESTAO", d.operador_nome || "Gestão", d.matricula || "", row.id_os || "", row.setor_destino || "", row.descricao || row.id_subtarefa);
+  addLog("SUBTAREFA_RECUPERADA_GESTAO", d.operador_nome || "Gestão", row.descricao || row.id_subtarefa, row.id_os || "");
+
+  return jsonOut({sucesso:true});
+}
+
+
+
+/****************************************************
+ * GESTÃO — AÇÕES EM SUBTAREFAS V3.32
+ ****************************************************/
+function gestorCriarSubtarefa(d) {
+  ensureColumn(SHEETS.subtarefas, "excluida");
+  ensureColumn(SHEETS.subtarefas, "criado_por");
+  ensureColumn(SHEETS.subtarefas, "criado_em");
+
+  const data = rowsAsObjects(SHEETS.subtarefas);
+  const id = nextId(data.rows, "id_subtarefa");
+
+  const headers = data.headers;
+  const row = {};
+  headers.forEach(h => row[h] = "");
+
+  row.id_subtarefa = id;
+  row.id_os = d.id_os || "";
+  row.descricao = d.descricao || "";
+  row.setor_destino = d.setor_destino || "";
+  row.status = "Pendente";
+  row.excluida = false;
+  row.criado_por = d.operador_nome || "Gestão";
+  row.criado_em = now();
+
+  data.sheet.appendRow(headers.map(h => row[h] !== undefined ? row[h] : ""));
+
+  addHistorico("SUBTAREFA_CRIADA_GESTAO", d.operador_nome || "Gestão", d.matricula || "", d.id_os || "", d.setor_destino || "", d.descricao || id);
+  addLog("SUBTAREFA_CRIADA_GESTAO", d.operador_nome || "Gestão", d.descricao || id, d.id_os || "");
+
+  return jsonOut({sucesso:true, id_subtarefa:id});
+}
+
+function gestorEditarSubtarefa(d) {
+  const data = rowsAsObjects(SHEETS.subtarefas);
+  const row = data.rows.find(s => String(s.id_subtarefa) === String(d.id_subtarefa));
+  if (!row) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada"});
+
+  ensureColumn(SHEETS.subtarefas, "alterado_por");
+  ensureColumn(SHEETS.subtarefas, "alterado_em");
+
+  if (d.descricao !== undefined) setCellSafe(SHEETS.subtarefas, row.__rowNumber, "descricao", d.descricao);
+  if (d.setor_destino !== undefined) setCellSafe(SHEETS.subtarefas, row.__rowNumber, "setor_destino", d.setor_destino);
+  if (d.status !== undefined) setCellSafe(SHEETS.subtarefas, row.__rowNumber, "status", d.status);
+
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "alterado_por", d.operador_nome || "Gestão");
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "alterado_em", now());
+
+  addHistorico("SUBTAREFA_EDITADA_GESTAO", d.operador_nome || "Gestão", d.matricula || "", row.id_os || "", d.setor_destino || row.setor_destino || "", d.descricao || row.descricao || row.id_subtarefa);
+  addLog("SUBTAREFA_EDITADA_GESTAO", d.operador_nome || "Gestão", row.id_subtarefa, row.id_os || "");
+
+  return jsonOut({sucesso:true});
+}
+
+function gestorExcluirSubtarefa(d) {
+  const data = rowsAsObjects(SHEETS.subtarefas);
+  const row = data.rows.find(s => String(s.id_subtarefa) === String(d.id_subtarefa));
+  if (!row) return jsonOut({sucesso:false, erro:"Subtarefa não encontrada"});
+
+  ensureColumn(SHEETS.subtarefas, "excluida");
+  ensureColumn(SHEETS.subtarefas, "excluido");
+  ensureColumn(SHEETS.subtarefas, "excluido_por");
+  ensureColumn(SHEETS.subtarefas, "excluido_em");
+
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "excluida", true);
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "excluido", true);
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "excluido_por", d.operador_nome || "Gestão");
+  setCellSafe(SHEETS.subtarefas, row.__rowNumber, "excluido_em", now());
+
+  addHistorico("SUBTAREFA_EXCLUIDA_GESTAO", d.operador_nome || "Gestão", d.matricula || "", row.id_os || "", row.setor_destino || "", row.descricao || row.id_subtarefa);
+  addLog("SUBTAREFA_EXCLUIDA_GESTAO", d.operador_nome || "Gestão", row.descricao || row.id_subtarefa, row.id_os || "");
+
+  return jsonOut({sucesso:true});
+}
+
+function gestorCriarSequenciaSubtarefas(d) {
+  const setores = String(d.setores || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (!setores.length) return jsonOut({sucesso:false, erro:"Nenhum setor informado"});
+
+  const criadas = [];
+  setores.forEach((setor, index) => {
+    const desc = `${index + 1}. ${d.descricao || "Subtarefa sequencial"} — ${setor}`;
+    const res = gestorCriarSubtarefa({
+      id_os:d.id_os || "",
+      setor_destino:setor,
+      descricao:desc,
+      operador_nome:d.operador_nome || "Gestão",
+      matricula:d.matricula || ""
+    });
+    criadas.push({setor:setor, descricao:desc});
+  });
+
+  addHistorico("SEQUENCIA_SUBTAREFAS_CRIADA", d.operador_nome || "Gestão", d.matricula || "", d.id_os || "", setores.join(" > "), d.descricao || "");
+  addLog("SEQUENCIA_SUBTAREFAS_CRIADA", d.operador_nome || "Gestão", setores.join(" > "), d.id_os || "");
+
+  return jsonOut({sucesso:true, criadas:criadas});
+}
+
+function gestorAplicarModeloSubtarefa(d) {
+  const modelos = {
+    eletrica:["Verificar continuidade elétrica","Medir isolação","Registrar condição dos cabos"],
+    usinagem:["Avaliar desgaste dimensional","Definir correção de usinagem","Registrar medição final"],
+    qualidade:["Inspecionar conformidade","Validar rastreabilidade","Liberar ou apontar pendência"],
+    montagem:["Separar componentes","Apoiar montagem","Validar fechamento da etapa"]
+  };
+
+  const lista = modelos[String(d.modelo || "").toLowerCase()] || modelos.eletrica;
+  const criadas = [];
+
+  lista.forEach(desc => {
+    gestorCriarSubtarefa({
+      id_os:d.id_os || "",
+      setor_destino:d.setor_destino || "",
+      descricao:desc,
+      operador_nome:d.operador_nome || "Gestão",
+      matricula:d.matricula || ""
+    });
+    criadas.push(desc);
+  });
+
+  if (d.id_subtarefa) {
+    gestorEditarSubtarefa({
+      id_subtarefa:d.id_subtarefa,
+      status:"Em processo",
+      operador_nome:d.operador_nome || "Gestão",
+      matricula:d.matricula || ""
+    });
+  }
+
+  addHistorico("MODELO_SUBTAREFA_APLICADO", d.operador_nome || "Gestão", d.matricula || "", d.id_os || "", d.setor_destino || "", d.modelo || "");
+  addLog("MODELO_SUBTAREFA_APLICADO", d.operador_nome || "Gestão", d.modelo || "", d.id_os || "");
+
+  return jsonOut({sucesso:true, criadas:criadas});
+}
+
+
+
+/****************************************************
+ * GESTÃO — TODAS AS SUBTAREFAS + REPETIR V3.33
+ ****************************************************/
+function gestorTodasSubtarefas() {
+  const subRows = rowsAsObjects(SHEETS.subtarefas).rows
+    .filter(s => !isTrue(s.excluida) && !isTrue(s.excluido))
+    .sort((a,b)=>String(a.setor_destino || "").localeCompare(String(b.setor_destino || "")));
+
+  return jsonOut({subtarefas:subRows});
+}
+
+function gestorRepetirSubtarefa(d) {
+  const data = rowsAsObjects(SHEETS.subtarefas);
+  const original = data.rows.find(s => String(s.id_subtarefa) === String(d.id_subtarefa));
+
+  const idOs = d.id_os || (original ? original.id_os : "");
+  const setor = d.setor_destino || (original ? original.setor_destino : "");
+  const descricao = d.descricao || (original ? original.descricao : "");
+
+  if (!descricao) return jsonOut({sucesso:false, erro:"Descrição não informada"});
+
+  const res = gestorCriarSubtarefa({
+    id_os:idOs,
+    setor_destino:setor,
+    descricao:descricao,
+    operador_nome:d.operador_nome || "Gestão",
+    matricula:d.matricula || ""
+  });
+
+  addHistorico("SUBTAREFA_REPETIDA_GESTAO", d.operador_nome || "Gestão", d.matricula || "", idOs || "", setor || "", descricao);
+  addLog("SUBTAREFA_REPETIDA_GESTAO", d.operador_nome || "Gestão", descricao, idOs || "");
+
+  return jsonOut({sucesso:true});
+}
+
+
+
+/****************************************************
+ * ADMIN — PERMISSÕES DA GESTÃO V3.34
+ * Preparado para persistência em planilha "permissoes_gestao".
+ ****************************************************/
+function adminSalvarPermissoesGestao(d) {
+  ensureSheet("permissoes_gestao", ["chave","liberado","alterado_por","alterado_em"]);
+  const sheet = sh("permissoes_gestao");
+  const payload = typeof d.permissoes === "string" ? JSON.parse(d.permissoes || "{}") : (d.permissoes || {});
+  sheet.clearContents();
+  sheet.appendRow(["chave","liberado","alterado_por","alterado_em"]);
+  Object.keys(payload).forEach(k => {
+    sheet.appendRow([k, payload[k] !== false, d.operador_nome || "Admin", now()]);
+  });
+  addLog("PERMISSOES_GESTAO_ATUALIZADAS", d.operador_nome || "Admin", "Permissões da Gestão atualizadas", "");
+  return jsonOut({sucesso:true});
+}
+
+function adminPermissoesGestao() {
+  ensureSheet("permissoes_gestao", ["chave","liberado","alterado_por","alterado_em"]);
+  const rows = rowsAsObjects("permissoes_gestao").rows;
+  const permissoes = {};
+  rows.forEach(r => {
+    if(r.chave) permissoes[r.chave] = isTrue(r.liberado);
+  });
+  return jsonOut({permissoes:permissoes});
+}
+
+
+/****************************************************
+ * BOOTSTRAP FINAL — GESTÃO V3.35
+ * Agrega dados principais para reduzir chamadas no futuro.
+ ****************************************************/
+function bootstrapGestaoFinal(matricula) {
+  const resumo = JSON.parse(gestorResumo(matricula).getContent());
+  const produtividade = JSON.parse(produtividadeResumo(matricula).getContent());
+  const dashboard = JSON.parse(dashboardLean(matricula).getContent());
+  const permissoes = JSON.parse(adminPermissoesGestao().getContent()).permissoes || {};
+  return jsonOut({
+    resumo:resumo,
+    produtividade:produtividade,
+    dashboard:dashboard,
+    permissoes:permissoes,
+    servidor_em:now()
+  });
+}

@@ -1,0 +1,221 @@
+/* Projeto Natan V3.5 — Full System */
+
+.v35-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.v35-filter-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:16px;
+}
+
+.v35-input{
+  width:100%;
+  min-height:44px;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:0 12px;
+  background:#fff;
+  color:#0f172a;
+  font:inherit;
+  font-weight:750;
+}
+
+.v35-table-wrap{
+  overflow:auto;
+  border:1px solid #e2e8f0;
+  border-radius:22px;
+}
+
+.v35-status-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:30px;
+  padding:0 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+  background:#eff6ff;
+  color:#2563eb;
+}
+
+.v35-status-pill.green{
+  background:#ecfdf5;
+  color:#15803d;
+}
+
+.v35-status-pill.orange{
+  background:#fff7ed;
+  color:#c2410c;
+}
+
+.v35-status-pill.red{
+  background:#fef2f2;
+  color:#dc2626;
+}
+
+.v35-empty-state{
+  min-height:180px;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  border:1px dashed #cbd5e1;
+  border-radius:24px;
+  color:#64748b;
+  font-weight:800;
+  padding:24px;
+}
+
+.v35-module-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+
+.v35-module-card{
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(15,23,42,.05);
+}
+
+.v35-module-card b{
+  display:block;
+  font-size:17px;
+  font-weight:950;
+  margin-bottom:6px;
+}
+
+.v35-module-card small{
+  display:block;
+  color:#64748b;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.v35-module-card button{
+  margin-top:14px;
+}
+
+.sync-panel{
+  position:fixed;
+  right:24px;
+  bottom:24px;
+  z-index:600;
+  min-width:280px;
+  max-width:360px;
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 22px 70px rgba(15,23,42,.18);
+  display:none;
+}
+
+.sync-panel.open{
+  display:block;
+}
+
+.sync-panel h3{
+  margin:0 0 8px;
+  font-size:18px;
+  font-weight:950;
+}
+
+.sync-panel p{
+  margin:0 0 12px;
+  color:#64748b;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.sync-panel-actions{
+  display:flex;
+  gap:8px;
+}
+
+.sync-panel-actions button{
+  flex:1;
+}
+
+.manager-flow-card{
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:22px;
+  padding:16px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.manager-flow-card b{
+  font-size:16px;
+  font-weight:950;
+}
+
+.manager-flow-card small{
+  color:#64748b;
+  font-weight:750;
+  line-height:1.35;
+}
+
+.manager-flow-line{
+  height:8px;
+  border-radius:999px;
+  background:#eef2f7;
+  overflow:hidden;
+}
+
+.manager-flow-line span{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:#2563eb;
+}
+
+body.theme-dark .v35-input,
+body.theme-dark .v35-module-card,
+body.theme-dark .sync-panel,
+body.theme-dark .manager-flow-card{
+  background:#0b1220!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .v35-table-wrap{
+  border-color:rgba(255,255,255,.08)!important;
+}
+
+body.theme-dark .v35-module-card small,
+body.theme-dark .sync-panel p,
+body.theme-dark .manager-flow-card small{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .v35-empty-state{
+  border-color:rgba(255,255,255,.12)!important;
+  color:#94a3b8!important;
+}
+
+@media(max-width:1000px){
+  .v35-filter-grid,
+  .v35-module-grid{
+    grid-template-columns:1fr;
+  }
+
+  .sync-panel{
+    left:12px;
+    right:12px;
+    bottom:12px;
+    max-width:none;
+  }
+}

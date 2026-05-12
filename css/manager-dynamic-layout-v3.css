@@ -1,0 +1,184 @@
+/* V3.23 — Layout dinâmico real da Gestão */
+
+/* BASE: transição suave entre layouts */
+.manager-mobile-shell,
+.gestao-op-hero,
+.gestao-op-actions,
+.gestao-op-kpi-grid,
+.gestao-op-section,
+.gestao-op-kpi,
+.gestao-op-action{
+  transition:all .22s ease;
+}
+
+/* Layout Padrão */
+body.manager-layout-standard .manager-mobile-shell{
+  gap:14px;
+}
+
+body.manager-layout-standard .gestao-op-actions,
+body.manager-layout-standard .gestao-op-kpi-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+
+/* Layout Compacto: mais dados por tela */
+body.manager-layout-dense .manager-mobile-shell{
+  gap:9px!important;
+}
+
+body.manager-layout-dense .gestao-op-hero{
+  padding:13px!important;
+  border-radius:22px!important;
+}
+
+body.manager-layout-dense .gestao-op-hero h1{
+  font-size:22px!important;
+}
+
+body.manager-layout-dense .gestao-op-hero p{
+  font-size:12px!important;
+  margin-top:5px!important;
+}
+
+body.manager-layout-dense .gestao-op-score{
+  width:60px!important;
+  min-width:60px!important;
+  height:60px!important;
+  border-radius:18px!important;
+}
+
+body.manager-layout-dense .gestao-op-score b{
+  font-size:22px!important;
+}
+
+body.manager-layout-dense .gestao-op-actions{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+
+body.manager-layout-dense .gestao-op-action{
+  min-height:62px!important;
+  padding:10px!important;
+  border-radius:16px!important;
+}
+
+body.manager-layout-dense .gestao-op-action b{
+  font-size:11px!important;
+}
+
+body.manager-layout-dense .gestao-op-kpi-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+
+body.manager-layout-dense .gestao-op-kpi{
+  padding:10px!important;
+  border-radius:16px!important;
+}
+
+body.manager-layout-dense .gestao-op-kpi strong{
+  font-size:21px!important;
+}
+
+body.manager-layout-dense .gestao-op-kpi small,
+body.manager-layout-dense .gestao-op-kpi span{
+  font-size:10px!important;
+}
+
+body.manager-layout-dense .gestao-op-section{
+  padding:12px!important;
+  border-radius:18px!important;
+}
+
+/* Layout Executivo: leitura limpa, menos ruído */
+body.manager-layout-executive .manager-mobile-shell{
+  gap:16px!important;
+}
+
+body.manager-layout-executive .gestao-op-hero{
+  background:linear-gradient(135deg,#020617,#1e293b 48%,#334155)!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+}
+
+body.manager-layout-executive .gestao-op-actions{
+  grid-template-columns:1fr!important;
+}
+
+body.manager-layout-executive .gestao-op-action{
+  min-height:58px!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:12px!important;
+}
+
+body.manager-layout-executive .gestao-op-kpi-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+
+body.manager-layout-executive .gestao-op-section{
+  border-radius:28px!important;
+}
+
+/* Layout Foco em KPIs: indicadores no topo e ações menores */
+body.manager-layout-kpi .manager-mobile-shell{
+  display:flex;
+  flex-direction:column;
+}
+
+body.manager-layout-kpi .gestao-op-kpi-grid{
+  order:1;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+
+body.manager-layout-kpi .gestao-op-hero{
+  order:0;
+}
+
+body.manager-layout-kpi .gestao-op-actions{
+  order:2;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+
+body.manager-layout-kpi .gestao-op-action{
+  min-height:64px!important;
+  padding:10px!important;
+}
+
+body.manager-layout-kpi .gestao-op-action b{
+  font-size:11px!important;
+}
+
+body.manager-layout-kpi .gestao-op-section{
+  order:3;
+}
+
+/* KPIs visíveis */
+body.manager-hide-kpi-subtasks .gestao-op-kpi[data-kpi="subtasks"]{
+  display:none!important;
+}
+
+body.manager-hide-kpi-rate .gestao-op-kpi[data-kpi="rate"]{
+  display:none!important;
+}
+
+body.manager-hide-kpi-events .gestao-op-kpi[data-kpi="events"]{
+  display:none!important;
+}
+
+/* Ajustes para telas muito pequenas */
+@media(max-width:390px){
+  body.manager-layout-dense .gestao-op-actions,
+  body.manager-layout-dense .gestao-op-kpi-grid,
+  body.manager-layout-kpi .gestao-op-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+@media(max-width:340px){
+  body.manager-layout-executive .gestao-op-kpi-grid,
+  body.manager-layout-kpi .gestao-op-kpi-grid{
+    grid-template-columns:1fr!important;
+  }
+}

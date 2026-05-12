@@ -1,0 +1,279 @@
+/* V3.24.4 — Tema Chão de Fábrica dinâmico + Login corrigido */
+
+/* =========================
+   VARIAÇÕES DINÂMICAS
+   ========================= */
+
+html.theme-factory.factory-variant-green,
+body.theme-factory.factory-variant-green{
+  --factory-accent:#22c55e;
+  --factory-accent-2:#86efac;
+  --factory-accent-dark:#14532d;
+  --factory-accent-soft:rgba(34,197,94,.16);
+  --factory-accent-border:rgba(134,239,172,.34);
+}
+
+html.theme-factory.factory-variant-amber,
+body.theme-factory.factory-variant-amber{
+  --factory-accent:#f59e0b;
+  --factory-accent-2:#fbbf24;
+  --factory-accent-dark:#78350f;
+  --factory-accent-soft:rgba(245,158,11,.16);
+  --factory-accent-border:rgba(251,191,36,.34);
+}
+
+html.theme-factory.factory-variant-steel,
+body.theme-factory.factory-variant-steel{
+  --factory-accent:#38bdf8;
+  --factory-accent-2:#7dd3fc;
+  --factory-accent-dark:#0c4a6e;
+  --factory-accent-soft:rgba(56,189,248,.16);
+  --factory-accent-border:rgba(125,211,252,.34);
+}
+
+html.theme-factory,
+body.theme-factory{
+  --factory-accent:var(--factory-accent,#22c55e);
+  --factory-accent-2:var(--factory-accent-2,#86efac);
+  --factory-accent-dark:var(--factory-accent-dark,#14532d);
+  --factory-accent-soft:var(--factory-accent-soft,rgba(34,197,94,.16));
+  --factory-accent-border:var(--factory-accent-border,rgba(134,239,172,.34));
+}
+
+/* =========================
+   LOGIN / AUTENTICAÇÃO
+   ========================= */
+
+body.theme-factory .login-box,
+body.theme-factory .auth-screen,
+body.theme-factory .login-screen{
+  background:
+    radial-gradient(circle at 50% 20%, var(--factory-accent-soft), transparent 34%),
+    radial-gradient(circle at 20% 90%, rgba(255,255,255,.04), transparent 26%),
+    linear-gradient(180deg,#06100b,#030806)!important;
+}
+
+body.theme-factory .login-card,
+body.theme-factory .auth-card,
+body.theme-factory .first-access-card{
+  background:linear-gradient(180deg,rgba(16,35,26,.96),rgba(6,16,11,.97))!important;
+  border:1px solid var(--factory-accent-border)!important;
+  color:#f3fff7!important;
+  box-shadow:0 26px 80px rgba(0,0,0,.42)!important;
+  backdrop-filter:blur(14px)!important;
+}
+
+body.theme-factory .login-card::before,
+body.theme-factory .auth-card::before{
+  content:"";
+  display:block;
+  height:4px;
+  border-radius:999px;
+  margin-bottom:18px;
+  background:linear-gradient(90deg,var(--factory-accent),var(--factory-accent-2));
+  opacity:.95;
+}
+
+body.theme-factory .login-card h1,
+body.theme-factory .login-brand,
+body.theme-factory .auth-card h1{
+  color:#f3fff7!important;
+  text-shadow:none!important;
+}
+
+body.theme-factory .login-card p,
+body.theme-factory .auth-card p,
+body.theme-factory .login-card label,
+body.theme-factory .auth-card label{
+  color:#a9cbb5!important;
+}
+
+body.theme-factory .login-card input,
+body.theme-factory .login-card select,
+body.theme-factory .auth-card input,
+body.theme-factory .auth-card select{
+  background:#030806!important;
+  color:#f3fff7!important;
+  border:1px solid var(--factory-accent-border)!important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)!important;
+}
+
+body.theme-factory .login-card input::placeholder,
+body.theme-factory .auth-card input::placeholder{
+  color:rgba(169,203,181,.72)!important;
+}
+
+body.theme-factory .login-card button,
+body.theme-factory .auth-card button,
+body.theme-factory #btnLogin,
+body.theme-factory #btnFirstAccess,
+body.theme-factory #btnCadastrar{
+  background:linear-gradient(135deg,var(--factory-accent-dark),var(--factory-accent))!important;
+  border:1px solid var(--factory-accent)!important;
+  color:#031208!important;
+  font-weight:950!important;
+}
+
+body.theme-factory .login-card .btn.light,
+body.theme-factory .auth-card .btn.light,
+body.theme-factory .login-card button.secondary{
+  background:rgba(255,255,255,.06)!important;
+  border-color:var(--factory-accent-border)!important;
+  color:var(--factory-accent-2)!important;
+}
+
+/* =========================
+   INTERFACE GLOBAL — USAR ACENTO DINÂMICO
+   ========================= */
+
+body.theme-factory .manager-op-avatar,
+body.theme-factory .manager-header-btn.primary,
+body.theme-factory .btn.blue,
+body.theme-factory button.btn.blue,
+body.theme-factory #btnOptimizeDataReceiving,
+body.theme-factory .manager-os-actions button.primary,
+body.theme-factory .gestao-op-hero,
+body.theme-factory .prod-hero{
+  background:linear-gradient(135deg,var(--factory-accent-dark),var(--factory-accent))!important;
+  border-color:var(--factory-accent)!important;
+}
+
+body.theme-factory .manager-header-btn.primary,
+body.theme-factory .btn.blue,
+body.theme-factory button.btn.blue,
+body.theme-factory #btnOptimizeDataReceiving,
+body.theme-factory .manager-os-actions button.primary{
+  color:#031208!important;
+}
+
+body.theme-factory .manager-config-summary,
+body.theme-factory .manager-chip,
+body.theme-factory .badge,
+body.theme-factory .notification-chip,
+body.theme-factory .v35-status-pill,
+body.theme-factory .cache-status,
+body.theme-factory .data-accel-badge,
+body.theme-factory .manager-bottom-nav button.active,
+body.theme-factory #bottomNav .nav-btn.active{
+  background:var(--factory-accent-soft)!important;
+  color:var(--factory-accent-2)!important;
+  border-color:var(--factory-accent-border)!important;
+}
+
+body.theme-factory .manager-header-btn,
+body.theme-factory .btn.light,
+body.theme-factory #btnClearDataCache,
+body.theme-factory .manager-os-actions button,
+body.theme-factory .theme-toggle,
+body.theme-factory .admin-notification-btn{
+  color:var(--factory-accent-2)!important;
+  border-color:var(--factory-accent-border)!important;
+}
+
+body.theme-factory input,
+body.theme-factory select,
+body.theme-factory textarea{
+  border-color:var(--factory-accent-border)!important;
+  caret-color:var(--factory-accent-2)!important;
+}
+
+body.theme-factory .progress span,
+body.theme-factory .manager-flow-line span,
+body.theme-factory .kpi-health-bar span{
+  background:linear-gradient(90deg,var(--factory-accent),var(--factory-accent-2))!important;
+}
+
+body.theme-factory .manager-status-dot{
+  background:var(--factory-accent)!important;
+  box-shadow:0 0 0 4px var(--factory-accent-soft)!important;
+}
+
+/* =========================
+   CONFIGURAÇÃO DA VARIAÇÃO
+   ========================= */
+
+.factory-variant-options{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+
+.factory-variant-card{
+  border:1px solid var(--factory-border, #e2e8f0);
+  background:#f8fafc;
+  border-radius:18px;
+  padding:12px;
+  cursor:pointer;
+  text-align:left;
+}
+
+.factory-variant-card.active{
+  border-color:var(--factory-accent,#22c55e);
+  background:var(--factory-accent-soft,rgba(34,197,94,.14));
+}
+
+.factory-variant-card b{
+  display:block;
+  font-size:14px;
+  font-weight:950;
+  color:#0f172a;
+}
+
+.factory-variant-card small{
+  display:block;
+  margin-top:4px;
+  font-size:12px;
+  line-height:1.3;
+  color:#64748b;
+  font-weight:750;
+}
+
+.factory-variant-dot{
+  width:24px;
+  height:24px;
+  border-radius:999px;
+  display:block;
+  margin-bottom:10px;
+  border:2px solid rgba(255,255,255,.32);
+  box-shadow:0 8px 20px rgba(0,0,0,.16);
+}
+
+.factory-variant-dot.green{background:#22c55e}
+.factory-variant-dot.amber{background:#f59e0b}
+.factory-variant-dot.steel{background:#38bdf8}
+
+body.theme-dark .factory-variant-card,
+body.theme-factory .factory-variant-card{
+  background:#0b1912!important;
+  border-color:rgba(134,239,172,.18)!important;
+}
+
+body.theme-dark .factory-variant-card b,
+body.theme-factory .factory-variant-card b{
+  color:#f3fff7!important;
+}
+
+body.theme-dark .factory-variant-card small,
+body.theme-factory .factory-variant-card small{
+  color:#a9cbb5!important;
+}
+
+body.theme-factory .factory-variant-card.active{
+  border-color:var(--factory-accent-border)!important;
+  background:var(--factory-accent-soft)!important;
+}
+
+/* =========================
+   MOBILE S
+   ========================= */
+
+@media(max-width:380px){
+  .factory-variant-options{
+    grid-template-columns:1fr;
+  }
+
+  body.theme-factory .login-card,
+  body.theme-factory .auth-card{
+    border-radius:24px!important;
+  }
+}

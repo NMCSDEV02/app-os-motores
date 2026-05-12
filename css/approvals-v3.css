@@ -1,0 +1,173 @@
+/* Projeto Natan V3.9 — Aprovações + Gestão Ativa */
+
+.approval-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.approval-card{
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:22px;
+  padding:16px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:start;
+}
+
+.approval-card h3{
+  margin:0 0 6px;
+  font-size:16px;
+  font-weight:950;
+}
+
+.approval-card p{
+  margin:0;
+  color:#64748b;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.approval-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.approval-status{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:0 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:950;
+  background:#eff6ff;
+  color:#2563eb;
+}
+
+.approval-status.pending{
+  background:#fff7ed;
+  color:#c2410c;
+}
+
+.approval-status.approved{
+  background:#ecfdf5;
+  color:#15803d;
+}
+
+.approval-status.rejected{
+  background:#fef2f2;
+  color:#dc2626;
+}
+
+.manager-request-form{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.manager-request-form input,
+.manager-request-form select,
+.manager-request-form textarea{
+  width:100%;
+  min-height:48px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:0 14px;
+  background:#fff;
+  color:#0f172a;
+  font:inherit;
+  font-weight:750;
+}
+
+.manager-request-form textarea{
+  min-height:112px;
+  padding:12px 14px;
+  resize:vertical;
+}
+
+.manager-request-card{
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(15,23,42,.045);
+}
+
+.manager-request-card h2{
+  margin:0 0 6px;
+  font-size:18px;
+  font-weight:950;
+}
+
+.manager-request-card p{
+  margin:0 0 14px;
+  color:#64748b;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.manager-request-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.manager-request-item{
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:18px;
+  padding:13px;
+}
+
+.manager-request-item b{
+  display:block;
+  font-size:14px;
+  font-weight:950;
+}
+
+.manager-request-item small{
+  display:block;
+  margin-top:4px;
+  color:#64748b;
+  line-height:1.35;
+  font-weight:750;
+}
+
+body.theme-dark .approval-card,
+body.theme-dark .manager-request-card,
+body.theme-dark .manager-request-item{
+  background:#0f172a!important;
+  border-color:rgba(255,255,255,.10)!important;
+  color:#f8fafc!important;
+}
+
+body.theme-dark .approval-card p,
+body.theme-dark .manager-request-card p,
+body.theme-dark .manager-request-item small{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .manager-request-form input,
+body.theme-dark .manager-request-form select,
+body.theme-dark .manager-request-form textarea{
+  background:#020617!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+@media(max-width:760px){
+  .approval-card{
+    grid-template-columns:1fr;
+  }
+  .approval-actions{
+    justify-content:flex-start;
+  }
+}

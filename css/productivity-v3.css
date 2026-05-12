@@ -1,0 +1,261 @@
+/* Projeto Natan V3.2 — Produtividade Total */
+
+.prod-hero{
+  background:linear-gradient(135deg,#0f172a,#1e40af 55%,#2563eb);
+  color:#fff;
+  border-radius:30px;
+  padding:20px;
+  box-shadow:0 18px 46px rgba(37,99,235,.22);
+}
+
+.prod-hero-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.prod-hero small{
+  display:block;
+  opacity:.76;
+  font-size:12px;
+  font-weight:850;
+}
+
+.prod-hero strong{
+  display:block;
+  font-size:30px;
+  font-weight:950;
+  letter-spacing:-.05em;
+  margin-top:4px;
+}
+
+.prod-score{
+  min-width:74px;
+  height:74px;
+  border-radius:24px;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.18);
+  display:grid;
+  place-items:center;
+  text-align:center;
+}
+
+.prod-score b{
+  display:block;
+  font-size:26px;
+  line-height:1;
+}
+
+.prod-score span{
+  display:block;
+  font-size:10px;
+  opacity:.78;
+  font-weight:850;
+  margin-top:3px;
+}
+
+.prod-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.prod-card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:22px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(15,23,42,.045);
+}
+
+.prod-card small{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  font-weight:850;
+  margin-bottom:8px;
+}
+
+.prod-card strong{
+  font-size:26px;
+  font-weight:950;
+  letter-spacing:-.04em;
+}
+
+.prod-card span{
+  display:block;
+  color:#64748b;
+  font-size:12px;
+  line-height:1.28;
+  margin-top:6px;
+  font-weight:750;
+}
+
+.prod-section{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(15,23,42,.045);
+}
+
+.prod-section-head{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  margin-bottom:12px;
+}
+
+.prod-section-head h2{
+  margin:0;
+  font-size:18px;
+  font-weight:950;
+  letter-spacing:-.03em;
+}
+
+.prod-section-head small{
+  color:#64748b;
+  font-size:12px;
+  font-weight:800;
+}
+
+.prod-rank-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.prod-rank-item{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr) auto;
+  align-items:center;
+  gap:10px;
+  border:1px solid #eef2f7;
+  border-radius:18px;
+  padding:10px;
+  background:#f8fafc;
+}
+
+.prod-rank-pos{
+  width:34px;
+  height:34px;
+  border-radius:13px;
+  background:#dbeafe;
+  color:#2563eb;
+  display:grid;
+  place-items:center;
+  font-weight:950;
+  font-size:13px;
+}
+
+.prod-rank-name{
+  min-width:0;
+}
+
+.prod-rank-name b{
+  display:block;
+  font-size:14px;
+  color:#0f172a;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.prod-rank-name small{
+  display:block;
+  color:#64748b;
+  font-size:11px;
+  margin-top:2px;
+  font-weight:750;
+}
+
+.prod-rank-value{
+  font-weight:950;
+  color:#0f172a;
+}
+
+.prod-alert{
+  border:1px solid #fed7aa;
+  background:#fff7ed;
+  color:#9a3412;
+  border-radius:20px;
+  padding:13px 14px;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:850;
+}
+
+.prod-action-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.prod-action{
+  min-height:52px;
+  border-radius:18px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  color:#0f172a;
+  font-weight:900;
+  padding:0 14px;
+  text-align:left;
+}
+
+@media(max-width:360px){
+  .prod-grid,
+  .prod-action-row{
+    grid-template-columns:1fr;
+  }
+  .prod-hero strong{
+    font-size:26px;
+  }
+}
+
+/* Desktop Admin */
+@media(min-width:769px){
+  .admin-productivity-wide{
+    display:grid;
+    grid-template-columns:1.25fr .75fr;
+    gap:18px;
+    align-items:start;
+  }
+
+  .admin-prod-chart{
+    min-height:280px;
+    border-radius:28px;
+    background:#fff;
+    border:1px solid #e2e8f0;
+    box-shadow:0 10px 30px rgba(15,23,42,.05);
+    padding:22px;
+  }
+
+  .admin-prod-bars{
+    display:flex;
+    align-items:flex-end;
+    gap:12px;
+    height:170px;
+    margin-top:20px;
+    border-bottom:1px solid #e2e8f0;
+  }
+
+  .admin-prod-bar{
+    flex:1;
+    min-width:36px;
+    border-radius:12px 12px 0 0;
+    background:linear-gradient(180deg,#2563eb,#93c5fd);
+    position:relative;
+  }
+
+  .admin-prod-bar span{
+    position:absolute;
+    left:50%;
+    bottom:calc(100% + 6px);
+    transform:translateX(-50%);
+    font-size:12px;
+    font-weight:950;
+    color:#0f172a;
+  }
+}

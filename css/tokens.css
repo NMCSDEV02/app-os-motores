@@ -1,0 +1,11 @@
+:root {
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --primary: #2563eb;
+  --border: #e2e8f0;
+  --radius-md: 16px;
+  --space-4: 16px;
+  --font-md: 16px;
+  --mobile-max: 480px;
+}

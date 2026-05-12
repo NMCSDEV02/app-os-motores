@@ -1,0 +1,127 @@
+/* V3.13.2 — Ícones reais sem loop de carregamento */
+
+.admin-menu button{
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+}
+
+.admin-menu button .nav-icon{
+  width:24px;
+  min-width:24px;
+  height:24px;
+  display:inline-grid;
+  place-items:center;
+  font-family:"Material Symbols Outlined"!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  font-size:23px!important;
+  line-height:1!important;
+  letter-spacing:normal!important;
+  text-transform:none!important;
+  white-space:nowrap!important;
+  direction:ltr!important;
+  font-feature-settings:"liga"!important;
+  -webkit-font-feature-settings:"liga"!important;
+  -webkit-font-smoothing:antialiased!important;
+  color:currentColor;
+}
+
+.admin-menu button .nav-label{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+@media(min-width:769px){
+  body.desktop-mode.sidebar-collapsed .admin-menu button{
+    width:54px!important;
+    height:54px!important;
+    min-height:54px!important;
+    max-width:54px!important;
+    padding:0!important;
+    margin:0!important;
+    display:grid!important;
+    place-items:center!important;
+    gap:0!important;
+    color:#64748b!important;
+    font-size:0!important;
+    line-height:0!important;
+    position:relative!important;
+    border-radius:20px!important;
+    overflow:visible!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button::before{
+    content:none!important;
+    display:none!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button .nav-label{
+    display:none!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button .nav-icon{
+    display:grid!important;
+    font-size:25px!important;
+    color:#64748b!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button.active .nav-icon,
+  body.desktop-mode.sidebar-collapsed .admin-menu button:hover .nav-icon{
+    color:#2563eb!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button.active{
+    background:#dbeafe!important;
+    border-color:#bfdbfe!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button:hover::after{
+    content:attr(title);
+    position:absolute;
+    left:66px;
+    top:50%;
+    transform:translateY(-50%);
+    background:#0f172a;
+    color:#fff;
+    border-radius:12px;
+    padding:8px 10px;
+    font-size:12px;
+    line-height:1;
+    white-space:nowrap;
+    z-index:99999;
+    box-shadow:0 12px 32px rgba(15,23,42,.22);
+    pointer-events:none;
+  }
+
+  .admin-sidebar-toggle{
+    font-size:0!important;
+  }
+
+  .admin-sidebar-toggle .material-symbols-outlined{
+    font-family:"Material Symbols Outlined"!important;
+    font-size:24px!important;
+    line-height:1!important;
+    font-feature-settings:"liga"!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button .nav-icon{
+    color:#94a3b8!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button.active .nav-icon,
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button:hover .nav-icon{
+    color:#bfdbfe!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button.active{
+    background:rgba(37,99,235,.22)!important;
+    border-color:rgba(147,197,253,.18)!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button:hover::after{
+    background:#f8fafc!important;
+    color:#0f172a!important;
+  }
+}

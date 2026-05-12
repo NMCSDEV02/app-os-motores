@@ -1,0 +1,280 @@
+/* ==========================================================================
+   V3.24.9 — Correção dos cards brancos no Histórico/Operador
+   Camada final de prioridade para componentes sem classe padrão.
+   ========================================================================== */
+
+html.theme-factory,
+body.theme-factory{
+  background:
+    radial-gradient(circle at 12% 0%, var(--factory-accent-soft,rgba(34,197,94,.16)), transparent 35%),
+    radial-gradient(circle at 92% 96%, rgba(255,255,255,.04), transparent 28%),
+    linear-gradient(180deg,#06100b,#030806)!important;
+  background-color:#030806!important;
+}
+
+/* =========================
+   HISTÓRICO DO OPERADOR
+   ========================= */
+
+body.theme-factory .history-list,
+body.theme-factory .historico-list,
+body.theme-factory .timeline-list,
+body.theme-factory .activity-list{
+  background:transparent!important;
+}
+
+body.theme-factory .history-card,
+body.theme-factory .historico-card,
+body.theme-factory .timeline-card,
+body.theme-factory .activity-card,
+body.theme-factory .history-item,
+body.theme-factory .historico-item,
+body.theme-factory .timeline-item,
+body.theme-factory .activity-item,
+body.theme-factory .log-card,
+body.theme-factory .log-item,
+body.theme-factory .event-card,
+body.theme-factory .event-item{
+  background:linear-gradient(180deg,var(--factory-surface-2,#0e2117),var(--factory-surface,#0a1710))!important;
+  background-color:var(--factory-surface,#0a1710)!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.30)!important;
+}
+
+/* Muitos cards do histórico são divs genéricas dentro da lista */
+body.theme-factory .history-list > *,
+body.theme-factory .historico-list > *,
+body.theme-factory .timeline-list > *,
+body.theme-factory .activity-list > *{
+  background:linear-gradient(180deg,var(--factory-surface-2,#0e2117),var(--factory-surface,#0a1710))!important;
+  background-color:var(--factory-surface,#0a1710)!important;
+  border-color:var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.30)!important;
+}
+
+/* Ícone redondo de check do histórico */
+body.theme-factory .history-card .icon,
+body.theme-factory .historico-card .icon,
+body.theme-factory .timeline-card .icon,
+body.theme-factory .activity-card .icon,
+body.theme-factory .history-item .icon,
+body.theme-factory .historico-item .icon,
+body.theme-factory .timeline-icon,
+body.theme-factory .history-icon,
+body.theme-factory .event-icon,
+body.theme-factory .log-icon,
+body.theme-factory .check-icon,
+body.theme-factory .success-icon{
+  background:var(--factory-accent-soft,rgba(34,197,94,.16))!important;
+  border:1px solid var(--factory-accent-border,rgba(134,239,172,.34))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+}
+
+/* Textos do histórico */
+body.theme-factory .history-card h3,
+body.theme-factory .history-card h4,
+body.theme-factory .history-card b,
+body.theme-factory .history-card strong,
+body.theme-factory .historico-card h3,
+body.theme-factory .historico-card b,
+body.theme-factory .timeline-card h3,
+body.theme-factory .timeline-card b,
+body.theme-factory .activity-card h3,
+body.theme-factory .activity-card b,
+body.theme-factory .history-item h3,
+body.theme-factory .history-item b,
+body.theme-factory .historico-item h3,
+body.theme-factory .historico-item b,
+body.theme-factory .log-item b,
+body.theme-factory .event-item b{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .history-card p,
+body.theme-factory .history-card small,
+body.theme-factory .history-card span,
+body.theme-factory .historico-card p,
+body.theme-factory .historico-card small,
+body.theme-factory .historico-card span,
+body.theme-factory .timeline-card p,
+body.theme-factory .timeline-card small,
+body.theme-factory .timeline-card span,
+body.theme-factory .activity-card p,
+body.theme-factory .activity-card small,
+body.theme-factory .activity-card span,
+body.theme-factory .history-item p,
+body.theme-factory .history-item small,
+body.theme-factory .history-item span,
+body.theme-factory .historico-item p,
+body.theme-factory .historico-item small,
+body.theme-factory .historico-item span,
+body.theme-factory .log-item p,
+body.theme-factory .log-item small,
+body.theme-factory .event-item p,
+body.theme-factory .event-item small{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* =========================
+   REGRA ANTI-BRANCO PARA CARDS MÓVEIS
+   ========================= */
+
+/*
+  Esta regra mira cards genéricos dentro do app mobile.
+  Ela é propositalmente restrita ao tema fábrica e ao #screen para não afetar
+  elementos de layout fora do app.
+*/
+body.theme-factory #screen > div:not(.page-title):not(.manager-op-header),
+body.theme-factory #screen section > article,
+body.theme-factory #screen section > div.card,
+body.theme-factory #screen .page > article,
+body.theme-factory #screen .page > div.card{
+  background-color:var(--factory-surface,#0a1710)!important;
+}
+
+/* Se algum card veio com background branco direto por classe ou style */
+body.theme-factory #screen [style*="background:white"],
+body.theme-factory #screen [style*="background: white"],
+body.theme-factory #screen [style*="background:#fff"],
+body.theme-factory #screen [style*="background: #fff"],
+body.theme-factory #screen [style*="background-color:white"],
+body.theme-factory #screen [style*="background-color: white"],
+body.theme-factory #screen [style*="background-color:#fff"],
+body.theme-factory #screen [style*="background-color: #fff"],
+body.theme-factory .screen [style*="background:white"],
+body.theme-factory .screen [style*="background: white"],
+body.theme-factory .screen [style*="background:#fff"],
+body.theme-factory .screen [style*="background: #fff"]{
+  background:linear-gradient(180deg,var(--factory-surface-2,#0e2117),var(--factory-surface,#0a1710))!important;
+  background-color:var(--factory-surface,#0a1710)!important;
+  color:var(--factory-text,#f3fff7)!important;
+  border-color:var(--factory-border,rgba(134,239,172,.18))!important;
+}
+
+/* Classes comuns que podem estar usando card branco */
+body.theme-factory .list-card,
+body.theme-factory .action-card,
+body.theme-factory .info-card,
+body.theme-factory .status-card,
+body.theme-factory .summary-card,
+body.theme-factory .simple-card,
+body.theme-factory .compact-card,
+body.theme-factory .mobile-card,
+body.theme-factory .feed-card,
+body.theme-factory .record-card,
+body.theme-factory .registry-card,
+body.theme-factory .audit-card{
+  background:linear-gradient(180deg,var(--factory-surface-2,#0e2117),var(--factory-surface,#0a1710))!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.30)!important;
+}
+
+/* =========================
+   CORREÇÃO DO HEADER OPERADOR
+   ========================= */
+
+body.theme-factory .mobile-header,
+body.theme-factory .app-header,
+body.theme-factory .operator-header,
+body.theme-factory .home-header{
+  background:linear-gradient(135deg,rgba(14,33,23,.96),rgba(5,13,9,.96))!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .mobile-header h1,
+body.theme-factory .mobile-header h2,
+body.theme-factory .mobile-header b,
+body.theme-factory .app-header h1,
+body.theme-factory .app-header b{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .mobile-header p,
+body.theme-factory .mobile-header small,
+body.theme-factory .mobile-header span,
+body.theme-factory .app-header p,
+body.theme-factory .app-header small,
+body.theme-factory .app-header span{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* =========================
+   BOTTOM NAV OPERADOR
+   ========================= */
+
+body.theme-factory #bottomNav,
+body.theme-factory .bottom-nav,
+body.theme-factory .mobile-bottom-nav{
+  background:rgba(3,8,6,.97)!important;
+  border-top:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+}
+
+body.theme-factory #bottomNav button,
+body.theme-factory .bottom-nav button,
+body.theme-factory .mobile-bottom-nav button{
+  background:transparent!important;
+  color:var(--factory-muted-2,#7fa68e)!important;
+}
+
+body.theme-factory #bottomNav button.active,
+body.theme-factory .bottom-nav button.active,
+body.theme-factory .mobile-bottom-nav button.active{
+  background:var(--factory-accent-soft,rgba(34,197,94,.16))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+}
+
+/* =========================
+   TEXTOS EM CARDS ANTI-BRANCO
+   ========================= */
+
+body.theme-factory .list-card h1,
+body.theme-factory .list-card h2,
+body.theme-factory .list-card h3,
+body.theme-factory .list-card b,
+body.theme-factory .action-card h1,
+body.theme-factory .action-card h2,
+body.theme-factory .action-card h3,
+body.theme-factory .action-card b,
+body.theme-factory .info-card h1,
+body.theme-factory .info-card h2,
+body.theme-factory .info-card h3,
+body.theme-factory .info-card b,
+body.theme-factory .status-card h1,
+body.theme-factory .status-card h2,
+body.theme-factory .status-card h3,
+body.theme-factory .status-card b,
+body.theme-factory .summary-card h1,
+body.theme-factory .summary-card h2,
+body.theme-factory .summary-card h3,
+body.theme-factory .summary-card b,
+body.theme-factory .mobile-card h1,
+body.theme-factory .mobile-card h2,
+body.theme-factory .mobile-card h3,
+body.theme-factory .mobile-card b{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .list-card p,
+body.theme-factory .list-card small,
+body.theme-factory .list-card span,
+body.theme-factory .action-card p,
+body.theme-factory .action-card small,
+body.theme-factory .action-card span,
+body.theme-factory .info-card p,
+body.theme-factory .info-card small,
+body.theme-factory .info-card span,
+body.theme-factory .status-card p,
+body.theme-factory .status-card small,
+body.theme-factory .status-card span,
+body.theme-factory .summary-card p,
+body.theme-factory .summary-card small,
+body.theme-factory .summary-card span,
+body.theme-factory .mobile-card p,
+body.theme-factory .mobile-card small,
+body.theme-factory .mobile-card span{
+  color:var(--factory-muted,#a9cbb5)!important;
+}

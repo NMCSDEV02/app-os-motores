@@ -1,0 +1,156 @@
+/* V3.34 — Admin controla permissões da Gestão */
+
+.admin-permissions-panel{
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:28px;
+  padding:18px;
+  box-shadow:0 14px 38px rgba(15,23,42,.07);
+}
+
+.admin-permissions-summary{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  padding:14px;
+  border-radius:20px;
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  color:#1e40af;
+  margin-bottom:16px;
+}
+
+.admin-permissions-summary b{
+  font-size:28px;
+  font-weight:950;
+  letter-spacing:-.05em;
+}
+
+.admin-permissions-summary span{
+  font-size:13px;
+  font-weight:850;
+}
+
+.admin-permission-group{
+  margin-top:16px;
+}
+
+.admin-permission-group h2{
+  margin:0 0 10px;
+  font-size:17px;
+  font-weight:950;
+  letter-spacing:-.03em;
+  color:#0f172a;
+}
+
+.admin-permission-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.admin-permission-row{
+  min-height:64px;
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  border-radius:18px;
+  padding:12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.admin-permission-row b{
+  display:block;
+  color:#0f172a;
+  font-size:13px;
+  font-weight:950;
+}
+
+.admin-permission-row small{
+  display:block;
+  margin-top:3px;
+  color:#64748b;
+  font-size:10px;
+  font-weight:750;
+}
+
+.admin-permission-row input{
+  width:22px;
+  height:22px;
+  accent-color:#2563eb;
+  flex:0 0 auto;
+}
+
+.admin-permission-actions{
+  display:flex;
+  gap:10px;
+  margin-top:18px;
+}
+
+.admin-permission-actions .btn{
+  min-height:44px;
+  border-radius:16px;
+  padding:0 16px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  font-weight:950;
+}
+
+.admin-permission-actions .btn.blue{
+  background:#2563eb;
+  color:#fff;
+  border-color:#2563eb;
+}
+
+body.theme-dark .admin-permissions-panel,
+body.theme-dark .admin-permission-row{
+  background:#0f172a!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .admin-permission-row{
+  background:#020617!important;
+}
+
+body.theme-dark .admin-permission-group h2,
+body.theme-dark .admin-permission-row b{
+  color:#f8fafc!important;
+}
+
+body.theme-dark .admin-permission-row small{
+  color:#94a3b8!important;
+}
+
+body.theme-factory .admin-permissions-panel,
+body.theme-factory .admin-permission-row{
+  background:linear-gradient(180deg,var(--floor-surface-2),var(--floor-surface))!important;
+  border-color:var(--floor-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:var(--floor-shadow-soft)!important;
+}
+
+body.theme-factory .admin-permissions-summary{
+  background:var(--floor-accent-soft)!important;
+  border-color:var(--floor-accent-line)!important;
+  color:var(--floor-accent-2)!important;
+}
+
+body.theme-factory .admin-permission-group h2,
+body.theme-factory .admin-permission-row b{
+  color:var(--floor-text)!important;
+}
+
+body.theme-factory .admin-permission-row small{
+  color:var(--floor-muted)!important;
+}
+
+@media(max-width:800px){
+  .admin-permission-list{
+    grid-template-columns:1fr;
+  }
+  .admin-permission-actions{
+    flex-direction:column;
+  }
+}

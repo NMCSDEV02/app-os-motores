@@ -1,0 +1,130 @@
+/* V3.13.4 — Scrollbar Premium */
+
+/* Scroll geral */
+html,
+body{
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #eaf0f7;
+}
+
+body::-webkit-scrollbar,
+.admin-sidebar::-webkit-scrollbar,
+.admin-main::-webkit-scrollbar,
+.screen::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+
+body::-webkit-scrollbar-track,
+.admin-sidebar::-webkit-scrollbar-track,
+.admin-main::-webkit-scrollbar-track,
+.screen::-webkit-scrollbar-track{
+  background:transparent;
+}
+
+body::-webkit-scrollbar-thumb,
+.admin-sidebar::-webkit-scrollbar-thumb,
+.admin-main::-webkit-scrollbar-thumb,
+.screen::-webkit-scrollbar-thumb{
+  background:rgba(100,116,139,.42);
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip:content-box;
+}
+
+body::-webkit-scrollbar-thumb:hover,
+.admin-sidebar::-webkit-scrollbar-thumb:hover,
+.admin-main::-webkit-scrollbar-thumb:hover,
+.screen::-webkit-scrollbar-thumb:hover{
+  background:rgba(37,99,235,.60);
+  border:2px solid transparent;
+  background-clip:content-box;
+}
+
+/* Sidebar compacta: esconde o scroll horizontal e deixa o vertical quase invisível */
+@media(min-width:769px){
+  body.desktop-mode .admin-sidebar{
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148,163,184,.35) transparent;
+  }
+
+  body.desktop-mode .admin-sidebar::-webkit-scrollbar{
+    width:6px;
+  }
+
+  body.desktop-mode .admin-sidebar::-webkit-scrollbar-track{
+    background:transparent!important;
+  }
+
+  body.desktop-mode .admin-sidebar::-webkit-scrollbar-thumb{
+    background:rgba(148,163,184,.28);
+    border-radius:999px;
+    border:2px solid transparent;
+    background-clip:content-box;
+  }
+
+  body.desktop-mode .admin-sidebar::-webkit-scrollbar-thumb:hover{
+    background:rgba(37,99,235,.50);
+    border:2px solid transparent;
+    background-clip:content-box;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-sidebar{
+    overflow-x:hidden!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-sidebar::-webkit-scrollbar{
+    width:4px;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-sidebar::-webkit-scrollbar-thumb{
+    background:rgba(148,163,184,.22);
+    border-radius:999px;
+  }
+}
+
+/* Tema escuro */
+body.theme-dark,
+body.theme-dark .admin-sidebar,
+body.theme-dark .admin-main,
+body.theme-dark .screen{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148,163,184,.38) transparent;
+}
+
+body.theme-dark::-webkit-scrollbar-track,
+body.theme-dark .admin-sidebar::-webkit-scrollbar-track,
+body.theme-dark .admin-main::-webkit-scrollbar-track,
+body.theme-dark .screen::-webkit-scrollbar-track{
+  background:transparent!important;
+}
+
+body.theme-dark::-webkit-scrollbar-thumb,
+body.theme-dark .admin-sidebar::-webkit-scrollbar-thumb,
+body.theme-dark .admin-main::-webkit-scrollbar-thumb,
+body.theme-dark .screen::-webkit-scrollbar-thumb{
+  background:rgba(148,163,184,.34);
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip:content-box;
+}
+
+body.theme-dark::-webkit-scrollbar-thumb:hover,
+body.theme-dark .admin-sidebar::-webkit-scrollbar-thumb:hover,
+body.theme-dark .admin-main::-webkit-scrollbar-thumb:hover,
+body.theme-dark .screen::-webkit-scrollbar-thumb:hover{
+  background:rgba(147,197,253,.58);
+  border:2px solid transparent;
+  background-clip:content-box;
+}
+
+/* Reduz aquela barra feia grudada entre menu e conteúdo */
+@media(min-width:769px){
+  body.desktop-mode.sidebar-collapsed .admin-sidebar{
+    border-right:1px solid rgba(148,163,184,.16)!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-sidebar{
+    border-right:1px solid rgba(255,255,255,.08)!important;
+  }
+}

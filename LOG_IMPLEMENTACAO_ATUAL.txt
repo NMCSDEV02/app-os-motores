@@ -1,0 +1,28 @@
+V3.35.4 — Hotfix Final da Lixeira
+
+Corrigido:
+- A tela chamava loadManagerTrash(), mas a função não estava presente no manager.js final.
+- Inserida função loadManagerTrash() estável no escopo correto.
+- A função tenta:
+  1. API gestorLixeira;
+  2. fallback com loadManagerData/cache;
+  3. retorno vazio seguro se tudo falhar.
+
+Melhorado:
+- Catch da tela de Lixeira agora mostra erro técnico e botão Tentar novamente.
+
+Apps Script:
+- gestorLixeira reforçada para retornar sempre:
+  {sucesso:true, os:[], subtarefas:[]}
+
+Arquivos alterados:
+- js/manager.js
+- codigo.gs.txt
+- sw.js
+
+Teste:
+1. Atualizar Apps Script com codigo.gs.txt.
+2. Ctrl + F5.
+3. Entrar como GES1000.
+4. Menu > Lixeira.
+5. Confirmar que abre mesmo vazia.

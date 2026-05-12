@@ -1,0 +1,136 @@
+/* V3.13 — Sidebar Premium + Tema Mobile */
+
+@media(min-width:769px){
+  body.desktop-mode.sidebar-collapsed .admin-menu button{
+    color:transparent!important;
+    font-size:0!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button::before{
+    content:attr(data-icon)!important;
+    font-family:"Material Symbols Outlined"!important;
+    font-size:24px!important;
+    font-weight:400!important;
+    line-height:1!important;
+    color:#64748b!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button.active::before{
+    color:#2563eb!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button.active{
+    background:#dbeafe!important;
+    border-color:#bfdbfe!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-menu button:hover::before{
+    color:#2563eb!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-sidebar-toggle{
+    background:#ffffff!important;
+    color:#2563eb!important;
+    border-color:#dbeafe!important;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-sidebar-toggle::before{
+    content:"menu_open";
+    font-family:"Material Symbols Outlined";
+    font-size:24px;
+    font-weight:400;
+  }
+
+  body.desktop-mode.sidebar-collapsed .admin-sidebar-toggle{
+    font-size:0!important;
+  }
+
+  body.desktop-mode:not(.sidebar-collapsed) .admin-sidebar-toggle::before{
+    content:"dock_to_right";
+    font-family:"Material Symbols Outlined";
+    font-size:23px;
+    font-weight:400;
+  }
+
+  body.desktop-mode:not(.sidebar-collapsed) .admin-sidebar-toggle{
+    font-size:0!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button::before{
+    color:#94a3b8!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button.active::before,
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button:hover::before{
+    color:#bfdbfe!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-menu button.active{
+    background:rgba(37,99,235,.22)!important;
+    border-color:rgba(147,197,253,.18)!important;
+  }
+
+  body.theme-dark.desktop-mode.sidebar-collapsed .admin-sidebar-toggle{
+    background:#0f172a!important;
+    color:#bfdbfe!important;
+    border-color:rgba(147,197,253,.18)!important;
+  }
+}
+
+/* Botão de tema no mobile: Operador e Gestão */
+.mobile-theme-btn{
+  min-width:42px;
+  height:42px;
+  border-radius:16px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  color:#0f172a;
+  display:grid;
+  place-items:center;
+  box-shadow:0 6px 18px rgba(15,23,42,.05);
+}
+
+.mobile-theme-btn .material-symbols-outlined{
+  font-size:22px;
+}
+
+body.theme-dark .mobile-theme-btn{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+body.theme-dark .mobile-theme-btn:hover{
+  background:rgba(37,99,235,.18)!important;
+  color:#bfdbfe!important;
+}
+
+.mobile-theme-floating{
+  position:fixed;
+  right:16px;
+  bottom:calc(86px + env(safe-area-inset-bottom, 0px));
+  z-index:320;
+  width:48px;
+  height:48px;
+  border-radius:18px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  color:#2563eb;
+  display:grid;
+  place-items:center;
+  box-shadow:0 14px 38px rgba(15,23,42,.16);
+}
+
+.mobile-theme-floating .material-symbols-outlined{
+  font-size:23px;
+}
+
+@media(min-width:769px){
+  .mobile-theme-floating{display:none!important}
+}
+
+body.theme-dark .mobile-theme-floating{
+  background:#0f172a!important;
+  color:#bfdbfe!important;
+  border-color:rgba(255,255,255,.12)!important;
+}

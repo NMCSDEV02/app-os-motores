@@ -1,0 +1,352 @@
+/* V3.24.3 — Correção final do tema Chão de Fábrica + Config organizada */
+
+/* =========================
+   TEMA GLOBAL CHÃO DE FÁBRICA
+   ========================= */
+
+html.theme-factory,
+body.theme-factory{
+  --factory-bg:#06100b;
+  --factory-bg-deep:#030806;
+  --factory-surface:#0b1912;
+  --factory-surface-2:#10231a;
+  --factory-surface-3:#142d20;
+  --factory-border:rgba(134,239,172,.18);
+  --factory-border-strong:rgba(134,239,172,.34);
+  --factory-text:#f3fff7;
+  --factory-muted:#a9cbb5;
+  --factory-muted-2:#7fa68e;
+  --factory-green:#22c55e;
+  --factory-green-soft:#86efac;
+  --factory-yellow:#fbbf24;
+  --factory-red:#fca5a5;
+  --factory-shadow:0 18px 48px rgba(0,0,0,.34);
+
+  background:
+    radial-gradient(circle at 12% 0%, rgba(34,197,94,.14), transparent 36%),
+    radial-gradient(circle at 96% 96%, rgba(34,197,94,.08), transparent 34%),
+    linear-gradient(180deg,var(--factory-bg),var(--factory-bg-deep))!important;
+  color:var(--factory-text)!important;
+}
+
+/* Mata a coluna clara central que estava vindo do layout mobile */
+html.theme-factory body,
+body.theme-factory .app,
+body.theme-factory .app-shell,
+body.theme-factory .mobile-app,
+body.theme-factory .mobile-shell,
+body.theme-factory .screen-shell,
+body.theme-factory .screen-wrap,
+body.theme-factory .screen-container,
+body.theme-factory .page-shell,
+body.theme-factory .page-container,
+body.theme-factory main,
+body.theme-factory #screen,
+body.theme-factory .screen,
+body.theme-factory .manager-screen,
+body.theme-factory .manager-subpage{
+  background:transparent!important;
+  background-color:transparent!important;
+  color:var(--factory-text)!important;
+  box-shadow:none!important;
+}
+
+/* Corrige qualquer wrapper com fundo claro e largura central */
+body.theme-factory [class*="container"],
+body.theme-factory [class*="wrapper"],
+body.theme-factory [class*="shell"]{
+  background-color:transparent!important;
+}
+
+/* Mas preserva cards com superfície industrial */
+body.theme-factory .card,
+body.theme-factory .row-card,
+body.theme-factory .os-card,
+body.theme-factory .check-item,
+body.theme-factory .manager-list-card,
+body.theme-factory .manager-setting-block,
+body.theme-factory .manager-config-card,
+body.theme-factory .manager-op-header,
+body.theme-factory .gestao-op-kpi,
+body.theme-factory .gestao-op-action,
+body.theme-factory .gestao-op-section,
+body.theme-factory .data-accel-card,
+body.theme-factory .data-accel-status,
+body.theme-factory .data-accel-option,
+body.theme-factory .manager-os-detail-box,
+body.theme-factory .manager-checklist-item,
+body.theme-factory .manager-param-input,
+body.theme-factory .manager-layout-card,
+body.theme-factory .manager-kpi-option-row,
+body.theme-factory .manager-toggle-row,
+body.theme-factory .manager-setting-option,
+body.theme-factory .manager-danger-zone,
+body.theme-factory .notification-card,
+body.theme-factory .notifications-filter-card,
+body.theme-factory .modal-card,
+body.theme-factory .admin-desktop-card,
+body.theme-factory .admin-desktop-section{
+  background:linear-gradient(180deg,var(--factory-surface-2),var(--factory-surface))!important;
+  border-color:var(--factory-border)!important;
+  color:var(--factory-text)!important;
+  box-shadow:var(--factory-shadow)!important;
+}
+
+/* Header da gestão mais integrada ao tema */
+body.theme-factory .manager-op-header{
+  border:1px solid var(--factory-border)!important;
+  border-radius:24px!important;
+  padding:12px!important;
+  margin-bottom:16px!important;
+  background:linear-gradient(135deg,rgba(16,35,26,.96),rgba(6,16,11,.96))!important;
+}
+
+body.theme-factory .manager-op-avatar{
+  background:linear-gradient(135deg,#22c55e,#15803d)!important;
+  color:#031208!important;
+}
+
+body.theme-factory .manager-header-btn{
+  background:rgba(6,16,11,.78)!important;
+  border-color:var(--factory-border)!important;
+  color:var(--factory-green-soft)!important;
+}
+
+body.theme-factory .manager-header-btn.primary{
+  background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  border-color:#22c55e!important;
+  color:#031208!important;
+}
+
+body.theme-factory .manager-qr-mode-pill{
+  background:var(--factory-yellow)!important;
+  color:#1c1200!important;
+  border-color:var(--factory-surface)!important;
+}
+
+/* Títulos e textos */
+body.theme-factory h1,
+body.theme-factory h2,
+body.theme-factory h3,
+body.theme-factory h4,
+body.theme-factory b,
+body.theme-factory strong,
+body.theme-factory .manager-page-title,
+body.theme-factory .check-title,
+body.theme-factory .manager-list-card h3,
+body.theme-factory .manager-setting-block h2,
+body.theme-factory .data-accel-card h2,
+body.theme-factory .data-accel-status b,
+body.theme-factory .data-accel-option b{
+  color:var(--factory-text)!important;
+  text-shadow:none!important;
+}
+
+body.theme-factory p,
+body.theme-factory small,
+body.theme-factory label,
+body.theme-factory .page-subtitle,
+body.theme-factory .manager-page-subtitle,
+body.theme-factory .manager-op-title span,
+body.theme-factory .manager-list-card p,
+body.theme-factory .manager-setting-block p,
+body.theme-factory .manager-setting-option small,
+body.theme-factory .manager-toggle-row small,
+body.theme-factory .manager-layout-card small,
+body.theme-factory .data-accel-card p,
+body.theme-factory .data-accel-status small,
+body.theme-factory .data-accel-option small{
+  color:var(--factory-muted)!important;
+}
+
+/* Evita texto branco sobre fundo claro inexistente e melhora legibilidade */
+body.theme-factory .manager-config-summary{
+  background:rgba(34,197,94,.12)!important;
+  color:var(--factory-green-soft)!important;
+  border:1px solid var(--factory-border-strong)!important;
+  border-radius:18px!important;
+}
+
+/* Inputs */
+body.theme-factory input,
+body.theme-factory select,
+body.theme-factory textarea{
+  background:#050d09!important;
+  color:var(--factory-text)!important;
+  border-color:var(--factory-border-strong)!important;
+  caret-color:var(--factory-green-soft)!important;
+}
+
+body.theme-factory input::placeholder,
+body.theme-factory textarea::placeholder{
+  color:rgba(169,203,181,.62)!important;
+}
+
+body.theme-factory option{
+  background:#050d09!important;
+  color:var(--factory-text)!important;
+}
+
+/* Botões */
+body.theme-factory .btn.blue,
+body.theme-factory button.btn.blue,
+body.theme-factory #btnOptimizeDataReceiving,
+body.theme-factory .manager-os-actions button.primary{
+  background:linear-gradient(135deg,#16a34a,#22c55e)!important;
+  border-color:#22c55e!important;
+  color:#031208!important;
+  font-weight:950!important;
+}
+
+body.theme-factory .btn.light,
+body.theme-factory #btnClearDataCache,
+body.theme-factory .manager-os-actions button,
+body.theme-factory .theme-toggle{
+  background:rgba(6,16,11,.84)!important;
+  border-color:var(--factory-border)!important;
+  color:var(--factory-green-soft)!important;
+}
+
+body.theme-factory .btn.red,
+body.theme-factory .manager-logout-btn,
+body.theme-factory .manager-os-actions button.danger{
+  background:rgba(239,68,68,.14)!important;
+  color:var(--factory-red)!important;
+  border-color:rgba(248,113,113,.34)!important;
+}
+
+/* Chips e badges mais consistentes */
+body.theme-factory .manager-chip,
+body.theme-factory .badge,
+body.theme-factory .notification-chip,
+body.theme-factory .v35-status-pill,
+body.theme-factory .cache-status,
+body.theme-factory .data-accel-badge{
+  background:rgba(34,197,94,.14)!important;
+  color:var(--factory-green-soft)!important;
+  border-color:var(--factory-border)!important;
+}
+
+body.theme-factory .manager-chip.yellow,
+body.theme-factory .badge.yellow,
+body.theme-factory .cache-status.stale{
+  background:rgba(245,158,11,.16)!important;
+  color:var(--factory-yellow)!important;
+  border-color:rgba(245,158,11,.28)!important;
+}
+
+body.theme-factory .manager-chip.red,
+body.theme-factory .badge.red,
+body.theme-factory .cache-status.offline{
+  background:rgba(239,68,68,.15)!important;
+  color:var(--factory-red)!important;
+  border-color:rgba(248,113,113,.30)!important;
+}
+
+/* Tab bar */
+body.theme-factory .manager-bottom-nav,
+body.theme-factory #bottomNav{
+  background:rgba(3,8,6,.96)!important;
+  border-top:1px solid var(--factory-border)!important;
+  box-shadow:0 -18px 48px rgba(0,0,0,.44)!important;
+}
+
+body.theme-factory .manager-bottom-nav button,
+body.theme-factory #bottomNav .nav-btn{
+  color:var(--factory-muted-2)!important;
+}
+
+body.theme-factory .manager-bottom-nav button.active,
+body.theme-factory #bottomNav .nav-btn.active{
+  background:rgba(34,197,94,.18)!important;
+  color:var(--factory-green-soft)!important;
+}
+
+/* Config organizada */
+.manager-config-stack{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.manager-config-group{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.manager-config-group-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:4px 2px -2px;
+}
+
+.manager-config-group-title h2{
+  margin:0;
+  font-size:15px;
+  font-weight:950;
+  letter-spacing:-.02em;
+}
+
+.manager-config-group-title span{
+  min-height:26px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:0 9px;
+  background:rgba(34,197,94,.14);
+  color:var(--factory-green-soft,#15803d);
+  font-size:11px;
+  font-weight:900;
+}
+
+.manager-settings-grid{
+  gap:14px!important;
+}
+
+/* Compacta blocos de configuração para ficar menos bagunçado */
+.manager-setting-block,
+.data-accel-card,
+.manager-danger-zone{
+  border-radius:24px!important;
+}
+
+.manager-setting-block h2,
+.data-accel-card h2,
+.manager-danger-zone h2{
+  font-size:18px!important;
+  margin-bottom:5px!important;
+}
+
+.manager-setting-block p,
+.data-accel-card p,
+.manager-danger-zone p{
+  margin-bottom:12px!important;
+}
+
+.manager-layout-options,
+.manager-param-grid{
+  gap:9px!important;
+}
+
+/* Scroll */
+body.theme-factory::-webkit-scrollbar-thumb,
+body.theme-factory .screen::-webkit-scrollbar-thumb{
+  background:rgba(134,239,172,.32)!important;
+  border-radius:999px!important;
+}
+
+/* Responsivo */
+@media(max-width:420px){
+  body.theme-factory .manager-op-header{
+    border-radius:20px!important;
+  }
+
+  .manager-config-group-title{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:6px;
+  }
+}

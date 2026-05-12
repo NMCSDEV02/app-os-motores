@@ -1,0 +1,225 @@
+/* V3.14 — Central de Notificações */
+
+.admin-notification-btn{
+  min-height:42px;
+  min-width:42px;
+  border-radius:16px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  color:#0f172a;
+  display:grid;
+  place-items:center;
+  position:relative;
+  box-shadow:0 6px 18px rgba(15,23,42,.05);
+}
+
+.admin-notification-btn .material-symbols-outlined{
+  font-size:22px;
+}
+
+.admin-notification-count{
+  position:absolute;
+  right:-5px;
+  top:-5px;
+  min-width:20px;
+  height:20px;
+  border-radius:999px;
+  background:#dc2626;
+  color:#fff;
+  font-size:11px;
+  font-weight:950;
+  display:none;
+  place-items:center;
+  border:2px solid #fff;
+}
+
+.admin-notification-btn.has-unread .admin-notification-count{
+  display:grid;
+}
+
+.notifications-layout{
+  display:grid;
+  grid-template-columns:320px minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+
+.notifications-filter-card{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:24px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(15,23,42,.05);
+}
+
+.notifications-filter-card h3{
+  margin:0 0 8px;
+  font-size:18px;
+  font-weight:950;
+}
+
+.notifications-filter-card p{
+  margin:0 0 14px;
+  color:#64748b;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.notifications-filter-card select,
+.notifications-filter-card input{
+  width:100%;
+  min-height:46px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:0 14px;
+  background:#fff;
+  color:#0f172a;
+  font:inherit;
+  font-weight:750;
+  margin-bottom:10px;
+}
+
+.notifications-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.notification-card{
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:22px;
+  padding:16px;
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) auto;
+  gap:14px;
+  align-items:flex-start;
+  box-shadow:0 8px 24px rgba(15,23,42,.045);
+}
+
+.notification-card.unread{
+  border-color:#bfdbfe;
+  background:linear-gradient(90deg,#eff6ff,#fff 42%);
+}
+
+.notification-icon{
+  width:44px;
+  height:44px;
+  border-radius:16px;
+  display:grid;
+  place-items:center;
+  background:#eff6ff;
+  color:#2563eb;
+}
+
+.notification-icon .material-symbols-outlined{
+  font-size:23px;
+}
+
+.notification-body h3{
+  margin:0 0 4px;
+  font-size:16px;
+  font-weight:950;
+}
+
+.notification-body p{
+  margin:0;
+  color:#64748b;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.notification-meta{
+  margin-top:8px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+
+.notification-chip{
+  min-height:26px;
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:0 9px;
+  font-size:11px;
+  font-weight:900;
+  background:#f1f5f9;
+  color:#475569;
+}
+
+.notification-chip.gestao{
+  background:#eff6ff;
+  color:#2563eb;
+}
+
+.notification-chip.operador{
+  background:#ecfdf5;
+  color:#15803d;
+}
+
+.notification-chip.sistema{
+  background:#fff7ed;
+  color:#c2410c;
+}
+
+.notification-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+body.theme-dark .admin-notification-btn,
+body.theme-dark .notifications-filter-card,
+body.theme-dark .notification-card{
+  background:#0f172a!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.10)!important;
+}
+
+body.theme-dark .admin-notification-count{
+  border-color:#0f172a!important;
+}
+
+body.theme-dark .notifications-filter-card p,
+body.theme-dark .notification-body p{
+  color:#94a3b8!important;
+}
+
+body.theme-dark .notifications-filter-card select,
+body.theme-dark .notifications-filter-card input{
+  background:#020617!important;
+  color:#f8fafc!important;
+  border-color:rgba(255,255,255,.12)!important;
+}
+
+body.theme-dark .notification-card.unread{
+  background:linear-gradient(90deg,rgba(37,99,235,.16),#0f172a 46%)!important;
+  border-color:rgba(147,197,253,.22)!important;
+}
+
+body.theme-dark .notification-icon{
+  background:rgba(37,99,235,.18)!important;
+  color:#bfdbfe!important;
+}
+
+body.theme-dark .notification-chip{
+  background:rgba(255,255,255,.08)!important;
+  color:#cbd5e1!important;
+}
+
+@media(max-width:1000px){
+  .notifications-layout{
+    grid-template-columns:1fr;
+  }
+  .notification-card{
+    grid-template-columns:44px minmax(0,1fr);
+  }
+  .notification-actions{
+    grid-column:1 / -1;
+    justify-content:flex-start;
+  }
+}

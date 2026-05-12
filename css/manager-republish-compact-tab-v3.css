@@ -1,0 +1,116 @@
+/* V3.26 — Gestão: Republicar OS + Tab bar compacta */
+
+/* Tab bar gestão/mobile mais compacta */
+.manager-bottom-nav,
+body.manager-mode .manager-bottom-nav,
+body.manager-mode #bottomNav,
+body.manager-mode .bottom-nav,
+body.manager-mode .mobile-bottom-nav{
+  min-height:58px!important;
+  height:58px!important;
+  padding:6px 10px calc(6px + env(safe-area-inset-bottom))!important;
+  gap:4px!important;
+  border-radius:22px 22px 0 0!important;
+}
+
+.manager-bottom-nav button,
+body.manager-mode .manager-bottom-nav button,
+body.manager-mode #bottomNav button,
+body.manager-mode .bottom-nav button,
+body.manager-mode .mobile-bottom-nav button{
+  min-height:44px!important;
+  height:44px!important;
+  padding:4px 6px!important;
+  border-radius:16px!important;
+  gap:2px!important;
+  font-size:10px!important;
+  line-height:1!important;
+}
+
+.manager-bottom-nav button .material-symbols-outlined,
+body.manager-mode .manager-bottom-nav button .material-symbols-outlined,
+body.manager-mode #bottomNav button .material-symbols-outlined,
+body.manager-mode .bottom-nav button .material-symbols-outlined,
+body.manager-mode .mobile-bottom-nav button .material-symbols-outlined{
+  font-size:19px!important;
+  line-height:1!important;
+}
+
+.manager-bottom-nav button span:not(.material-symbols-outlined),
+body.manager-mode .manager-bottom-nav button span:not(.material-symbols-outlined),
+body.manager-mode #bottomNav button span:not(.material-symbols-outlined),
+body.manager-mode .bottom-nav button span:not(.material-symbols-outlined),
+body.manager-mode .mobile-bottom-nav button span:not(.material-symbols-outlined){
+  font-size:10px!important;
+  font-weight:850!important;
+}
+
+/* Mais respiro no conteúdo para não ficar atrás da tab bar */
+body.manager-mode #screen,
+body.manager-mode .screen,
+body.manager-mode .manager-screen{
+  padding-bottom:76px!important;
+}
+
+/* Ações de OS com 5 botões sem quebrar tanto */
+.manager-os-actions{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+
+.manager-os-actions button{
+  min-height:38px!important;
+  padding:0 6px!important;
+  font-size:10px!important;
+  border-radius:14px!important;
+  white-space:nowrap;
+}
+
+.manager-os-actions button .material-symbols-outlined{
+  font-size:16px!important;
+}
+
+.manager-os-actions button.warning{
+  background:#fffbeb!important;
+  border-color:#fde68a!important;
+  color:#b45309!important;
+}
+
+body.theme-dark .manager-os-actions button.warning{
+  background:rgba(245,158,11,.16)!important;
+  border-color:rgba(251,191,36,.28)!important;
+  color:#fbbf24!important;
+}
+
+body.theme-factory .manager-os-actions button.warning{
+  background:rgba(245,158,11,.16)!important;
+  border-color:rgba(251,191,36,.30)!important;
+  color:var(--floor-warning,#fbbf24)!important;
+}
+
+/* Mobile pequeno: manter legível */
+@media(max-width:430px){
+  .manager-os-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+
+  .manager-os-actions button{
+    font-size:11px!important;
+  }
+}
+
+@media(max-width:360px){
+  .manager-bottom-nav,
+  body.manager-mode .manager-bottom-nav,
+  body.manager-mode #bottomNav{
+    padding-left:6px!important;
+    padding-right:6px!important;
+  }
+
+  .manager-bottom-nav button,
+  body.manager-mode .manager-bottom-nav button,
+  body.manager-mode #bottomNav button{
+    padding-left:4px!important;
+    padding-right:4px!important;
+  }
+}

@@ -1,0 +1,327 @@
+/* V3.24.6 — Correção do tema Chão de Fábrica no Perfil Administrativo */
+
+/* =========================
+   ADMIN — BASE DO TEMA FÁBRICA
+   ========================= */
+
+body.theme-factory.desktop-mode,
+body.theme-factory .admin-desktop-shell,
+body.theme-factory .admin-main,
+body.theme-factory .admin-page,
+body.theme-factory .admin-content,
+body.theme-factory .admin-dashboard{
+  background:
+    radial-gradient(circle at 18% 0%, var(--factory-accent-soft,rgba(34,197,94,.14)), transparent 34%),
+    radial-gradient(circle at 92% 94%, rgba(255,255,255,.035), transparent 30%),
+    linear-gradient(180deg,#06100b,#030806)!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+/* =========================
+   SIDEBAR ADMIN
+   ========================= */
+
+body.theme-factory .admin-sidebar,
+body.theme-factory .admin-desktop-sidebar,
+body.theme-factory aside.admin-sidebar,
+body.theme-factory [class*="sidebar"]{
+  background:linear-gradient(180deg,#07130d,#030806)!important;
+  border-right:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:18px 0 50px rgba(0,0,0,.28)!important;
+}
+
+body.theme-factory .admin-sidebar h1,
+body.theme-factory .admin-sidebar h2,
+body.theme-factory .admin-sidebar b,
+body.theme-factory .admin-sidebar strong,
+body.theme-factory .admin-brand,
+body.theme-factory .admin-logo,
+body.theme-factory .sidebar-title{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .admin-sidebar p,
+body.theme-factory .admin-sidebar small,
+body.theme-factory .sidebar-subtitle{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+body.theme-factory .admin-sidebar button,
+body.theme-factory .admin-nav button,
+body.theme-factory [data-admin-desktop],
+body.theme-factory .admin-menu-item{
+  background:transparent!important;
+  color:var(--factory-muted,#a9cbb5)!important;
+  border:1px solid transparent!important;
+}
+
+body.theme-factory .admin-sidebar button:hover,
+body.theme-factory .admin-nav button:hover,
+body.theme-factory [data-admin-desktop]:hover,
+body.theme-factory .admin-menu-item:hover{
+  background:rgba(255,255,255,.045)!important;
+  color:var(--factory-accent-2,#86efac)!important;
+  border-color:var(--factory-border,rgba(134,239,172,.18))!important;
+}
+
+body.theme-factory .admin-sidebar button.active,
+body.theme-factory .admin-nav button.active,
+body.theme-factory [data-admin-desktop].active,
+body.theme-factory .admin-menu-item.active{
+  background:var(--factory-accent-soft,rgba(34,197,94,.16))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+  border-color:var(--factory-accent-border,rgba(134,239,172,.34))!important;
+}
+
+body.theme-factory .admin-sidebar .material-symbols-outlined,
+body.theme-factory .admin-nav .material-symbols-outlined{
+  color:currentColor!important;
+}
+
+/* =========================
+   HEADER / TOPBAR ADMIN
+   ========================= */
+
+body.theme-factory .admin-topbar,
+body.theme-factory .admin-header,
+body.theme-factory .desktop-topbar{
+  background:transparent!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .admin-topbar h1,
+body.theme-factory .admin-header h1,
+body.theme-factory .desktop-topbar h1,
+body.theme-factory .admin-main h1{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .admin-topbar p,
+body.theme-factory .admin-header p,
+body.theme-factory .desktop-topbar p,
+body.theme-factory .admin-main .page-subtitle{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+body.theme-factory .sync-badge,
+body.theme-factory #syncBadge{
+  background:rgba(34,197,94,.14)!important;
+  color:var(--factory-accent-2,#86efac)!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+}
+
+body.theme-factory .admin-topbar .btn,
+body.theme-factory .admin-header .btn,
+body.theme-factory .theme-toggle,
+body.theme-factory #btnLogout,
+body.theme-factory .logout-btn{
+  border-color:var(--factory-border,rgba(134,239,172,.18))!important;
+}
+
+/* =========================
+   CARDS KPI ADMIN
+   ========================= */
+
+body.theme-factory .admin-kpi-card,
+body.theme-factory .admin-stat-card,
+body.theme-factory .dashboard-card,
+body.theme-factory .kpi-card,
+body.theme-factory .metric-card,
+body.theme-factory .admin-card,
+body.theme-factory .admin-desktop-card,
+body.theme-factory .admin-desktop-section{
+  background:linear-gradient(180deg,var(--factory-surface-2,#10231a),var(--factory-surface,#0b1912))!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.30)!important;
+}
+
+body.theme-factory .admin-kpi-card h3,
+body.theme-factory .admin-kpi-card b,
+body.theme-factory .admin-kpi-card strong,
+body.theme-factory .admin-stat-card h3,
+body.theme-factory .admin-stat-card b,
+body.theme-factory .dashboard-card h3,
+body.theme-factory .metric-card strong,
+body.theme-factory .kpi-card strong,
+body.theme-factory .admin-desktop-card strong,
+body.theme-factory .admin-desktop-section h2,
+body.theme-factory .admin-desktop-section h3{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .admin-kpi-card p,
+body.theme-factory .admin-kpi-card small,
+body.theme-factory .admin-stat-card p,
+body.theme-factory .dashboard-card p,
+body.theme-factory .metric-card small,
+body.theme-factory .kpi-card small,
+body.theme-factory .admin-desktop-card small,
+body.theme-factory .admin-desktop-section p{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* Corrige cards brancos internos no dashboard admin */
+body.theme-factory .kpi-insight-panel,
+body.theme-factory .kpi-insight-row,
+body.theme-factory .ranking-card,
+body.theme-factory .ranking-item,
+body.theme-factory .admin-row,
+body.theme-factory .admin-list-item,
+body.theme-factory .admin-table-card,
+body.theme-factory .admin-empty-state,
+body.theme-factory .v35-empty-state,
+body.theme-factory .v35-card,
+body.theme-factory .v35-panel,
+body.theme-factory .v36-card,
+body.theme-factory .v36-panel{
+  background:rgba(6,16,11,.82)!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+/* =========================
+   TEXTOS INTERNOS E NÚMEROS
+   ========================= */
+
+body.theme-factory .admin-main h2,
+body.theme-factory .admin-main h3,
+body.theme-factory .admin-main h4,
+body.theme-factory .admin-main b,
+body.theme-factory .admin-main strong,
+body.theme-factory .admin-main .big-number,
+body.theme-factory .admin-main .metric-value,
+body.theme-factory .admin-main .kpi-value,
+body.theme-factory .admin-main .admin-number{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .admin-main p,
+body.theme-factory .admin-main small,
+body.theme-factory .admin-main span,
+body.theme-factory .admin-main label,
+body.theme-factory .admin-main .muted,
+body.theme-factory .admin-main .metric-label{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* Exceções para números de destaque */
+body.theme-factory .admin-main .accent,
+body.theme-factory .admin-main .blue,
+body.theme-factory .admin-main .primary,
+body.theme-factory .admin-main [class*="value"]{
+  color:var(--factory-accent-2,#86efac)!important;
+}
+
+/* =========================
+   BOTÕES / INPUTS ADMIN
+   ========================= */
+
+body.theme-factory .admin-main button,
+body.theme-factory .admin-main .btn{
+  background:rgba(6,16,11,.84)!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+}
+
+body.theme-factory .admin-main button.primary,
+body.theme-factory .admin-main .btn.blue,
+body.theme-factory .admin-main button.btn.blue,
+body.theme-factory .admin-main .btn-primary,
+body.theme-factory .admin-main button[type="submit"]{
+  background:linear-gradient(135deg,var(--factory-accent-dark,#14532d),var(--factory-accent,#22c55e))!important;
+  border-color:var(--factory-accent,#22c55e)!important;
+  color:#031208!important;
+  font-weight:950!important;
+}
+
+body.theme-factory .admin-main .btn.red,
+body.theme-factory .admin-main button.red,
+body.theme-factory .admin-main .danger,
+body.theme-factory .admin-main button.danger{
+  background:rgba(239,68,68,.14)!important;
+  border-color:rgba(248,113,113,.34)!important;
+  color:#fecaca!important;
+}
+
+body.theme-factory .admin-main input,
+body.theme-factory .admin-main select,
+body.theme-factory .admin-main textarea{
+  background:#050d09!important;
+  color:var(--factory-text,#f3fff7)!important;
+  border:1px solid var(--factory-accent-border,rgba(134,239,172,.34))!important;
+}
+
+body.theme-factory .admin-main input::placeholder,
+body.theme-factory .admin-main textarea::placeholder{
+  color:rgba(169,203,181,.62)!important;
+}
+
+/* =========================
+   TABELAS / LISTAS ADMIN
+   ========================= */
+
+body.theme-factory table,
+body.theme-factory .admin-table,
+body.theme-factory .data-table{
+  background:transparent!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory th,
+body.theme-factory td{
+  border-color:rgba(134,239,172,.12)!important;
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+body.theme-factory th{
+  color:var(--factory-accent-2,#86efac)!important;
+}
+
+/* =========================
+   CHIPS / PILLS ADMIN
+   ========================= */
+
+body.theme-factory .admin-main .badge,
+body.theme-factory .admin-main .chip,
+body.theme-factory .admin-main .pill,
+body.theme-factory .admin-main .status,
+body.theme-factory .admin-main .v35-status-pill{
+  background:var(--factory-accent-soft,rgba(34,197,94,.16))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+  border:1px solid var(--factory-accent-border,rgba(134,239,172,.34))!important;
+}
+
+/* =========================
+   BARRAS / PROGRESSOS ADMIN
+   ========================= */
+
+body.theme-factory .admin-main .progress,
+body.theme-factory .admin-main .bar,
+body.theme-factory .admin-main .kpi-health-bar{
+  background:rgba(255,255,255,.08)!important;
+}
+
+body.theme-factory .admin-main .progress span,
+body.theme-factory .admin-main .bar span,
+body.theme-factory .admin-main .kpi-health-bar span{
+  background:linear-gradient(90deg,var(--factory-accent,#22c55e),var(--factory-accent-2,#86efac))!important;
+}
+
+/* =========================
+   SCROLLBAR ADMIN
+   ========================= */
+
+body.theme-factory .admin-sidebar::-webkit-scrollbar-thumb,
+body.theme-factory .admin-main::-webkit-scrollbar-thumb,
+body.theme-factory .admin-desktop-shell::-webkit-scrollbar-thumb{
+  background:rgba(134,239,172,.30)!important;
+  border-radius:999px!important;
+}
+
+body.theme-factory .admin-sidebar::-webkit-scrollbar-track,
+body.theme-factory .admin-main::-webkit-scrollbar-track,
+body.theme-factory .admin-desktop-shell::-webkit-scrollbar-track{
+  background:transparent!important;
+}

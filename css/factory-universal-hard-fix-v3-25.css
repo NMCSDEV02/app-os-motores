@@ -1,0 +1,514 @@
+/* V3.25.0 — Atualização geral e definitiva do Tema Fábrica
+   Objetivo: eliminar vazamento de cards brancos/textos apagados em Login, Operador, Gestor/Admin,
+   Configurações, Notificações, OS abertas, dashboards e tabelas. Este arquivo DEVE ser o último CSS carregado. */
+
+html.theme-factory,
+body.theme-factory{
+  color-scheme: dark;
+  --factory-bg:#020704;
+  --factory-bg-2:#06100b;
+  --factory-bg-3:#09170f;
+  --factory-panel:#07130d;
+  --factory-surface:#0b1912;
+  --factory-surface-2:#10231a;
+  --factory-surface-3:#153321;
+  --factory-card:linear-gradient(180deg,rgba(16,35,26,.98),rgba(7,19,13,.98));
+  --factory-card-flat:#0b1912;
+  --factory-line:rgba(134,239,172,.22);
+  --factory-line-strong:rgba(134,239,172,.40);
+  --factory-text:#f3fff7;
+  --factory-text-2:#d9fbe5;
+  --factory-muted:#a9cbb5;
+  --factory-muted-2:#7fa68e;
+  --factory-danger:#fca5a5;
+  --factory-warning:#fbbf24;
+  --factory-shadow:0 18px 55px rgba(0,0,0,.38);
+
+  /* Sobrescreve tokens antigos do app para componentes que ainda usam var(--card), var(--text), etc. */
+  --bg:var(--factory-bg);
+  --card:var(--factory-surface);
+  --text:var(--factory-text);
+  --muted:var(--factory-muted);
+  --line:var(--factory-line);
+  --dark:var(--factory-text);
+  --shadow:var(--factory-shadow);
+  --green:var(--factory-accent,#22c55e);
+  --green-soft:var(--factory-accent-soft,rgba(34,197,94,.18));
+  --blue:var(--factory-accent,#22c55e);
+  --blue-soft:var(--factory-accent-soft,rgba(34,197,94,.18));
+
+  background:
+    radial-gradient(circle at 14% 0%, var(--factory-accent-soft,rgba(34,197,94,.15)), transparent 33%),
+    radial-gradient(circle at 88% 92%, rgba(255,255,255,.035), transparent 28%),
+    linear-gradient(180deg,var(--factory-bg-2),var(--factory-bg)) !important;
+  color:var(--factory-text) !important;
+}
+
+html.theme-factory.factory-variant-amber,
+body.theme-factory.factory-variant-amber{
+  --factory-accent:#f59e0b;
+  --factory-accent-2:#fde68a;
+  --factory-accent-dark:#78350f;
+  --factory-accent-soft:rgba(245,158,11,.17);
+  --factory-accent-border:rgba(253,230,138,.36);
+}
+
+html.theme-factory.factory-variant-steel,
+body.theme-factory.factory-variant-steel{
+  --factory-accent:#38bdf8;
+  --factory-accent-2:#bae6fd;
+  --factory-accent-dark:#075985;
+  --factory-accent-soft:rgba(56,189,248,.17);
+  --factory-accent-border:rgba(186,230,253,.36);
+}
+
+html.theme-factory.factory-variant-green,
+body.theme-factory.factory-variant-green{
+  --factory-accent:#22c55e;
+  --factory-accent-2:#86efac;
+  --factory-accent-dark:#14532d;
+  --factory-accent-soft:rgba(34,197,94,.17);
+  --factory-accent-border:rgba(134,239,172,.36);
+}
+
+body.theme-factory *,
+body.theme-factory *::before,
+body.theme-factory *::after{
+  border-color:var(--factory-line);
+}
+
+/* Base: remove fundo claro de qualquer shell/wrapper de tela. */
+body.theme-factory,
+body.theme-factory #app,
+body.theme-factory .app,
+body.theme-factory .app-shell,
+body.theme-factory .screen,
+body.theme-factory #screen,
+body.theme-factory main,
+body.theme-factory .page,
+body.theme-factory .page-shell,
+body.theme-factory .page-container,
+body.theme-factory .screen-shell,
+body.theme-factory .screen-wrap,
+body.theme-factory .screen-container,
+body.theme-factory .mobile-shell,
+body.theme-factory .manager-screen,
+body.theme-factory .manager-subpage,
+body.theme-factory .admin-main,
+body.theme-factory .admin-page,
+body.theme-factory .admin-content,
+body.theme-factory .admin-dashboard,
+body.theme-factory .admin-desktop-shell{
+  background:transparent !important;
+  background-color:transparent !important;
+  color:var(--factory-text) !important;
+}
+
+@media (min-width:760px){
+  body.theme-factory .app-shell{
+    background:transparent !important;
+    max-width:1080px;
+  }
+}
+
+/* Superfícies: corrige cards brancos no painel administrador, operador, gestor e listas. */
+body.theme-factory .card,
+body.theme-factory .kpi,
+body.theme-factory .kpi-click,
+body.theme-factory .admin-metric-square,
+body.theme-factory .admin-overview-v2,
+body.theme-factory .admin-overview-only,
+body.theme-factory .admin-desktop-card,
+body.theme-factory .admin-desktop-section,
+body.theme-factory .admin-card,
+body.theme-factory .admin-stat-card,
+body.theme-factory .admin-kpi-card,
+body.theme-factory .dashboard-card,
+body.theme-factory .metric-card,
+body.theme-factory .stat-panel,
+body.theme-factory .kpi-insight-panel,
+body.theme-factory .kpi-insight-row,
+body.theme-factory .kpi-mini-row,
+body.theme-factory .ranking-card,
+body.theme-factory .ranking-item,
+body.theme-factory .admin-row,
+body.theme-factory .admin-list-item,
+body.theme-factory .admin-table-card,
+body.theme-factory .table-list,
+body.theme-factory .row-card,
+body.theme-factory .os-card,
+body.theme-factory .admin-os-card,
+body.theme-factory .manager-os-card,
+body.theme-factory .operator-os-card,
+body.theme-factory .check-item,
+body.theme-factory .checklist-card,
+body.theme-factory .item-card,
+body.theme-factory .subtask-card,
+body.theme-factory .notification-card,
+body.theme-factory .operator-notify-card,
+body.theme-factory .admin-notify-card,
+body.theme-factory .manager-list-card,
+body.theme-factory .manager-kpi-card,
+body.theme-factory .manager-setting-block,
+body.theme-factory .manager-config-card,
+body.theme-factory .manager-op-header,
+body.theme-factory .gestao-op-kpi,
+body.theme-factory .gestao-op-action,
+body.theme-factory .gestao-op-section,
+body.theme-factory .data-accel-card,
+body.theme-factory .data-accel-status,
+body.theme-factory .data-accel-option,
+body.theme-factory .factory-variant-card,
+body.theme-factory .empty,
+body.theme-factory .mini-empty,
+body.theme-factory .small-empty,
+body.theme-factory .admin-empty-state,
+body.theme-factory .v35-card,
+body.theme-factory .v35-panel,
+body.theme-factory .v36-card,
+body.theme-factory .v36-panel{
+  background:var(--factory-card) !important;
+  background-color:var(--factory-card-flat) !important;
+  color:var(--factory-text) !important;
+  border:1px solid var(--factory-line) !important;
+  box-shadow:var(--factory-shadow) !important;
+}
+
+/* Painéis internos que precisam parecer blocos, não cartões brancos. */
+body.theme-factory .admin-mini-grid span,
+body.theme-factory .admin-os-insights > *,
+body.theme-factory .manager-config-summary,
+body.theme-factory .operator-config-summary,
+body.theme-factory .config-summary,
+body.theme-factory .manager-chip,
+body.theme-factory .badge,
+body.theme-factory .chip,
+body.theme-factory .status-pill,
+body.theme-factory .v35-status-pill,
+body.theme-factory .cache-status,
+body.theme-factory .data-accel-badge,
+body.theme-factory .sync-badge,
+body.theme-factory #syncBadge{
+  background:var(--factory-accent-soft) !important;
+  color:var(--factory-accent-2) !important;
+  border:1px solid var(--factory-accent-border) !important;
+}
+
+/* Tipografia: elimina texto claro demais sobre card claro e padroniza contraste. */
+body.theme-factory h1,
+body.theme-factory h2,
+body.theme-factory h3,
+body.theme-factory h4,
+body.theme-factory h5,
+body.theme-factory .section-title,
+body.theme-factory .page-title,
+body.theme-factory .manager-page-title,
+body.theme-factory .admin-page-title,
+body.theme-factory .hello,
+body.theme-factory .login-brand,
+body.theme-factory .check-title,
+body.theme-factory b,
+body.theme-factory strong,
+body.theme-factory .kpi strong,
+body.theme-factory .kpi-click strong,
+body.theme-factory .admin-metric-square strong,
+body.theme-factory .stat-panel strong,
+body.theme-factory .stat-head,
+body.theme-factory .stat-head b,
+body.theme-factory .kpi-mini-value,
+body.theme-factory .ranking-item b,
+body.theme-factory .ranking-item strong,
+body.theme-factory .os-title,
+body.theme-factory .os-code,
+body.theme-factory .manager-list-card h3,
+body.theme-factory .manager-setting-block h2,
+body.theme-factory .data-accel-card h2,
+body.theme-factory .data-accel-status b{
+  color:var(--factory-text) !important;
+  text-shadow:0 1px 0 rgba(0,0,0,.22) !important;
+}
+
+body.theme-factory p,
+body.theme-factory small,
+body.theme-factory label,
+body.theme-factory span,
+body.theme-factory .subline,
+body.theme-factory .page-subtitle,
+body.theme-factory .manager-page-subtitle,
+body.theme-factory .admin-page-subtitle,
+body.theme-factory .muted,
+body.theme-factory .hint,
+body.theme-factory .admin-mini-grid span,
+body.theme-factory .stat-panel span,
+body.theme-factory .stat-panel small,
+body.theme-factory .kpi small,
+body.theme-factory .kpi-click small,
+body.theme-factory .admin-metric-square small,
+body.theme-factory .kpi-click span,
+body.theme-factory .admin-metric-square span,
+body.theme-factory .ranking-item small,
+body.theme-factory .os-admin-meta,
+body.theme-factory .manager-list-card p,
+body.theme-factory .manager-setting-block p,
+body.theme-factory .manager-setting-option small,
+body.theme-factory .manager-toggle-row small,
+body.theme-factory .manager-layout-card small,
+body.theme-factory .data-accel-card p,
+body.theme-factory .data-accel-status small,
+body.theme-factory .data-accel-option small{
+  color:var(--factory-muted) !important;
+}
+
+body.theme-factory .kpi-click span,
+body.theme-factory .admin-metric-square span,
+body.theme-factory .stat-head span,
+body.theme-factory .admin-mini-grid b,
+body.theme-factory .ranking-item .value,
+body.theme-factory .ranking-item > span:last-child{
+  color:var(--factory-accent-2) !important;
+  font-weight:900 !important;
+}
+
+/* Header, sidebar, tabbar e navegação inferior. */
+body.theme-factory .app-header,
+body.theme-factory .admin-topbar,
+body.theme-factory .admin-header,
+body.theme-factory .desktop-topbar,
+body.theme-factory .manager-header,
+body.theme-factory .operator-header{
+  background:rgba(3,8,6,.88) !important;
+  color:var(--factory-text) !important;
+  border-bottom:1px solid var(--factory-line) !important;
+  backdrop-filter:blur(14px) !important;
+}
+
+body.theme-factory .bottom-nav,
+body.theme-factory .manager-bottom-nav,
+body.theme-factory .tabbar,
+body.theme-factory .admin-mobile-nav{
+  background:rgba(3,8,6,.94) !important;
+  border-top:1px solid var(--factory-line) !important;
+  box-shadow:0 -18px 46px rgba(0,0,0,.34) !important;
+}
+
+body.theme-factory .nav-btn,
+body.theme-factory .manager-bottom-nav button,
+body.theme-factory .tabbar button{
+  color:var(--factory-muted) !important;
+  background:transparent !important;
+}
+
+body.theme-factory .nav-btn.active,
+body.theme-factory .manager-bottom-nav button.active,
+body.theme-factory .tabbar button.active{
+  background:var(--factory-accent-soft) !important;
+  color:var(--factory-accent-2) !important;
+  border:1px solid var(--factory-accent-border) !important;
+}
+
+body.theme-factory .admin-sidebar,
+body.theme-factory aside.admin-sidebar,
+body.theme-factory .admin-desktop-sidebar,
+body.theme-factory [class*="sidebar"]{
+  background:linear-gradient(180deg,#07130d,#020704) !important;
+  color:var(--factory-text) !important;
+  border-right:1px solid var(--factory-line) !important;
+  box-shadow:18px 0 50px rgba(0,0,0,.34) !important;
+}
+
+body.theme-factory .admin-menu button,
+body.theme-factory [data-admin-desktop],
+body.theme-factory .admin-sidebar button{
+  background:transparent !important;
+  color:var(--factory-muted) !important;
+  border:1px solid transparent !important;
+}
+
+body.theme-factory .admin-menu button.active,
+body.theme-factory [data-admin-desktop].active,
+body.theme-factory .admin-sidebar button.active,
+body.theme-factory .admin-menu button:hover,
+body.theme-factory [data-admin-desktop]:hover{
+  background:var(--factory-accent-soft) !important;
+  color:var(--factory-accent-2) !important;
+  border-color:var(--factory-accent-border) !important;
+}
+
+/* Formulários, buscas e selects. */
+body.theme-factory input,
+body.theme-factory select,
+body.theme-factory textarea,
+body.theme-factory .search-input,
+body.theme-factory .input,
+body.theme-factory .select{
+  background:#030806 !important;
+  color:var(--factory-text) !important;
+  border:1px solid var(--factory-line-strong) !important;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.18) !important;
+  caret-color:var(--factory-accent-2) !important;
+}
+
+body.theme-factory input::placeholder,
+body.theme-factory textarea::placeholder{
+  color:rgba(169,203,181,.66) !important;
+}
+
+body.theme-factory option{
+  background:#030806 !important;
+  color:var(--factory-text) !important;
+}
+
+/* Botões. */
+body.theme-factory button,
+body.theme-factory .btn,
+body.theme-factory .icon-btn,
+body.theme-factory .theme-toggle,
+body.theme-factory .manager-header-btn,
+body.theme-factory .admin-notify-btn,
+body.theme-factory .admin-notification-btn{
+  color:var(--factory-text) !important;
+}
+
+body.theme-factory .btn.blue,
+body.theme-factory .btn.primary,
+body.theme-factory .icon-btn.primary,
+body.theme-factory button.btn.blue,
+body.theme-factory #btnOptimizeDataReceiving,
+body.theme-factory .manager-header-btn.primary,
+body.theme-factory .manager-os-actions button.primary,
+body.theme-factory .login-card button:not(.secondary),
+body.theme-factory .auth-card button:not(.secondary){
+  background:linear-gradient(135deg,var(--factory-accent-dark),var(--factory-accent)) !important;
+  border:1px solid var(--factory-accent) !important;
+  color:#031208 !important;
+  font-weight:950 !important;
+  box-shadow:0 14px 34px rgba(0,0,0,.28) !important;
+}
+
+body.theme-factory .btn.light,
+body.theme-factory .btn.ghost,
+body.theme-factory .btn.secondary,
+body.theme-factory .icon-btn,
+body.theme-factory .theme-toggle,
+body.theme-factory #btnClearDataCache,
+body.theme-factory .manager-os-actions button,
+body.theme-factory .factory-variant-card{
+  background:rgba(6,16,11,.86) !important;
+  border:1px solid var(--factory-line) !important;
+  color:var(--factory-accent-2) !important;
+}
+
+body.theme-factory .btn.red,
+body.theme-factory .admin-logout-top,
+body.theme-factory .manager-logout-btn,
+body.theme-factory .logout-btn,
+body.theme-factory #btnLogout,
+body.theme-factory #btnOperatorLogout,
+body.theme-factory #btnManagerLogout,
+body.theme-factory #btnAdminLogoutTop,
+body.theme-factory .manager-os-actions button.danger{
+  background:rgba(239,68,68,.15) !important;
+  color:var(--factory-danger) !important;
+  border:1px solid rgba(248,113,113,.42) !important;
+}
+
+/* Progresso e indicadores. */
+body.theme-factory .progress,
+body.theme-factory .kpi-health-bar,
+body.theme-factory .manager-flow-line,
+body.theme-factory .bar,
+body.theme-factory .progress-track{
+  background:rgba(255,255,255,.08) !important;
+  border:1px solid rgba(255,255,255,.04) !important;
+  overflow:hidden;
+}
+
+body.theme-factory .progress span,
+body.theme-factory .kpi-health-bar span,
+body.theme-factory .manager-flow-line span,
+body.theme-factory .bar span,
+body.theme-factory .progress-fill{
+  background:linear-gradient(90deg,var(--factory-accent),var(--factory-accent-2)) !important;
+}
+
+body.theme-factory .manager-status-dot,
+body.theme-factory .status-dot,
+body.theme-factory .online-dot{
+  background:var(--factory-accent) !important;
+  box-shadow:0 0 0 4px var(--factory-accent-soft),0 0 22px var(--factory-accent-soft) !important;
+}
+
+/* Modais e notificações. */
+body.theme-factory .modal,
+body.theme-factory .modal-card,
+body.theme-factory .modal-content,
+body.theme-factory .admin-notify-panel,
+body.theme-factory .operator-notify-panel,
+body.theme-factory .notify-panel,
+body.theme-factory .drawer,
+body.theme-factory .admin-drawer{
+  background:linear-gradient(180deg,rgba(16,35,26,.99),rgba(3,8,6,.99)) !important;
+  color:var(--factory-text) !important;
+  border:1px solid var(--factory-line-strong) !important;
+  box-shadow:0 28px 90px rgba(0,0,0,.55) !important;
+}
+
+body.theme-factory .modal-backdrop,
+body.theme-factory .admin-notify-overlay,
+body.theme-factory .operator-notify-overlay,
+body.theme-factory .notify-overlay{
+  background:rgba(0,0,0,.62) !important;
+  backdrop-filter:blur(5px) !important;
+}
+
+body.theme-factory .toast{
+  background:var(--factory-surface-2) !important;
+  color:var(--factory-text) !important;
+  border:1px solid var(--factory-accent-border) !important;
+}
+
+/* Login/cadastro também no mesmo tema. */
+body.theme-factory .auth-screen,
+body.theme-factory .login-screen,
+body.theme-factory .login-box,
+body.theme-factory .first-access-screen{
+  background:
+    radial-gradient(circle at 50% 18%, var(--factory-accent-soft), transparent 34%),
+    linear-gradient(180deg,var(--factory-bg-2),var(--factory-bg)) !important;
+  color:var(--factory-text) !important;
+}
+
+body.theme-factory .login-card,
+body.theme-factory .auth-card,
+body.theme-factory .first-access-card{
+  background:linear-gradient(180deg,rgba(16,35,26,.98),rgba(3,8,6,.98)) !important;
+  color:var(--factory-text) !important;
+  border:1px solid var(--factory-accent-border) !important;
+  box-shadow:0 26px 80px rgba(0,0,0,.46) !important;
+}
+
+body.theme-factory .login-card::before,
+body.theme-factory .auth-card::before,
+body.theme-factory .first-access-card::before{
+  background:linear-gradient(90deg,var(--factory-accent),var(--factory-accent-2)) !important;
+}
+
+/* Correção específica do print: KPI e ranking nunca podem ficar brancos. */
+body.theme-factory .overview-kpi-grid .admin-metric-square,
+body.theme-factory .compact-kpis .admin-metric-square,
+body.theme-factory .admin-stats-grid .stat-panel,
+body.theme-factory .kpi-mini-list .kpi-mini-row,
+body.theme-factory .ranking-card .ranking-item{
+  background:linear-gradient(180deg,rgba(16,35,26,.98),rgba(7,19,13,.98)) !important;
+  color:var(--factory-text) !important;
+  border-color:var(--factory-line) !important;
+}
+
+body.theme-factory .overview-kpi-grid .admin-metric-square::before,
+body.theme-factory .compact-kpis .admin-metric-square::before{
+  background:linear-gradient(180deg,var(--factory-accent),var(--factory-accent-2)) !important;
+}
+
+/* Acessibilidade visual. */
+body.theme-factory a{color:var(--factory-accent-2) !important;}
+body.theme-factory ::selection{background:var(--factory-accent-soft);color:var(--factory-text);}

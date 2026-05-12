@@ -1,0 +1,65 @@
+/* V3.24.2 — Botão Sair dentro das Configurações da Gestão */
+
+.manager-danger-zone{
+  border:1px solid #fecaca;
+  background:linear-gradient(180deg,#fff7f7,#ffffff);
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 8px 24px rgba(220,38,38,.06);
+}
+
+.manager-danger-zone h2{
+  margin:0 0 6px;
+  font-size:18px;
+  font-weight:950;
+  color:#991b1b;
+}
+
+.manager-danger-zone p{
+  margin:0 0 14px;
+  color:#7f1d1d;
+  font-size:13px;
+  line-height:1.35;
+  font-weight:750;
+}
+
+.manager-logout-btn{
+  width:100%;
+  min-height:50px;
+  border-radius:18px;
+  border:1px solid #dc2626;
+  background:#dc2626;
+  color:#fff;
+  font-weight:950;
+  font-size:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+}
+
+.manager-logout-btn .material-symbols-outlined{
+  font-size:20px;
+}
+
+body.theme-dark .manager-danger-zone,
+body.theme-factory .manager-danger-zone{
+  background:rgba(127,29,29,.18)!important;
+  border-color:rgba(248,113,113,.30)!important;
+}
+
+body.theme-dark .manager-danger-zone h2,
+body.theme-factory .manager-danger-zone h2{
+  color:#fca5a5!important;
+}
+
+body.theme-dark .manager-danger-zone p,
+body.theme-factory .manager-danger-zone p{
+  color:#fecaca!important;
+}
+
+body.theme-factory .manager-logout-btn{
+  background:rgba(239,68,68,.20)!important;
+  border-color:rgba(248,113,113,.38)!important;
+  color:#fecaca!important;
+}

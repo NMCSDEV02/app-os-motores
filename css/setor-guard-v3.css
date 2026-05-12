@@ -1,0 +1,18 @@
+/* V3.17 — Guarda de setor operacional */
+.setor-guard-note{
+  border:1px solid #dbeafe;
+  background:#eff6ff;
+  color:#1e40af;
+  border-radius:18px;
+  padding:12px 14px;
+  font-size:12px;
+  font-weight:850;
+  line-height:1.35;
+  margin:8px 0 12px;
+}
+
+body.theme-dark .setor-guard-note{
+  background:rgba(37,99,235,.14)!important;
+  color:#bfdbfe!important;
+  border-color:rgba(147,197,253,.20)!important;
+}

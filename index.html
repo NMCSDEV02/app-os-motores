@@ -5,12 +5,65 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#f8fafc" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <title>OS Motores V3 PRO</title>
+  <title>Projeto Natan V3</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="css/global.css" />
   <link rel="stylesheet" href="css/components.css" />
-  <link rel="stylesheet" href="css/v3-pro.css" />
+  <link rel="stylesheet" href="css/tokens-v3.css" />
+  <link rel="stylesheet" href="css/layout-v3.css" />
+  <link rel="stylesheet" href="css/admin-desktop-v3.css" />
+  <link rel="stylesheet" href="css/manager-mobile-v3.css" />
+  <link rel="stylesheet" href="css/theme-v3.css" />
+  <link rel="stylesheet" href="css/sync-v3.css" />
+  <link rel="stylesheet" href="css/productivity-v3.css" />
+  <link rel="stylesheet" href="css/admin-config-v3.css" />
+  <link rel="stylesheet" href="css/admin-permissions-v3.css" />
+  <link rel="stylesheet" href="css/v3-5-system.css" />
+  <link rel="stylesheet" href="css/v3-6-performance.css" />
+  <link rel="stylesheet" href="css/theme-global-fix-v3.css" />
+  <link rel="stylesheet" href="css/progress-smart-v3.css" />
+  <link rel="stylesheet" href="css/approvals-v3.css" />
+  <link rel="stylesheet" href="css/kit-qr-v3.css" />
+  <link rel="stylesheet" href="css/kpi-dashboard-v3.css" />
+  <link rel="stylesheet" href="css/sidebar-collapsible-v3.css" />
+  <link rel="stylesheet" href="css/sidebar-force-fix-v3.css" />
+  <link rel="stylesheet" href="css/sidebar-premium-theme-mobile-v3.css" />
+  <link rel="stylesheet" href="css/sidebar-real-icons-v3.css" />
+  <link rel="stylesheet" href="css/sidebar-align-fix-v3.css" />
+  <link rel="stylesheet" href="css/scrollbar-premium-v3.css" />
+  <link rel="stylesheet" href="css/notifications-center-v3.css" />
+  <link rel="stylesheet" href="css/performance-cache-v3.css" />
+  <link rel="stylesheet" href="css/gestao-operacional-login-v3.css" />
+  <link rel="stylesheet" href="css/setor-guard-v3.css" />
+  <link rel="stylesheet" href="css/manager-tabbar-v3.css" />
+  <link rel="stylesheet" href="css/manager-header-qr-v3.css" />
+  <link rel="stylesheet" href="css/manager-config-complete-v3.css" />
+  <link rel="stylesheet" href="css/manager-config-plus-v3.css" />
+  <link rel="stylesheet" href="css/data-acceleration-v3.css" />
+  <link rel="stylesheet" href="css/manager-dynamic-layout-v3.css" />
+  <link rel="stylesheet" href="css/factory-theme-manager-os-v3.css" />
+  <link rel="stylesheet" href="css/factory-color-consistency-v3.css" />
+  <link rel="stylesheet" href="css/manager-logout-config-v3.css" />
+  <link rel="stylesheet" href="css/factory-theme-final-fix-v3.css" />
+  <link rel="stylesheet" href="css/factory-dynamic-global-v3.css" />
+  <link rel="stylesheet" href="css/operator-config-plus-v3.css" />
+  <link rel="stylesheet" href="css/admin-factory-theme-fix-v3.css" />
+  <link rel="stylesheet" href="css/operator-factory-theme-fix-v3.css" />
+  <link rel="stylesheet" href="css/factory-global-hardfix-v3.css" />
+  <link rel="stylesheet" href="css/factory-history-card-fix-v3.css" />
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link rel="stylesheet" href="css/factory-cleanroom-global-v3.css" />
+  <link rel="stylesheet" href="css/manager-republish-compact-tab-v3.css" />
+  <link rel="stylesheet" href="css/manager-operations-drawer-v3.css" />
+  <link rel="stylesheet" href="css/manager-home-executive-v3.css" />
+  <link rel="stylesheet" href="css/manager-trash-fix-v3.css" />
+  <link rel="stylesheet" href="css/qr-auto-camera-v3.css" />
+  <link rel="stylesheet" href="css/qr-auto-final-v31.css" />
+  <link rel="stylesheet" href="css/manager-subtask-actions-v3.css" />
+  <link rel="stylesheet" href="css/manager-all-subtasks-v3.css" />
+  <link rel="stylesheet" href="css/admin-manager-permissions-v3.css" />
+  <link rel="stylesheet" href="css/final-pro-layout-v35.css" />
 </head>
 <body>
   <div id="app" class="app-shell">
@@ -38,5 +91,31 @@
   <div id="toast" class="toast"></div>
 
   <script type="module" src="js/app.js"></script>
+
+<script>
+window.addEventListener("error", function(e){
+  console.error("Projeto Natan boot error:", e.error || e.message);
+  const root = document.getElementById("screen") || document.querySelector(".screen") || document.body;
+  if(root && !root.dataset.errorShown){
+    root.dataset.errorShown = "1";
+    root.innerHTML = '<div style="max-width:460px;margin:18vh auto;padding:24px;border-radius:24px;background:#fff;color:#0f172a;font-family:Inter,Arial,sans-serif;box-shadow:0 18px 60px rgba(15,23,42,.12)"><h2 style="margin:0 0 8px">Erro ao iniciar</h2><p style="color:#64748b;line-height:1.4">Erro detectado: <b>'+ String(e.message || "erro desconhecido") +'</b></p><p style="color:#64748b;line-height:1.4">Use Ctrl+F5. Se persistir, envie o texto acima.</p><button onclick="localStorage.clear();location.reload()" style="width:100%;height:46px;border:0;border-radius:14px;background:#2563eb;color:white;font-weight:800">Limpar sessão e recarregar</button></div>';
+  }
+});
+window.addEventListener("unhandledrejection", function(e){
+  console.error("Projeto Natan promise error:", e.reason);
+});
+</script>
+
+
+<script>
+// V3.13.2 boot monitor
+window.addEventListener("error", function(e){
+  console.error("Projeto Natan erro:", e.message, e.error);
+});
+window.addEventListener("unhandledrejection", function(e){
+  console.error("Projeto Natan promise:", e.reason);
+});
+</script>
+
 </body>
 </html>

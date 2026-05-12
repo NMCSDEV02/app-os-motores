@@ -1,0 +1,374 @@
+/* V3.24.7 — Correção do tema Chão de Fábrica no Perfil Operador */
+
+/* =========================
+   OPERADOR — BASE
+   ========================= */
+
+body.theme-factory:not(.desktop-mode),
+body.theme-factory .mobile-shell,
+body.theme-factory .operator-screen,
+body.theme-factory .operator-page,
+body.theme-factory #screen,
+body.theme-factory .screen{
+  background:
+    radial-gradient(circle at 16% 0%, var(--factory-accent-soft,rgba(34,197,94,.14)), transparent 35%),
+    radial-gradient(circle at 90% 96%, rgba(255,255,255,.035), transparent 30%),
+    linear-gradient(180deg,#06100b,#030806)!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+/* =========================
+   HEADER DO OPERADOR
+   ========================= */
+
+body.theme-factory .mobile-header,
+body.theme-factory .app-header,
+body.theme-factory .operator-header,
+body.theme-factory .home-header,
+body.theme-factory header:not(.manager-op-header):not(.admin-topbar){
+  background:linear-gradient(135deg,rgba(16,35,26,.96),rgba(6,16,11,.96))!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.28)!important;
+}
+
+body.theme-factory .mobile-header h1,
+body.theme-factory .mobile-header h2,
+body.theme-factory .mobile-header b,
+body.theme-factory .app-header h1,
+body.theme-factory .app-header b,
+body.theme-factory .operator-header h1,
+body.theme-factory .operator-header b,
+body.theme-factory .home-header h1,
+body.theme-factory .home-header b{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .mobile-header p,
+body.theme-factory .mobile-header small,
+body.theme-factory .mobile-header span,
+body.theme-factory .app-header p,
+body.theme-factory .app-header small,
+body.theme-factory .operator-header small,
+body.theme-factory .home-header small{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* Botões de header operador */
+body.theme-factory .mobile-header button,
+body.theme-factory .app-header button,
+body.theme-factory .operator-header button,
+body.theme-factory .header-icon-btn,
+body.theme-factory .notification-btn,
+body.theme-factory .logout-icon-btn{
+  background:rgba(6,16,11,.84)!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+}
+
+body.theme-factory .logout-icon-btn,
+body.theme-factory .header-icon-btn.red,
+body.theme-factory .mobile-header .red{
+  background:rgba(239,68,68,.14)!important;
+  border-color:rgba(248,113,113,.34)!important;
+  color:#fecaca!important;
+}
+
+/* =========================
+   HOME / ORDENS DO SETOR
+   ========================= */
+
+body.theme-factory .page-title h1,
+body.theme-factory .page-title h2,
+body.theme-factory .page-title b,
+body.theme-factory .section-title,
+body.theme-factory .operator-title,
+body.theme-factory .home-title{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .page-title p,
+body.theme-factory .page-title small,
+body.theme-factory .section-subtitle,
+body.theme-factory .operator-subtitle{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+body.theme-factory .search-row,
+body.theme-factory .search-box,
+body.theme-factory .home-search,
+body.theme-factory .operator-search{
+  background:transparent!important;
+}
+
+body.theme-factory .search-row input,
+body.theme-factory .search-box input,
+body.theme-factory .home-search input,
+body.theme-factory .operator-search input{
+  background:#050d09!important;
+  color:var(--factory-text,#f3fff7)!important;
+  border:1px solid var(--factory-accent-border,rgba(134,239,172,.34))!important;
+}
+
+body.theme-factory .search-row button,
+body.theme-factory .home-search button,
+body.theme-factory .operator-search button,
+body.theme-factory .fab,
+body.theme-factory .qr-btn,
+body.theme-factory .add-btn{
+  background:linear-gradient(135deg,var(--factory-accent-dark,#14532d),var(--factory-accent,#22c55e))!important;
+  border-color:var(--factory-accent,#22c55e)!important;
+  color:#031208!important;
+}
+
+/* Cards OS do Operador */
+body.theme-factory .os-list .os-card,
+body.theme-factory .operator-os-card,
+body.theme-factory [data-open-os],
+body.theme-factory .setor-guard-note,
+body.theme-factory .empty{
+  background:linear-gradient(180deg,var(--factory-surface-2,#10231a),var(--factory-surface,#0b1912))!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.28)!important;
+}
+
+body.theme-factory .os-card h3,
+body.theme-factory .os-card b,
+body.theme-factory .operator-os-card h3,
+body.theme-factory .operator-os-card b{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .os-card p,
+body.theme-factory .os-card small,
+body.theme-factory .operator-os-card p,
+body.theme-factory .operator-os-card small{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* Barras de progresso claras demais */
+body.theme-factory .os-card .progress,
+body.theme-factory .operator-os-card .progress,
+body.theme-factory .progress{
+  background:rgba(255,255,255,.12)!important;
+  border-radius:999px!important;
+}
+
+body.theme-factory .os-card .progress span,
+body.theme-factory .operator-os-card .progress span,
+body.theme-factory .progress span{
+  background:linear-gradient(90deg,var(--factory-accent,#22c55e),var(--factory-accent-2,#86efac))!important;
+}
+
+/* Badges/status operador */
+body.theme-factory .os-card .badge,
+body.theme-factory .operator-os-card .badge,
+body.theme-factory .status-pill,
+body.theme-factory .os-status{
+  background:var(--factory-accent-soft,rgba(34,197,94,.16))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+  border-color:var(--factory-accent-border,rgba(134,239,172,.34))!important;
+}
+
+/* =========================
+   DETALHE DA OS / CHECKLIST
+   ========================= */
+
+body.theme-factory .os-detail,
+body.theme-factory .detail-card,
+body.theme-factory .check-item,
+body.theme-factory .checklist-card,
+body.theme-factory .subtask-card,
+body.theme-factory .history-card{
+  background:linear-gradient(180deg,var(--factory-surface-2,#10231a),var(--factory-surface,#0b1912))!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .check-item b,
+body.theme-factory .check-item .check-title,
+body.theme-factory .detail-card b,
+body.theme-factory .detail-card h3{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .check-item small,
+body.theme-factory .check-item .check-hint,
+body.theme-factory .detail-card small,
+body.theme-factory .detail-card p{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* =========================
+   MODAIS / NOTIFICAÇÕES DO OPERADOR
+   ========================= */
+
+body.theme-factory .modal-backdrop,
+body.theme-factory .overlay,
+body.theme-factory .dialog-backdrop{
+  background:rgba(0,0,0,.62)!important;
+  backdrop-filter:blur(8px)!important;
+}
+
+body.theme-factory .modal-card,
+body.theme-factory .notification-modal,
+body.theme-factory .notifications-modal,
+body.theme-factory .dialog-card,
+body.theme-factory .sheet-modal{
+  background:linear-gradient(180deg,var(--factory-surface-2,#10231a),var(--factory-surface,#0b1912))!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  box-shadow:0 30px 90px rgba(0,0,0,.55)!important;
+}
+
+body.theme-factory .modal-card h1,
+body.theme-factory .modal-card h2,
+body.theme-factory .modal-card h3,
+body.theme-factory .modal-card b,
+body.theme-factory .notification-modal h1,
+body.theme-factory .notification-modal h2,
+body.theme-factory .notifications-modal h1,
+body.theme-factory .notifications-modal h2{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .modal-card p,
+body.theme-factory .modal-card small,
+body.theme-factory .modal-card span,
+body.theme-factory .notification-modal p,
+body.theme-factory .notification-modal small,
+body.theme-factory .notifications-modal p,
+body.theme-factory .notifications-modal small{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* Tabs das notificações */
+body.theme-factory .notification-tabs,
+body.theme-factory .modal-tabs{
+  background:transparent!important;
+}
+
+body.theme-factory .notification-tabs button,
+body.theme-factory .modal-tabs button,
+body.theme-factory .notification-tab{
+  background:rgba(6,16,11,.84)!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+body.theme-factory .notification-tabs button.active,
+body.theme-factory .modal-tabs button.active,
+body.theme-factory .notification-tab.active{
+  background:var(--factory-accent-soft,rgba(34,197,94,.16))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+  border-color:var(--factory-accent-border,rgba(134,239,172,.34))!important;
+}
+
+/* Cards de notificação */
+body.theme-factory .notification-item,
+body.theme-factory .notification-card,
+body.theme-factory .notif-card,
+body.theme-factory .notif-item{
+  background:rgba(6,16,11,.84)!important;
+  border:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .notification-item b,
+body.theme-factory .notification-card b,
+body.theme-factory .notif-card b{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .notification-item p,
+body.theme-factory .notification-item small,
+body.theme-factory .notification-card p,
+body.theme-factory .notification-card small,
+body.theme-factory .notif-card p,
+body.theme-factory .notif-card small{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* Scroll interno do modal */
+body.theme-factory .modal-card ::-webkit-scrollbar-thumb,
+body.theme-factory .notification-modal ::-webkit-scrollbar-thumb,
+body.theme-factory .notifications-modal ::-webkit-scrollbar-thumb{
+  background:rgba(134,239,172,.30)!important;
+  border-radius:999px!important;
+}
+
+body.theme-factory .modal-card ::-webkit-scrollbar-track,
+body.theme-factory .notification-modal ::-webkit-scrollbar-track,
+body.theme-factory .notifications-modal ::-webkit-scrollbar-track{
+  background:transparent!important;
+}
+
+/* =========================
+   BOTTOM NAV OPERADOR
+   ========================= */
+
+body.theme-factory #bottomNav,
+body.theme-factory .bottom-nav,
+body.theme-factory .mobile-bottom-nav{
+  background:rgba(3,8,6,.96)!important;
+  border-top:1px solid var(--factory-border,rgba(134,239,172,.18))!important;
+  box-shadow:0 -18px 48px rgba(0,0,0,.44)!important;
+}
+
+body.theme-factory #bottomNav button,
+body.theme-factory .bottom-nav button,
+body.theme-factory .mobile-bottom-nav button{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+body.theme-factory #bottomNav button.active,
+body.theme-factory .bottom-nav button.active,
+body.theme-factory .mobile-bottom-nav button.active{
+  background:var(--factory-accent-soft,rgba(34,197,94,.16))!important;
+  color:var(--factory-accent-2,#86efac)!important;
+}
+
+/* =========================
+   CONFIGURAÇÕES DO OPERADOR
+   ========================= */
+
+body.theme-factory .operator-config-summary,
+body.theme-factory .operator-setting-block,
+body.theme-factory .operator-setting-option,
+body.theme-factory .operator-danger-zone,
+body.theme-factory .data-accel-card,
+body.theme-factory .data-accel-status,
+body.theme-factory .data-accel-option{
+  background:linear-gradient(180deg,var(--factory-surface-2,#10231a),var(--factory-surface,#0b1912))!important;
+  border-color:var(--factory-border,rgba(134,239,172,.18))!important;
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .operator-config-title h2,
+body.theme-factory .operator-setting-block h2,
+body.theme-factory .operator-setting-option b{
+  color:var(--factory-text,#f3fff7)!important;
+}
+
+body.theme-factory .operator-setting-block p,
+body.theme-factory .operator-setting-option small{
+  color:var(--factory-muted,#a9cbb5)!important;
+}
+
+/* =========================
+   EVITA HERANÇA CLARA
+   ========================= */
+
+body.theme-factory.theme-light .mobile-header,
+body.theme-factory.theme-light .app-header,
+body.theme-factory.theme-light .modal-card,
+body.theme-factory.theme-light .notification-modal,
+body.theme-factory.theme-light .notifications-modal,
+body.theme-factory.theme-light .os-card,
+body.theme-factory.theme-light .check-item,
+body.theme-factory.theme-light .operator-setting-block{
+  background:linear-gradient(180deg,var(--factory-surface-2,#10231a),var(--factory-surface,#0b1912))!important;
+  color:var(--factory-text,#f3fff7)!important;
+  border-color:var(--factory-border,rgba(134,239,172,.18))!important;
+}

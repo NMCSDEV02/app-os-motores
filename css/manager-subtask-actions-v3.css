@@ -1,0 +1,179 @@
+/* V3.32 — Gestão: ações de subtarefas */
+
+.manager-subtask-action-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+
+.manager-subtask-action{
+  min-height:56px;
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  color:#0f172a;
+  border-radius:18px;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  font-size:11px;
+  font-weight:950;
+  text-align:center;
+}
+
+.manager-subtask-action .material-symbols-outlined{
+  font-size:22px;
+  color:#2563eb;
+}
+
+.manager-subtask-action.primary{
+  background:#2563eb;
+  border-color:#2563eb;
+  color:#fff;
+}
+
+.manager-subtask-action.primary .material-symbols-outlined{
+  color:#fff;
+}
+
+.manager-subtask-card{
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  border-radius:18px;
+  padding:11px;
+}
+
+.manager-subtask-actions{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:6px;
+  margin-top:10px;
+}
+
+.manager-subtask-actions button{
+  min-height:35px;
+  border:1px solid #e2e8f0;
+  background:#fff;
+  border-radius:13px;
+  color:#0f172a;
+  font-size:10px;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  padding:0 5px;
+}
+
+.manager-subtask-actions button .material-symbols-outlined{
+  font-size:15px;
+}
+
+.manager-subtask-actions button.primary{
+  background:#16a34a;
+  color:#fff;
+  border-color:#16a34a;
+}
+
+.manager-subtask-actions button.danger{
+  background:#fef2f2;
+  color:#dc2626;
+  border-color:#fecaca;
+}
+
+.manager-form-grid{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  text-align:left;
+}
+
+.manager-form-grid label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:12px;
+  font-weight:850;
+  color:#64748b;
+}
+
+.manager-form-grid input,
+.manager-form-grid select,
+.manager-form-grid textarea{
+  width:100%;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:12px;
+  font-size:14px;
+  font-weight:750;
+  color:#0f172a;
+  background:#fff;
+}
+
+body.theme-dark .manager-subtask-action,
+body.theme-dark .manager-subtask-card,
+body.theme-dark .manager-subtask-actions button{
+  background:#0f172a!important;
+  border-color:rgba(255,255,255,.10)!important;
+  color:#f8fafc!important;
+}
+
+body.theme-dark .manager-subtask-card,
+body.theme-dark .manager-subtask-actions button{
+  background:#020617!important;
+}
+
+body.theme-factory .manager-subtask-action,
+body.theme-factory .manager-subtask-card,
+body.theme-factory .manager-subtask-actions button{
+  background:linear-gradient(180deg,var(--floor-surface-2),var(--floor-surface))!important;
+  border-color:var(--floor-line)!important;
+  color:var(--floor-text)!important;
+  box-shadow:var(--floor-shadow-soft)!important;
+}
+
+body.theme-factory .manager-subtask-action .material-symbols-outlined,
+body.theme-factory .manager-subtask-actions button .material-symbols-outlined{
+  color:var(--floor-accent-2)!important;
+}
+
+body.theme-factory .manager-subtask-action.primary,
+body.theme-factory .manager-subtask-actions button.primary{
+  background:linear-gradient(135deg,var(--floor-accent-dark),var(--floor-accent))!important;
+  border-color:var(--floor-accent)!important;
+  color:#031208!important;
+}
+
+body.theme-factory .manager-subtask-action.primary .material-symbols-outlined,
+body.theme-factory .manager-subtask-actions button.primary .material-symbols-outlined{
+  color:#031208!important;
+}
+
+body.theme-factory .manager-subtask-actions button.danger{
+  background:rgba(239,68,68,.14)!important;
+  color:#fecaca!important;
+  border-color:rgba(248,113,113,.34)!important;
+}
+
+body.theme-factory .manager-form-grid label{
+  color:var(--floor-muted)!important;
+}
+
+body.theme-factory .manager-form-grid input,
+body.theme-factory .manager-form-grid select,
+body.theme-factory .manager-form-grid textarea{
+  background:#050d09!important;
+  color:var(--floor-text)!important;
+  border-color:var(--floor-accent-line)!important;
+}
+
+@media(max-width:380px){
+  .manager-subtask-action-grid{
+    grid-template-columns:1fr;
+  }
+  .manager-subtask-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}

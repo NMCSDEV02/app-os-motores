@@ -1,0 +1,28 @@
+/* V3.30 — QR com câmera automática */
+body .qr-start-btn,
+body .btn-start-camera,
+body #btnStartQr,
+body #btnQrStart,
+body [data-qr-start]{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+.qr-camera-card,
+.qr-preview,
+.qr-reader,
+#qrReader,
+#qrVideoBox{
+  margin-top:10px!important;
+}
+
+body.theme-factory .qr-camera-card,
+body.theme-factory .qr-preview,
+body.theme-factory .qr-reader,
+body.theme-factory #qrReader,
+body.theme-factory #qrVideoBox{
+  background:#020604!important;
+  border:1px solid var(--floor-line, rgba(134,239,172,.18))!important;
+  color:var(--floor-text,#f3fff7)!important;
+}

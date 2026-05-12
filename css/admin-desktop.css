@@ -1,0 +1,158 @@
+/* Projeto Natan V3 — Admin Desktop Console */
+
+@media (min-width: 769px) {
+  body.desktop-mode {
+    background: #eef2f7;
+  }
+
+  .admin-desktop-shell {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    background: #eef2f7;
+  }
+
+  .admin-sidebar {
+    background: rgba(255,255,255,.92);
+    border-right: 1px solid #e2e8f0;
+    padding: 24px 18px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .admin-brand {
+    font-size: 22px;
+    font-weight: 950;
+    letter-spacing: -.03em;
+    margin-bottom: 4px;
+  }
+
+  .admin-brand-sub {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 750;
+    margin-bottom: 26px;
+  }
+
+  .admin-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .admin-menu button {
+    min-height: 46px;
+    border-radius: 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #334155;
+    padding: 0 14px;
+    font-weight: 850;
+    text-align: left;
+  }
+
+  .admin-menu button.active,
+  .admin-menu button:hover {
+    background: #eff6ff;
+    border-color: #dbeafe;
+    color: #2563eb;
+  }
+
+  .admin-main {
+    padding: 28px;
+    min-width: 0;
+  }
+
+  .admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .admin-topbar h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 950;
+    letter-spacing: -.04em;
+  }
+
+  .admin-topbar p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: #64748b;
+    font-weight: 750;
+  }
+
+  .admin-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .admin-desktop-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .admin-desktop-card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(15,23,42,.05);
+  }
+
+  .admin-desktop-card small {
+    display: block;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 850;
+    margin-bottom: 10px;
+  }
+
+  .admin-desktop-card strong {
+    font-size: 34px;
+    font-weight: 950;
+    letter-spacing: -.04em;
+  }
+
+  .admin-desktop-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 28px;
+    padding: 22px;
+    box-shadow: 0 10px 30px rgba(15,23,42,.05);
+  }
+
+  .admin-desktop-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .admin-desktop-table th {
+    color: #64748b;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 12px 10px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .admin-desktop-table td {
+    padding: 14px 10px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  .admin-desktop-table tr:last-child td {
+    border-bottom: 0;
+  }
+}
