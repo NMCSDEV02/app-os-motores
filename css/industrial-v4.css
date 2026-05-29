@@ -539,6 +539,94 @@ body.industrial-v4 .gestao-op-alert{
   color:#fde68a!important;
 }
 
+body.industrial-v4 .manager-v4-intel-panel{
+  border:1px solid rgba(34,211,238,.26);
+  border-radius:18px;
+  background:
+    linear-gradient(90deg,rgba(34,211,238,.12),transparent 56%),
+    linear-gradient(180deg,var(--v4-panel-2),var(--v4-panel));
+  box-shadow:var(--v4-shadow-soft);
+  padding:14px;
+}
+
+body.industrial-v4 .manager-v4-intel-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+body.industrial-v4 .manager-v4-intel-head small{
+  display:block;
+  color:var(--v4-cyan)!important;
+  font-size:11px!important;
+  font-weight:950!important;
+  text-transform:uppercase;
+}
+
+body.industrial-v4 .manager-v4-intel-head h2{
+  margin:2px 0 0;
+  color:var(--v4-text);
+  font-size:34px;
+  line-height:1;
+  font-weight:1000;
+}
+
+body.industrial-v4 .manager-v4-intel-head span{
+  max-width:46%;
+  border:1px solid rgba(34,211,238,.28);
+  border-radius:999px;
+  background:rgba(34,211,238,.10);
+  color:#cffafe;
+  padding:7px 10px;
+  font-size:11px;
+  font-weight:950;
+  text-align:right;
+  overflow-wrap:anywhere;
+}
+
+body.industrial-v4 .manager-v4-intel-grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:8px;
+}
+
+body.industrial-v4 .manager-v4-intel-grid div{
+  min-height:66px;
+  border:1px solid var(--v4-line);
+  border-radius:13px;
+  background:rgba(255,255,255,.04);
+  padding:9px;
+}
+
+body.industrial-v4 .manager-v4-intel-grid small{
+  display:block;
+  color:var(--v4-muted)!important;
+  font-size:10px!important;
+  font-weight:900!important;
+}
+
+body.industrial-v4 .manager-v4-intel-grid b{
+  display:block;
+  margin-top:4px;
+  color:var(--v4-text);
+  font-size:20px;
+  font-weight:1000;
+}
+
+body.industrial-v4 .manager-v4-intel-callout{
+  margin-top:10px;
+  border:1px solid rgba(245,158,11,.30);
+  border-radius:13px;
+  background:rgba(245,158,11,.10);
+  color:#fde68a;
+  padding:10px;
+  font-size:12px;
+  font-weight:850;
+  line-height:1.35;
+}
+
 body.industrial-v4 .manager-drawer-backdrop{
   background:rgba(0,0,0,.62)!important;
   backdrop-filter:blur(8px);

@@ -691,13 +691,14 @@ function openManagerSideMenu(){
 
 async function loadManagerData(force = false){
   const u = currentUser();
-  const [resumo, produtividade, dashboard] = await Promise.all([
+  const [resumo, produtividade, dashboard, inteligencia] = await Promise.all([
     apiGetFast("gestorResumo", {matricula:u.matricula, __force:force}).catch(()=>({})),
     apiGetFast("produtividadeResumo", {matricula:u.matricula, __force:force}).catch(()=>({})),
-    apiGetFast("kpiDashboardAvancado", {matricula:u.matricula, __force:force}).catch(()=>({}))
+    apiGetFast("kpiDashboardAvancado", {matricula:u.matricula, __force:force}).catch(()=>({})),
+    apiGetFast("kpiInteligenteV4", {matricula:u.matricula, __force:force}).catch(()=>({}))
   ]);
 
-  managerCache = {resumo, produtividade, dashboard};
+  managerCache = {resumo, produtividade, dashboard, inteligencia};
   return managerCache;
 }
 
@@ -718,15 +719,19 @@ export async function renderManager(){
   screen().innerHTML = `<div class="fast-loading"><div class="cache-status">Carregando gestão...</div><div class="skeleton-card"></div><div class="skeleton-card"></div></div>`;
 
   try{
-    const {resumo, produtividade, dashboard} = await loadManagerData(false);
+    const {resumo, produtividade, dashboard, inteligencia} = await loadManagerData(false);
 
     const kpi = resumo.kpi || {};
+    const smart = inteligencia.kpis || {};
     const osAbertas = Number(kpi.os_abertas ?? kpi.abertas ?? 0);
     const subtarefasPendentes = Number(kpi.subtarefas_pendentes ?? 0);
     const taxaConclusao = Number(kpi.taxa_conclusao ?? produtividade.taxa_conclusao ?? 0);
     const eventosHoje = Number(kpi.eventos_hoje ?? dashboard.eventos_hoje ?? 0);
     const setores = Array.isArray(dashboard.setores) ? dashboard.setores : [];
     const alertas = Array.isArray(dashboard.alertas) ? dashboard.alertas : [];
+    const smartAlertas = Array.isArray(inteligencia.alertas) ? inteligencia.alertas : [];
+    const smartRecomendacoes = Array.isArray(inteligencia.recomendacoes) ? inteligencia.recomendacoes : [];
+    const hasSmartKpi = Object.keys(smart).length > 0;
     const score = Math.max(0, Math.min(100, taxaConclusao || 0));
 
     renderWithManagerHeader(`
@@ -765,6 +770,29 @@ export async function renderManager(){
         </div>
 
         ${alertas.length ? `<div class="manager-exec-alert">${escapeHtml(String(alertas[0]))}</div>` : ""}
+
+        ${hasSmartKpi ? `
+          <section class="manager-v4-intel-panel">
+            <div class="manager-v4-intel-head">
+              <div>
+                <small>Inteligencia operacional</small>
+                <h2>${Number(smart.score_inteligente || 0)}%</h2>
+              </div>
+              <span>${escapeHtml(smart.gargalo_principal || "Sem gargalo")}</span>
+            </div>
+            <div class="manager-v4-intel-grid">
+              <div><small>OS em risco</small><b>${Number(smart.os_em_risco || 0)}</b></div>
+              <div><small>SLA 24h</small><b>${Number(smart.sla_24h || 0)}%</b></div>
+              <div><small>Lead time</small><b>${Number(smart.lead_time_medio_horas || 0)}h</b></div>
+              <div><small>Hoje</small><b>${Number(smart.throughput_hoje || 0)}</b></div>
+            </div>
+            ${(smartAlertas[0] || smartRecomendacoes[0]) ? `
+              <div class="manager-v4-intel-callout">
+                ${escapeHtml(smartAlertas[0] || smartRecomendacoes[0])}
+              </div>
+            ` : ""}
+          </section>
+        ` : ""}
 
         <div class="manager-exec-actions">
           <button class="manager-exec-action primary" data-manager-action="operations">

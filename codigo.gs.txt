@@ -215,6 +215,7 @@ function doGet(e) {
     if (acao === "gestorTodasSubtarefas") return gestorTodasSubtarefas();
     if (acao === "produtividadeResumo") return produtividadeResumo(p.matricula);
     if (acao === "kpiDashboardAvancado") return kpiDashboardAvancado(p.matricula);
+    if (acao === "kpiInteligenteV4") return kpiInteligenteV4(p.matricula);
     if (acao === "dashboardLean") return dashboardLean(p.matricula);
     if (acao === "bootstrapApp") return bootstrapApp(p.matricula);
     if (acao === "bootstrapGestaoFinal") return bootstrapGestaoFinal(p.matricula);
@@ -1525,6 +1526,184 @@ function kpiDashboardAvancado(matricula) {
 }
 
 
+
+/****************************************************
+ * KPI INTELIGENTE V4
+ * Analise operacional preditiva baseada nas abas atuais.
+ ****************************************************/
+function parseDateV4(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function hoursBetweenV4(a, b) {
+  const start = parseDateV4(a);
+  const end = parseDateV4(b);
+  if (!start || !end) return null;
+  return Math.max(0, (end - start) / 36e5);
+}
+
+function ageHoursV4(v) {
+  const d = parseDateV4(v);
+  if (!d) return 0;
+  return Math.max(0, (new Date() - d) / 36e5);
+}
+
+function isWithinDaysV4(v, days) {
+  const d = parseDateV4(v);
+  if (!d) return false;
+  return (new Date() - d) <= (Number(days || 0) * 24 * 36e5);
+}
+
+function avgV4(values) {
+  const nums = values.filter(v => typeof v === "number" && !isNaN(v));
+  if (!nums.length) return 0;
+  return nums.reduce((a,b)=>a+b,0) / nums.length;
+}
+
+function pctV4(done, total) {
+  total = Number(total || 0);
+  if (!total) return 0;
+  return Math.round((Number(done || 0) / total) * 100);
+}
+
+function round1V4(v) {
+  return Math.round(Number(v || 0) * 10) / 10;
+}
+
+function pushMapV4(map, key, seed) {
+  key = norm(key) || "Sem setor";
+  if (!map[key]) map[key] = Object.assign({setor:key, os_abertas:0, subtarefas_pendentes:0, idade_media_horas:0, peso:0, _idades:[]}, seed || {});
+  return map[key];
+}
+
+function kpiInteligenteV4(matricula) {
+  const osRows = rowsAsObjects(SHEETS.os).rows.filter(o => !isTrue(o.excluida));
+  const checks = rowsAsObjects(SHEETS.checklist).rows;
+  const subs = rowsAsObjects(SHEETS.subtarefas).rows.filter(s => !isTrue(s.excluida));
+  const hist = rowsAsObjects(SHEETS.historico).rows;
+  const logs = rowsAsObjects(SHEETS.logs).rows;
+
+  const abertas = osRows.filter(o => !isDone(o.status));
+  const concluidas = osRows.filter(o => isDone(o.status));
+  const subsPendentes = subs.filter(s => !isDone(s.status));
+  const checksConcluidos = checks.filter(c => isTrue(c.concluido));
+  const checksHoje = checksConcluidos.filter(c => isHoje(c.concluido_em));
+  const checks7d = checksConcluidos.filter(c => isWithinDaysV4(c.concluido_em, 7));
+
+  const leadTimes = concluidas
+    .map(o => hoursBetweenV4(o.data_abertura, o.concluida_em))
+    .filter(v => typeof v === "number" && !isNaN(v));
+
+  const subtarefaTimes = subs
+    .filter(s => isDone(s.status))
+    .map(s => hoursBetweenV4(s.criado_em, s.concluido_em))
+    .filter(v => typeof v === "number" && !isNaN(v));
+
+  const abertasComRisco = abertas.map(o => {
+    const progresso = calcularProgresso(o.id_os);
+    const idade = ageHoursV4(o.ultimo_movimento_em || o.data_abertura);
+    const idadeTotal = ageHoursV4(o.data_abertura);
+    let risco = 0;
+    if (idadeTotal >= 24) risco += 42;
+    else if (idadeTotal >= 16) risco += 28;
+    else if (idadeTotal >= 8) risco += 14;
+    if (idade >= 8) risco += 18;
+    if (progresso.percentual_total < 25 && idadeTotal >= 8) risco += 18;
+    if (Number(progresso.subtarefas_pendentes || 0) > 0) risco += Math.min(20, Number(progresso.subtarefas_pendentes || 0) * 8);
+    return {
+      id_os:o.id_os,
+      codigo_os:o.codigo_os,
+      motor:o.motor,
+      setor:o.setor_atual,
+      etapa:o.etapa_atual,
+      status:o.status,
+      progresso:progresso.percentual_total,
+      idade_horas:round1V4(idadeTotal),
+      parado_horas:round1V4(idade),
+      subtarefas_pendentes:progresso.subtarefas_pendentes,
+      risco:Math.max(0, Math.min(100, Math.round(risco)))
+    };
+  }).sort((a,b)=>b.risco-a.risco || b.idade_horas-a.idade_horas);
+
+  const setorMap = {};
+  abertasComRisco.forEach(o => {
+    const item = pushMapV4(setorMap, o.setor);
+    item.os_abertas++;
+    item._idades.push(o.idade_horas);
+    item.peso += 2 + Math.min(8, o.idade_horas / 8) + Math.min(8, o.risco / 18);
+  });
+  subsPendentes.forEach(s => {
+    const item = pushMapV4(setorMap, s.setor_destino);
+    item.subtarefas_pendentes++;
+    item._idades.push(ageHoursV4(s.criado_em));
+    item.peso += 3 + Math.min(10, ageHoursV4(s.criado_em) / 8);
+  });
+
+  const setores = Object.keys(setorMap).map(k => {
+    const item = setorMap[k];
+    item.idade_media_horas = round1V4(avgV4(item._idades));
+    item.peso = Math.round(item.peso);
+    delete item._idades;
+    return item;
+  }).sort((a,b)=>b.peso-a.peso);
+
+  const acoesCriticas = hist.concat(logs).filter(r => {
+    const acao = lower(r.acao);
+    return acao.indexOf("subtarefa") >= 0 || acao.indexOf("republicar") >= 0 || acao.indexOf("reiniciar") >= 0 || acao.indexOf("exclu") >= 0;
+  });
+  const retrabalho7d = acoesCriticas.filter(r => isWithinDaysV4(r.data_hora, 7)).length;
+
+  const operadorHoje = {};
+  hist.filter(h => isHoje(h.data_hora)).forEach(h => {
+    const key = norm(h.matricula) || norm(h.operador_nome);
+    if (key) operadorHoje[key] = true;
+  });
+
+  const gargalo = setores[0] || {setor:"", peso:0, os_abertas:0, subtarefas_pendentes:0};
+  const osRisco = abertasComRisco.filter(o => o.risco >= 45).slice(0,8);
+  const taxaSla24 = pctV4(leadTimes.filter(h => h <= 24).length, leadTimes.length);
+  const idadeMediaFila = round1V4(avgV4(abertasComRisco.map(o => o.idade_horas)));
+  const scoreBase = JSON.parse(kpiDashboardAvancado(matricula).getContent()).kpis || {};
+  const score = Math.max(0, Math.min(100,
+    Math.round(Number(scoreBase.score_operacional || 0) - Math.min(18, osRisco.length * 4) - Math.min(12, retrabalho7d * 1.5) + Math.min(8, taxaSla24 / 16))
+  ));
+
+  const alertas = [];
+  if (osRisco.length) alertas.push(osRisco.length + " OS em risco operacional. Priorize " + osRisco[0].codigo_os + ".");
+  if (gargalo.setor) alertas.push("Gargalo principal: " + gargalo.setor + " com peso " + gargalo.peso + ".");
+  if (idadeMediaFila >= 16) alertas.push("Fila envelhecida: media de " + idadeMediaFila + "h nas OS abertas.");
+  if (retrabalho7d >= 3) alertas.push("Retrabalho alto nos ultimos 7 dias: " + retrabalho7d + " eventos criticos.");
+  if (!alertas.length) alertas.push("Fluxo estavel: nenhum risco critico detectado agora.");
+
+  const recomendacoes = [];
+  if (osRisco[0]) recomendacoes.push("Abrir " + osRisco[0].codigo_os + " e remover bloqueios antes de novas OS.");
+  if (gargalo.setor) recomendacoes.push("Rebalancear equipe ou prioridade para " + gargalo.setor + ".");
+  if (subsPendentes.length) recomendacoes.push("Fechar subtarefas pendentes antes de avancar etapas dependentes.");
+  if (checksHoje.length === 0 && abertas.length) recomendacoes.push("Checar aderencia do checklist: nenhuma conclusao registrada hoje.");
+
+  return jsonOut({
+    kpis:{
+      score_inteligente:score,
+      lead_time_medio_horas:round1V4(avgV4(leadTimes)),
+      tempo_medio_subtarefa_horas:round1V4(avgV4(subtarefaTimes)),
+      sla_24h:taxaSla24,
+      idade_media_fila_horas:idadeMediaFila,
+      os_em_risco:osRisco.length,
+      retrabalho_7d:retrabalho7d,
+      throughput_hoje:checksHoje.length,
+      throughput_7d:checks7d.length,
+      operadores_ativos_hoje:Object.keys(operadorHoje).length,
+      gargalo_principal:gargalo.setor || ""
+    },
+    os_risco:osRisco,
+    setores:setores,
+    alertas:alertas,
+    recomendacoes:recomendacoes,
+    atualizado_em:now()
+  });
+}
 
 /****************************************************
  * CENTRAL DE NOTIFICAÇÕES — V3.14
