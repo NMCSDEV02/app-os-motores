@@ -732,6 +732,7 @@ export async function renderManager(){
     const smartAlertas = Array.isArray(inteligencia.alertas) ? inteligencia.alertas : [];
     const smartRecomendacoes = Array.isArray(inteligencia.recomendacoes) ? inteligencia.recomendacoes : [];
     const hasSmartKpi = Object.keys(smart).length > 0;
+    const slaHoras = Number(smart.sla_configurado_horas || 24);
     const score = Math.max(0, Math.min(100, taxaConclusao || 0));
 
     renderWithManagerHeader(`
@@ -782,9 +783,9 @@ export async function renderManager(){
             </div>
             <div class="manager-v4-intel-grid">
               <div><small>OS em risco</small><b>${Number(smart.os_em_risco || 0)}</b></div>
-              <div><small>SLA 24h</small><b>${Number(smart.sla_24h || 0)}%</b></div>
+              <div><small>SLA ${slaHoras}h</small><b>${Number(smart.sla_configurado ?? smart.sla_24h ?? 0)}%</b></div>
               <div><small>Lead time</small><b>${Number(smart.lead_time_medio_horas || 0)}h</b></div>
-              <div><small>Hoje</small><b>${Number(smart.throughput_hoje || 0)}</b></div>
+              <div><small>Dados</small><b>${Number(smart.score_qualidade_dados ?? 100)}%</b></div>
             </div>
             ${(smartAlertas[0] || smartRecomendacoes[0]) ? `
               <div class="manager-v4-intel-callout">

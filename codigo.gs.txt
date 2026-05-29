@@ -216,6 +216,7 @@ function doGet(e) {
     if (acao === "produtividadeResumo") return produtividadeResumo(p.matricula);
     if (acao === "kpiDashboardAvancado") return kpiDashboardAvancado(p.matricula);
     if (acao === "kpiInteligenteV4") return kpiInteligenteV4(p.matricula);
+    if (acao === "auditarEstruturaV4") return auditarEstruturaV4();
     if (acao === "dashboardLean") return dashboardLean(p.matricula);
     if (acao === "bootstrapApp") return bootstrapApp(p.matricula);
     if (acao === "bootstrapGestaoFinal") return bootstrapGestaoFinal(p.matricula);
@@ -285,6 +286,7 @@ function doPost(e) {
     if (d.acao === "marcarNotificacaoLida") return marcarNotificacaoLida(d);
     if (d.acao === "salvarKitQR") return salvarKitQR(d);
     if (d.acao === "desvincularKitQR") return desvincularKitQR(d);
+    if (d.acao === "corrigirCabecalhosV4") return corrigirCabecalhosV4(d);
     return jsonOut({sucesso:false, erro:"Ação POST inválida"});
   } catch (err) {
     return jsonOut({sucesso:false, erro:String(err.message || err)});
@@ -1526,6 +1528,112 @@ function kpiDashboardAvancado(matricula) {
 }
 
 
+function schemasBancoV4() {
+  const schemas = {};
+  schemas[SHEETS.operadores] = ["id_operador","nome","matricula","setor","perfil","ativo","pode_criar_os","criado_em","ultimo_login_em"];
+  schemas[SHEETS.os] = ["id_os","codigo_os","motor","data_abertura","status","etapa_atual","setor_atual","criado_por","criado_por_matricula","concluida_em","excluida","recuperavel","id_modelo","kit_qr","observacao","operador_atual_nome","operador_atual_matricula","ultimo_movimento_em"];
+  schemas[SHEETS.checklist] = ["id_item","id_os","origem","id_subtarefa","etapa","setor","descricao","concluido","ordem","concluido_por","concluido_em","tempo_item_min"];
+  schemas[SHEETS.subtarefas] = ["id_subtarefa","id_os","codigo_os","descricao","setor_origem","setor_destino","status","criado_por","criado_em","concluido_por","concluido_em","tempo_subtarefa_min","excluida","excluida_por","excluida_em"];
+  schemas[SHEETS.historico] = ["data_hora","acao","operador_nome","matricula","codigo_os","setor","detalhes"];
+  schemas[SHEETS.logs] = ["data_hora","acao","operador_nome","codigo_os","detalhes"];
+  schemas[SHEETS.modelos] = ["id_modelo","nome_modelo","tipo","setor","etapa","descricao","ordem","ativo","criado_por","criado_em"];
+  schemas[SHEETS.kits] = ["id_kit","codigo_qr","descricao","status","id_os_atual","setor_atual","criado_em","codigo_os","motor","observacao","atualizado_por","atualizado_em"];
+  schemas[SHEETS.config] = ["chave","valor","descricao"];
+  schemas[SHEETS.lixeira] = ["data_exclusao","id_os","codigo_os","motor","excluido_por","motivo"];
+  schemas[SHEETS.solicitacoes_setor] = ["id_solicitacao","data_solicitacao","matricula","nome","setor_atual","setor_novo","status","avaliado_por","avaliado_em","observacao"];
+  schemas[SHEETS.setores] = ["id_setor","nome_setor","codigo_setor","tipo","descricao","ativo","criado_por","criado_em"];
+  schemas[SHEETS.fluxos] = ["id_fluxo","nome_fluxo","etapa","ordem","regra","ativo","criado_por","criado_em"];
+  schemas[SHEETS.config_sistema] = ["chave","valor","atualizado_por","atualizado_em"];
+  schemas[SHEETS.permissoes] = ["id_permissao","perfil","chave","valor","atualizado_por","atualizado_em"];
+  schemas[SHEETS.solicitacoes_admin] = ["id_solicitacao","tipo","titulo","descricao","criado_por","matricula","setor","status","criado_em","respondido_por","respondido_em","observacao"];
+  schemas[SHEETS.notificacoes] = ["id_notificacao","destino","origem","tipo","titulo","mensagem","codigo_os","criado_por","matricula","criado_em","lida","lida_por","lida_em"];
+  return schemas;
+}
+
+function auditoriaEstruturaInternaV4() {
+  const schemas = schemasBancoV4();
+  return Object.keys(schemas).map(name => {
+    const sheet = sh(name);
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    const expected = schemas[name];
+    const headers = lastRow > 0 && lastCol > 0
+      ? sheet.getRange(1, 1, 1, lastCol).getValues()[0].map(h => norm(h))
+      : [];
+    const matches = headers.filter(h => expected.indexOf(h) >= 0).length;
+    const missing = expected.filter(h => headers.indexOf(h) < 0);
+    const primeiraLinhaVazia = headers.every(h => !h);
+    const semCabecalho = lastRow === 0 || matches === 0;
+    return {
+      aba:name,
+      linhas:lastRow,
+      colunas:lastCol,
+      ok:missing.length === 0 && !semCabecalho,
+      sem_cabecalho:semCabecalho,
+      primeira_linha_vazia:primeiraLinhaVazia,
+      campos_presentes:matches,
+      campos_ausentes:missing,
+      acao_sugerida:semCabecalho ? "inserir_cabecalho" : (missing.length ? "adicionar_colunas" : "nenhuma")
+    };
+  });
+}
+
+function auditarEstruturaV4() {
+  const auditoria = auditoriaEstruturaInternaV4();
+  return jsonOut({
+    sucesso:true,
+    total_abas:auditoria.length,
+    abas_com_alerta:auditoria.filter(a => !a.ok).length,
+    auditoria:auditoria,
+    atualizado_em:now()
+  });
+}
+
+function corrigirCabecalhosV4(d) {
+  const op = exigirPerfil(d.matricula, ["Admin"]);
+  if (norm(d.confirmacao) !== "CORRIGIR_CABECALHOS") {
+    return jsonOut({sucesso:false, erro:"Confirmacao obrigatoria: CORRIGIR_CABECALHOS"});
+  }
+
+  const schemas = schemasBancoV4();
+  const auditoria = auditoriaEstruturaInternaV4();
+  const alteracoes = [];
+
+  auditoria.forEach(item => {
+    if (item.ok) return;
+    const sheet = sh(item.aba);
+    const expected = schemas[item.aba];
+
+    if (item.sem_cabecalho) {
+      if (sheet.getLastRow() === 0) {
+        sheet.appendRow(expected);
+      } else if (item.primeira_linha_vazia) {
+        sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+      } else {
+        sheet.insertRowBefore(1);
+        sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+      }
+      sheet.setFrozenRows(1);
+      alteracoes.push({aba:item.aba, acao:"cabecalho_inserido", campos:expected.length});
+      return;
+    }
+
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(h => norm(h));
+    let colIndex = headers.length + 1;
+    item.campos_ausentes.forEach(field => {
+      sheet.getRange(1, colIndex).setValue(field);
+      colIndex++;
+    });
+    sheet.setFrozenRows(1);
+    alteracoes.push({aba:item.aba, acao:"colunas_adicionadas", campos:item.campos_ausentes});
+  });
+
+  addLog("CABECALHOS_V4_CORRIGIDOS", op.nome, alteracoes.length + " aba(s) ajustadas", "");
+  addHistorico("CABECALHOS_V4_CORRIGIDOS", op.nome, op.matricula, "", "Administracao", alteracoes.length + " aba(s) ajustadas");
+  return jsonOut({sucesso:true, alteracoes:alteracoes, atualizado_em:now()});
+}
+
+
 
 /****************************************************
  * KPI INTELIGENTE V4
@@ -1533,8 +1641,43 @@ function kpiDashboardAvancado(matricula) {
  ****************************************************/
 function parseDateV4(v) {
   if (!v) return null;
-  const d = new Date(v);
+  if (Object.prototype.toString.call(v) === "[object Date]") {
+    return isNaN(v.getTime()) ? null : v;
+  }
+
+  if (typeof v === "number" && isFinite(v)) {
+    if (v > 20000 && v < 80000) {
+      return new Date(Math.round((v - 25569) * 86400000));
+    }
+    return null;
+  }
+
+  const raw = String(v || "").trim();
+  if (!raw) return null;
+  if (/^\d{1,7}:\d{2}:\d{2}$/.test(raw)) return null;
+
+  if (/^\d+(\.\d+)?$/.test(raw)) {
+    const serial = Number(raw);
+    if (serial > 20000 && serial < 80000) {
+      return new Date(Math.round((serial - 25569) * 86400000));
+    }
+  }
+
+  const br = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[,\sT]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (br) {
+    const d = new Date(Number(br[3]), Number(br[2]) - 1, Number(br[1]), Number(br[4] || 0), Number(br[5] || 0), Number(br[6] || 0));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(raw);
   return isNaN(d.getTime()) ? null : d;
+}
+
+function isHojeV4(v) {
+  const d = parseDateV4(v);
+  if (!d) return false;
+  const h = new Date();
+  return d.getFullYear() === h.getFullYear() && d.getMonth() === h.getMonth() && d.getDate() === h.getDate();
 }
 
 function hoursBetweenV4(a, b) {
@@ -1572,10 +1715,76 @@ function round1V4(v) {
   return Math.round(Number(v || 0) * 10) / 10;
 }
 
+function numberV4(v, fallback) {
+  const n = Number(v);
+  return isFinite(n) ? n : Number(fallback || 0);
+}
+
+function configValorV4(chave, fallback) {
+  try {
+    const rows = rowsAsObjects(SHEETS.config).rows;
+    const row = rows.find(r => norm(r.chave) === norm(chave));
+    return row && norm(row.valor) !== "" ? row.valor : fallback;
+  } catch(e) {
+    return fallback;
+  }
+}
+
 function pushMapV4(map, key, seed) {
   key = norm(key) || "Sem setor";
   if (!map[key]) map[key] = Object.assign({setor:key, os_abertas:0, subtarefas_pendentes:0, idade_media_horas:0, peso:0, _idades:[]}, seed || {});
   return map[key];
+}
+
+function headersFaltantesV4(sheetName, expected) {
+  try {
+    const headers = rowsAsObjects(sheetName).headers.map(h => norm(h));
+    return expected.filter(h => headers.indexOf(h) < 0);
+  } catch(e) {
+    return expected;
+  }
+}
+
+function contarDatasInvalidasV4(rows, fields) {
+  let total = 0;
+  (rows || []).forEach(r => {
+    (fields || []).forEach(f => {
+      const value = r[f];
+      if (norm(value) && !parseDateV4(value)) total++;
+    });
+  });
+  return total;
+}
+
+function qualidadeDadosKpiV4(dados) {
+  const esperado = {};
+  esperado[SHEETS.os] = ["id_os","codigo_os","motor","data_abertura","status","etapa_atual","setor_atual","concluida_em","ultimo_movimento_em"];
+  esperado[SHEETS.checklist] = ["id_item","id_os","descricao","concluido","concluido_em","tempo_item_min"];
+  esperado[SHEETS.subtarefas] = ["id_subtarefa","id_os","codigo_os","descricao","setor_destino","status","criado_em","concluido_em","tempo_subtarefa_min"];
+  esperado[SHEETS.historico] = ["data_hora","acao","operador_nome","matricula","codigo_os","setor","detalhes"];
+  esperado[SHEETS.logs] = ["data_hora","acao","operador_nome","codigo_os","detalhes"];
+  esperado[SHEETS.setores] = ["id_setor","nome_setor","codigo_setor","tipo","ativo"];
+  esperado[SHEETS.fluxos] = ["id_fluxo","nome_fluxo","etapa","ordem","ativo"];
+  esperado[SHEETS.config_sistema] = ["chave","valor","atualizado_por","atualizado_em"];
+
+  const abas = Object.keys(esperado).map(nome => {
+    const faltantes = headersFaltantesV4(nome, esperado[nome]);
+    return {aba:nome, campos_ausentes:faltantes, ok:faltantes.length === 0};
+  }).filter(item => !item.ok);
+
+  const datasInvalidas =
+    contarDatasInvalidasV4(dados.osRows, ["data_abertura","concluida_em","ultimo_movimento_em"]) +
+    contarDatasInvalidasV4(dados.checks, ["concluido_em"]) +
+    contarDatasInvalidasV4(dados.subs, ["criado_em","concluido_em","excluida_em"]) +
+    contarDatasInvalidasV4(dados.hist, ["data_hora"]) +
+    contarDatasInvalidasV4(dados.logs, ["data_hora"]);
+
+  return {
+    score_qualidade: Math.max(0, 100 - Math.min(45, abas.length * 9) - Math.min(35, datasInvalidas * 4)),
+    datas_invalidas: datasInvalidas,
+    abas_inconsistentes: abas,
+    observacao: abas.length || datasInvalidas ? "Ha dados que devem ser revisados na planilha." : "Estrutura principal validada."
+  };
 }
 
 function kpiInteligenteV4(matricula) {
@@ -1584,12 +1793,16 @@ function kpiInteligenteV4(matricula) {
   const subs = rowsAsObjects(SHEETS.subtarefas).rows.filter(s => !isTrue(s.excluida));
   const hist = rowsAsObjects(SHEETS.historico).rows;
   const logs = rowsAsObjects(SHEETS.logs).rows;
+  const slaHoras = Math.max(1, numberV4(configValorV4("tempo_alerta_horas", 24), 24));
+  const faixaAtencao = Math.max(2, slaHoras / 3);
+  const faixaAlta = Math.max(faixaAtencao + 1, slaHoras * 2 / 3);
+  const qualidade = qualidadeDadosKpiV4({osRows:osRows, checks:checks, subs:subs, hist:hist, logs:logs});
 
   const abertas = osRows.filter(o => !isDone(o.status));
   const concluidas = osRows.filter(o => isDone(o.status));
   const subsPendentes = subs.filter(s => !isDone(s.status));
   const checksConcluidos = checks.filter(c => isTrue(c.concluido));
-  const checksHoje = checksConcluidos.filter(c => isHoje(c.concluido_em));
+  const checksHoje = checksConcluidos.filter(c => isHojeV4(c.concluido_em));
   const checks7d = checksConcluidos.filter(c => isWithinDaysV4(c.concluido_em, 7));
 
   const leadTimes = concluidas
@@ -1598,7 +1811,11 @@ function kpiInteligenteV4(matricula) {
 
   const subtarefaTimes = subs
     .filter(s => isDone(s.status))
-    .map(s => hoursBetweenV4(s.criado_em, s.concluido_em))
+    .map(s => {
+      const minutos = numberV4(s.tempo_subtarefa_min, 0);
+      if (minutos > 0) return minutos / 60;
+      return hoursBetweenV4(s.criado_em, s.concluido_em);
+    })
     .filter(v => typeof v === "number" && !isNaN(v));
 
   const abertasComRisco = abertas.map(o => {
@@ -1606,11 +1823,11 @@ function kpiInteligenteV4(matricula) {
     const idade = ageHoursV4(o.ultimo_movimento_em || o.data_abertura);
     const idadeTotal = ageHoursV4(o.data_abertura);
     let risco = 0;
-    if (idadeTotal >= 24) risco += 42;
-    else if (idadeTotal >= 16) risco += 28;
-    else if (idadeTotal >= 8) risco += 14;
-    if (idade >= 8) risco += 18;
-    if (progresso.percentual_total < 25 && idadeTotal >= 8) risco += 18;
+    if (idadeTotal >= slaHoras) risco += 42;
+    else if (idadeTotal >= faixaAlta) risco += 28;
+    else if (idadeTotal >= faixaAtencao) risco += 14;
+    if (idade >= faixaAtencao) risco += 18;
+    if (progresso.percentual_total < 25 && idadeTotal >= faixaAtencao) risco += 18;
     if (Number(progresso.subtarefas_pendentes || 0) > 0) risco += Math.min(20, Number(progresso.subtarefas_pendentes || 0) * 8);
     return {
       id_os:o.id_os,
@@ -1656,25 +1873,27 @@ function kpiInteligenteV4(matricula) {
   const retrabalho7d = acoesCriticas.filter(r => isWithinDaysV4(r.data_hora, 7)).length;
 
   const operadorHoje = {};
-  hist.filter(h => isHoje(h.data_hora)).forEach(h => {
+  hist.filter(h => isHojeV4(h.data_hora)).forEach(h => {
     const key = norm(h.matricula) || norm(h.operador_nome);
     if (key) operadorHoje[key] = true;
   });
 
   const gargalo = setores[0] || {setor:"", peso:0, os_abertas:0, subtarefas_pendentes:0};
   const osRisco = abertasComRisco.filter(o => o.risco >= 45).slice(0,8);
-  const taxaSla24 = pctV4(leadTimes.filter(h => h <= 24).length, leadTimes.length);
+  const taxaSla = pctV4(leadTimes.filter(h => h <= slaHoras).length, leadTimes.length);
   const idadeMediaFila = round1V4(avgV4(abertasComRisco.map(o => o.idade_horas)));
   const scoreBase = JSON.parse(kpiDashboardAvancado(matricula).getContent()).kpis || {};
   const score = Math.max(0, Math.min(100,
-    Math.round(Number(scoreBase.score_operacional || 0) - Math.min(18, osRisco.length * 4) - Math.min(12, retrabalho7d * 1.5) + Math.min(8, taxaSla24 / 16))
+    Math.round(Number(scoreBase.score_operacional || 0) - Math.min(18, osRisco.length * 4) - Math.min(12, retrabalho7d * 1.5) - Math.min(12, (100 - qualidade.score_qualidade) / 8) + Math.min(8, taxaSla / 16))
   ));
 
   const alertas = [];
   if (osRisco.length) alertas.push(osRisco.length + " OS em risco operacional. Priorize " + osRisco[0].codigo_os + ".");
   if (gargalo.setor) alertas.push("Gargalo principal: " + gargalo.setor + " com peso " + gargalo.peso + ".");
-  if (idadeMediaFila >= 16) alertas.push("Fila envelhecida: media de " + idadeMediaFila + "h nas OS abertas.");
+  if (idadeMediaFila >= faixaAlta) alertas.push("Fila envelhecida: media de " + idadeMediaFila + "h nas OS abertas.");
   if (retrabalho7d >= 3) alertas.push("Retrabalho alto nos ultimos 7 dias: " + retrabalho7d + " eventos criticos.");
+  if (qualidade.datas_invalidas) alertas.push(qualidade.datas_invalidas + " campo(s) de data precisam revisao na planilha.");
+  if (qualidade.abas_inconsistentes.length) alertas.push(qualidade.abas_inconsistentes.length + " aba(s) com cabecalho incompleto.");
   if (!alertas.length) alertas.push("Fluxo estavel: nenhum risco critico detectado agora.");
 
   const recomendacoes = [];
@@ -1682,13 +1901,17 @@ function kpiInteligenteV4(matricula) {
   if (gargalo.setor) recomendacoes.push("Rebalancear equipe ou prioridade para " + gargalo.setor + ".");
   if (subsPendentes.length) recomendacoes.push("Fechar subtarefas pendentes antes de avancar etapas dependentes.");
   if (checksHoje.length === 0 && abertas.length) recomendacoes.push("Checar aderencia do checklist: nenhuma conclusao registrada hoje.");
+  if (qualidade.abas_inconsistentes.length) recomendacoes.push("Corrigir cabecalhos de " + qualidade.abas_inconsistentes.map(a => a.aba).slice(0,3).join(", ") + " antes de liberar novos indicadores.");
 
   return jsonOut({
     kpis:{
       score_inteligente:score,
+      score_qualidade_dados:qualidade.score_qualidade,
       lead_time_medio_horas:round1V4(avgV4(leadTimes)),
       tempo_medio_subtarefa_horas:round1V4(avgV4(subtarefaTimes)),
-      sla_24h:taxaSla24,
+      sla_24h:taxaSla,
+      sla_configurado:taxaSla,
+      sla_configurado_horas:slaHoras,
       idade_media_fila_horas:idadeMediaFila,
       os_em_risco:osRisco.length,
       retrabalho_7d:retrabalho7d,
@@ -1699,6 +1922,7 @@ function kpiInteligenteV4(matricula) {
     },
     os_risco:osRisco,
     setores:setores,
+    qualidade_dados:qualidade,
     alertas:alertas,
     recomendacoes:recomendacoes,
     atualizado_em:now()
